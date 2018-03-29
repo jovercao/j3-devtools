@@ -1,5 +1,5 @@
 <template>
-  <el-collapse>
+  <el-collapse class="components-box">
     <el-collapse-item name="outline">
       <div slot="title" class="head">
         <i class="el-icon-share"/> 组件
@@ -27,6 +27,15 @@ export default {
 </script>
 
 <style lang="less" scoped>
+
+.el-collapse-item__wrap {
+  background-color: transparent !important;
+}
+
+.components-box {
+  background-color: transparent !important;
+}
+
 .head {
   padding-left: 15px;
 }

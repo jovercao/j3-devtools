@@ -1,24 +1,24 @@
-const service = {
+import catalogs from '../catalogs'
+import view from './view'
+import generate from './generate'
+import model from './model'
+import resource from './resource'
 
+const service = {
+  // 资源管理
+  resource,
   /**
    * 获取可用组件列表
    * @return {object[]} 返回所有已注册组件列表
    */
   async getComponents() {
-
+    return catalogs.components
   },
   /**
-   * 获取所有视图
-   * @return {object[]} 返回组件列表
+   * 获取所有设计摘要列表
    */
-  async getViews() {
-  },
-  /**
-   * 获取数据模型列表
-   * @return {object[]} 返回所有模型列表
-   */
-  async getModels() {
-
+  async getCatalogs() {
+    return catalogs
   },
   /**
    * 获取数据库连接
@@ -41,47 +41,13 @@ const service = {
 
   },
 
-  async openPackage() {
+  async readPackage() {
 
   },
 
   async savePackage() {
 
   },
-  /**
-   * 打开数据模型
-   * @return {object} - 返回模型对象
-   */
-  async openModel(path) {
-
-  },
-  /**
-   * 保存数据模型
-   * @param {string} path - 路径
-   * @param {object} model - model对象
-   */
-  async saveModel(path, model) {
-
-  },
-
-  /**
-   * 打开数据视图
-   * @return {object} - 返回视图对象
-   */
-  async openView(path) {
-
-  },
-
-  /**
-   * 保存视图
-   * @param {string} path - 路径
-   * @param {object} view - 视图对象
-   * @return {void}
-   */
-  async saveView(path, view) {
-
-  },
-
   /**
    * 获取所有报表
    */
@@ -90,8 +56,16 @@ const service = {
   }
 }
 
+Object.assign(service, view, model)
+
+service.generate = generate
+
 export default {
   install(Vue, options) {
     Vue.prototype.$service = service
   }
+}
+
+export {
+  service
 }

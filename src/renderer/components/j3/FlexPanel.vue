@@ -1,6 +1,6 @@
 <template>
-  <div class="j3-flex-container" :style="{ 'align-items': align, 'flex-direction': direction === 'vertical' ? 'column' : 'row' }">
-    <slot :direction="direction"></slot>
+  <div class="j3-flex-panel" :style="{ 'align-items': align, 'flex-direction': direction === 'vertical' ? 'column' : 'row' }">
+    <slot></slot>
   </div>
 </template>
 
@@ -20,7 +20,9 @@ export default {
 </script>
 
 <style lang="less">
-.j3-flex-container {
+.j3-flex-panel {
+  height: 100%;
+  width: 100%;
   display: flex;
 }
 </style>

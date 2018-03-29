@@ -1,28 +1,29 @@
 <template>
   <div class="property-grid">
-    <div class="grid-row" v-for="(item, key, index) of attributes" :key="index">
+    <div class="grid-row" v-for="(item, key, index) in curCmp.props" :key="index">
       <div class="grid-property-name">{{key}}</div>
       <div class="grid-property-value">
-        <mu-text-field class="text-field" v-if="item.type === String" :hintText="key" v-model="props[key]"/>
-        <mu-date-picker v-if="item.type === Date" container="inline"  :hintText="key" v-model="props[key]"/>
-        <mu-switch v-if="item.type === Boolean" v-model="props[key]" />
+        <mu-text-field class="text-field" v-if="item.type === String" :value="props[key]" :hintText="key" @change="changeProp({ prop: key, value: arguments[1] })"/>
+        <el-input-number class="text-field" v-if="item.type === Number" :value="props[key]" :hintText="key" @input="changeProp({ prop: key, value: arguments[0] })"/>
+        <mu-date-picker v-if="item.type === Date" container="inline" :value="props[key]" :hintText="key" @change="changeProp({ prop: key, value: arguments[1] })"/>
+        <mu-switch v-if="item.type === Boolean" :value="props[key]" @change="changeProp({ prop: key, value: arguments[1] })" />
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState, mapActions, mapGetters } from 'vuex'
+import modules from '../../../store/store-modules'
 
 export default {
   computed: {
-    ...mapState('ui-designer', {
-      component: state =>
-        state.selectedNode ? state.selectedNode.component : {},
-      attributes: state =>
-        state.selectedNode ? state.selectedNode.component.attributes : {},
-      props: state => (state.selectedNode ? state.selectedNode.props : {})
-    })
+    ...mapState(modules.UiDesigner, {
+      component: state => state.selectedComponent,
+      props: state => state.selectedItem ? state.selectedItem.props : {},
+      selectedItem: state => state.selectedItem
+    }),
+    ...mapGetters(modules.UiDesigner, [ 'curCmp' ])
   },
   methods: {
     displayValue(value) {
@@ -32,14 +33,15 @@ export default {
       return value
     },
     handlerCellClick(rowIndex, columnName, td) {
-      let attr = this.attributes[td.name]
+      let attr = this.propsDefine[td.name]
       this.showEditor(attr, td)
     },
     showEditor(attr, td) {
       if (attr.type === String) {
         console.log('fdsfds')
       }
-    }
+    },
+    ...mapActions(modules.UiDesigner, ['changeProp'])
   }
 }
 </script>
@@ -56,6 +58,7 @@ export default {
   flex-direction: row;
   align-items: stretch;
   height: 50px;
+  line-height: 50px;
   vertical-align: middle;
   .grid-property-value {
     flex-grow: 1;
@@ -66,7 +69,7 @@ export default {
   .grid-property-name {
     overflow: hidden;
     display:inline-block;
-    flex-basis: 100px;
+    flex-basis: 150px;
     vertical-align: middle;
   }
 

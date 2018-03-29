@@ -1,130 +1,103 @@
+import { service } from '../../service'
+import Vue from 'vue'
+
 const state = {
-  views: {
-    tag: 'container',
-    path: 'container',
-    title: 'root',
-    component: {
-      icon: 'home',
-      name: 'container',
-      attributes: {
-        title: {
-          type: String,
-          default: '默认值'
-        },
-        hidden: {
-          type: Boolean,
-          default: false
-        },
-        width: {
-          type: Number,
-          default: 200
-        },
-        height: {
-          type: Number,
-          default: 200
-        }
-      }
-    },
-    props: {
-      width: 300
-    },
-    children: [
-      {
-        tag: 'dev',
-        path: 'container/div',
-        title: 'dev',
-        icon: 'face',
-        component: {
-          icon: 'home',
-          name: 'input',
-          attributes: {
-            title: {
-              type: String,
-              default: '默认值'
-            },
-            hidden: {
-              type: Boolean,
-              default: false
-            },
-            width: {
-              type: Number,
-              default: 200
-            },
-            height: {
-              type: Number,
-              default: 200
-            }
-          }
-        },
-        props: {
-          width: 300
-        }
-      },
-      {
-        tag: 'textbox',
-        path: 'container/textbox',
-        title: 'textbox',
-        icon: 'book',
-        component: {
-          icon: 'home',
-          name: 'textbox',
-          attributes: {
-            title: {
-              type: String,
-              default: '默认值'
-            },
-            hidden: {
-              type: Boolean,
-              default: false
-            },
-            width: {
-              type: Number,
-              default: 200
-            },
-            height: {
-              type: Number,
-              default: 200
-            }
-          }
-        },
-        props: {
-          width: 300
-        }
-      }
-    ]
+  // 视图数据
+  viewData: null,
+  // 选中的视图项
+  selectedItem: null,
+  // 高亮的视图项
+  hlItem: null,
+  // 当前显示的侧边栏
+  activeSidebar: 'ComponentsSidebar',
+  // 当前显示的页
+  activeView: 'DesignerView',
+  // 设计摘要数据
+  catalogs: null
+}
+
+const getters = {
+  // 当前选择组件信息
+  curCmp(state) {
+    return state.selectedItem ? state.catalogs.components[state.selectedItem.type] : {}
   },
-  activeSidebar: 'outline',
-  activeTab: 'designer',
-  selectedNode: null
+  // 静态数据，以映射方式返回
+  // TODO: 升级catalogs为所有描述
+  components(state) {
+    return state.catalogs ? state.catalogs.components : null
+  }
 }
 
 const mutations = {
-  selectNode(state, node) {
-    state.selectedNode = node
+  selectItem(state, item) {
+    state.selectedItem = item
   },
-  selectTab(state, tab) {
-    state.activeTab = tab
+  changeHlItem(state, item) {
+    state.hlItem = item
+  },
+  changeProp(state, { prop, value }) {
+    state.selectedItem.props[prop] = value
+  },
+  addChildItem(state, { viewData, dropedViewData, slot }) {
+    console.log(dropedViewData)
+    const comp = state.catalogs.components[viewData.type]
+    const accepts = comp.slots[slot].accepts
+    if (accepts !== '*') {
+      if (!accepts.includes(dropedViewData.type)) {
+        throw Error('不支持的子组件！')
+      }
+    }
+
+    if (!viewData.slots) {
+      Vue.set(viewData, 'slots', {})
+    }
+    if (!viewData.slots[slot]) {
+      Vue.set(viewData.slots, slot, [])
+    }
+    const items = viewData.slots[slot]
+    Vue.set(items, items.length, dropedViewData)
+  },
+  changeActiveView(state, view) {
+    state.activeView = view
   },
   selectSidebar(state, sidebar) {
     state.activeSidebar = sidebar
+  },
+  openView(state, viewData) {
+    state.viewData = viewData
+  },
+  loadCatalogs(state, catalogs) {
+    state.catalogs = catalogs
   }
 }
 
 const actions = {
-  async selectNode({ commit }, node) {
+  async selectItem({ commit }, item) {
     // do something async
-    commit('selectNode', node)
+    commit('selectItem', item)
   },
   selectSidebar({ commit }, sidebar) {
     commit('selectSidebar', sidebar)
   },
-  selectTab({ commit }, tab) {
-    commit('selectTab', tab)
+  changeProp({ commit }, { prop, value }) {
+    commit('changeProp', { prop, value })
+  },
+  changeHlItem({ commit }, item) {
+    commit('changeHlItem', item)
+  },
+  async openView({ commit }, path) {
+    const view = await service.readView(path)
+    commit('openView', view)
+  },
+  async loadCatalogs({ commit }, uri) {
+    const catalogs = await service.getCatalogs()
+    commit('loadCatalogs', catalogs)
   }
 }
 
 export default {
   namespaced: true,
+  getters,
   state,
   mutations,
   actions
