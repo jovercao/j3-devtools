@@ -8,7 +8,6 @@
 export default {
   props: {
     thickness: [Number, String],
-    direction: String,
     grow: {
       type: Number,
       default: null
