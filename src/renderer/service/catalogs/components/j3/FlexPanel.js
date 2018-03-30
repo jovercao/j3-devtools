@@ -21,6 +21,7 @@ export default {
       type: String,
       // 属性默认值
       default: 'horizontal',
+      title: '排列方向',
       // 属性描述
       description: '排列方向',
       // 是否可空，默认允许空值
@@ -75,7 +76,9 @@ export default {
       // 插糟标题
       title: '默认位置',
       // 可接受类型
-      accepts: 'J3FlexPanelItem',
+      accepts: [
+        'J3FlexPanelItem'
+      ],
       // 托业描述
       description: ''
     }
@@ -86,7 +89,7 @@ export default {
   templates: [
     {
       title: '水平多栏自伸缩布局',
-      icon: '',
+      icon: 'home',
       type: 'J3FlexPanel',
       props: {
         direction: 'horizontal',
@@ -107,7 +110,7 @@ export default {
             type: 'J3FlexPanelItem',
             props: {
               grow: 1,
-              thickness: 150
+              thickness: 0
             }
           }
         ]
@@ -117,28 +120,29 @@ export default {
     },
     {
       title: '垂直多栏自伸缩布局',
+      icon: 'home',
       type: 'J3FlexPanel',
       props: {
-        direction: 'horizontal',
-        align: 'stretch',
-        slots: {
-          default: [
-            {
-              type: 'J3FlexPanelItem',
-              props: {
-                grow: 0,
-                thickness: 150
-              }
-            },
-            {
-              type: 'J3FlexPanelItem',
-              props: {
-                grow: 1,
-                thickness: 150
-              }
+        direction: 'vertical',
+        align: 'stretch'
+      },
+      slots: {
+        default: [
+          {
+            type: 'J3FlexPanelItem',
+            props: {
+              grow: 0,
+              thickness: 150
             }
-          ]
-        }
+          },
+          {
+            type: 'J3FlexPanelItem',
+            props: {
+              grow: 1,
+              thickness: 0
+            }
+          }
+        ]
       },
       event: {},
       binds: {}

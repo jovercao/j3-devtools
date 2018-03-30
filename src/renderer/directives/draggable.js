@@ -1,4 +1,4 @@
-// import _ from 'lodash'
+import _ from 'lodash'
 
 export default {
   name: 'draggable',
@@ -10,10 +10,18 @@ export default {
       el.draggable = true
 
       el.addEventListener('dragstart', event => {
-        console.log(binding.value)
-        const json = JSON.stringify(binding.value)
-        event.dataTransfer.setData(binding.arg, json)
+        let data
+        if (!_.isEmpty(binding.value)) {
+          data = binding.value
+          const json = JSON.stringify(data)
+          event.dataTransfer.setData('text', json)
+        }
         // event.stopPropagation()
+        vnode.componentInstance.$emit('dragstart', data, event)
+      })
+      el.addEventListener('dragend', event => {
+        // event.dataTransfer.clearData()
+        vnode.componentInstance.$emit('dragend', null, event)
       })
     }
   }

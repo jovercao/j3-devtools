@@ -1,12 +1,12 @@
 <template>
-  <el-collapse class="components-box">
+  <el-collapse v-model="activeNames" class="components-box">
     <el-collapse-item name="outline">
       <div slot="title" class="head">
         <i class="el-icon-share"/> 组件
       </div>
       <OutlineBox/>
     </el-collapse-item>
-    <el-collapse-item name="property">
+    <el-collapse-item expand="true" name="property">
       <div slot="title" class="head">
         <i class="el-icon-tickets"/> 属性
       </div>
@@ -22,6 +22,11 @@ export default {
   components: {
     PropertyBox,
     OutlineBox
+  },
+  data() {
+    return {
+      activeNames: ['outline', 'property']
+    }
   }
 }
 </script>

@@ -31,14 +31,18 @@ marked.setOptions({
 })
 
 export default {
-  computed: {
-    ...mapState(modules.UiDesigner, ['viewData']),
-    sourceCode() {
-      return this.$service.generate(this.viewData)
-    },
-    htmlCode() {
-      return marked('```html\n' + this.sourceCode + '\n```')
+  data() {
+    return {
+      sourceCode: '',
+      htmlCode: ''
     }
+  },
+  computed: {
+    ...mapState(modules.UiDesigner, ['viewData'])
+  },
+  activated() {
+    this.sourceCode = this.$service.generate(this.viewData)
+    this.htmlCode = marked('```html\n' + this.sourceCode + '\n```')
   }
 }
 </script>

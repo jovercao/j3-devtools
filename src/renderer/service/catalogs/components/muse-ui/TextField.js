@@ -5,27 +5,13 @@ export default {
   icon: 'home',
   title: '文本框',
   category: category.form,
+  tag: 'mu-text-field',
   description: '',
   props: {
     value: {
       type: String,
       default: '文本框',
       description: '默认值'
-    },
-    hidden: {
-      type: Boolean,
-      default: false,
-      description: ''
-    },
-    width: {
-      type: Number,
-      default: 200,
-      description: ''
-    },
-    height: {
-      type: Number,
-      default: 200,
-      description: ''
     }
   },
   events: [
@@ -39,5 +25,8 @@ export default {
         }
       ]
     }
+  ],
+  quickProps: [
+    'value'
   ]
 }

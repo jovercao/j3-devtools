@@ -25,6 +25,9 @@ export default {
       accepts: '*'
     }
   },
+  acceptsParent: [
+    'J3FlexPanel'
+  ],
   events: [],
   // 示例
   default: [{

@@ -3,21 +3,28 @@
   <div class="component-sidebar-header">
     组件库
   </div>
-  <mu-list v-if="components">
-    <mu-list-item v-draggable:data="item.templates[0]" class="component-item" v-for="(item, index) in components" :key="index" title-class="component-item-title"
-         :title="item.title" :describeText="item.description">
-      <mu-icon :value="item.icon" slot="left" :size="32"></mu-icon>
-    </mu-list-item>
-  </mu-list>
+  <div v-if="templates">
+    <div draggable="true"
+      v-for="(item, index) in templates" :key="index"
+      @dragstart.stop="beginDrag({ source: 'components-sidebar', type: 'view-data', data: item })"
+      @dragend.stop="endDrag()"
+      class="component-item">
+      <mu-icon class="component-icon" v-if="item.icon" :value="item.icon" :size="24"></mu-icon>
+      {{item.title}}
+    </div>
+  </div>
   </div>
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters, mapMutations } from 'vuex'
 import modules from '../../../store/store-modules'
 export default {
   computed: {
-    ...mapGetters(modules.UiDesigner, ['components'])
+    ...mapGetters(modules.UiDesigner, ['templates'])
+  },
+  methods: {
+    ...mapMutations(modules.UiDesigner, ['beginDrag', 'endDrag'])
   }
 }
 </script>
@@ -36,7 +43,16 @@ export default {
       border-bottom: #DDD solid 1px;
     }
     .component-item {
-
+      height: 42px;
+      line-height: 42px;
+      padding-left: 12px;
+      padding-right: 12px;
+    }
+    .component-item:hover {
+      background: #ccc;
+    }
+    .component-icon {
+      vertical-align: middle;
     }
     .component-item-title {
 
