@@ -7,7 +7,7 @@
 </template>
 
 <script>
-import { mapState, mapActions, mapGetters } from 'vuex'
+import { mapState, mapMutations, mapGetters } from 'vuex'
 import modules from '../../../store/store-modules'
 import OutlineBoxItem from './OutlineBoxItem'
 
@@ -21,7 +21,7 @@ export default {
     ...mapGetters(modules.UiDesigner, ['components'])
   },
   methods: {
-    ...mapActions(modules.UiDesigner, ['selectItem'])
+    ...mapMutations(modules.UiDesigner, ['selectItem'])
   }
 }
 </script>

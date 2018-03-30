@@ -1,12 +1,16 @@
-import defaultTemplate from './default-template'
+import { defaultTemplate } from './template'
+import validate from './validate'
 
 const components = {}
 
 function loadFiles(files) {
   files.keys().forEach(filename => {
-    // TODO: 此处需加入校验函
     if (filename === './index.js') return
     const comp = files(filename).default
+    const validRes = validate(comp)
+    if (!validRes.isValid) {
+      throw new Error(validRes.message)
+    }
     if (!comp.templates) {
       comp.templates = [
         defaultTemplate(comp)
@@ -15,7 +19,7 @@ function loadFiles(files) {
     components[comp.name] = comp
   })
 }
-
+console.log(components)
 const j3Files = require.context('./j3', false, /\.js$/)
 loadFiles(j3Files)
 
@@ -26,9 +30,3 @@ const domFiles = require.context('./dom', false, /\.js$/)
 loadFiles(domFiles)
 
 export default components
-
-export { default as category } from './categroy'
-
-export {
-  components
-}

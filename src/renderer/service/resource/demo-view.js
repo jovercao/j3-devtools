@@ -4,7 +4,7 @@ export default {
    * 打开数据视图
    * @return {object} - 返回视图对象
    */
-  async readView(path) {
+  async get(id) {
     return {
       title: '水平多栏自伸缩布局',
       icon: '',
@@ -40,17 +40,23 @@ export default {
 
   /**
    * 保存视图
-   * @param {string} path - 路径
+   * @param {string} id - 路径
    * @param {object} view - 视图对象
    * @return {void}
    */
-  async saveView(path, view) {
+  async set(id, view) {
 
   },
   /**
    * 获取所有视图
    * @return {object[]} 返回组件列表
    */
-  async getViews() {
+  async list() {
+  },
+  /**
+   * 创建
+   */
+  async create() {
+
   }
 }

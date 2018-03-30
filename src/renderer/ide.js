@@ -8,7 +8,6 @@ import Service from './service'
 import MuseUI from 'muse-ui'
 import 'muse-ui/dist/muse-ui.css'
 import 'muse-ui/dist/theme-carbon.css'
-import { CatalogsPlugin } from './catalogs'
 import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
 import 'material-design-icons/iconfont/material-icons.css'
@@ -23,7 +22,6 @@ Vue.use(MuseUI)
 Vue.use(ElementUI)
 Vue.use(Components)
 Vue.use(Service)
-Vue.use(CatalogsPlugin)
 Vue.use(directives)
 
 function run() {

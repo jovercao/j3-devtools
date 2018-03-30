@@ -10,6 +10,11 @@ const def = Object.assign({
     }
 
     return str
+  },
+  sleep() {
+    return new Promise((resolve) => {
+      setTimeout(resolve)
+    })
   }
 }, _)
 

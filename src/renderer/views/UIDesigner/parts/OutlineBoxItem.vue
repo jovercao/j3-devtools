@@ -1,16 +1,33 @@
 <template>
   <div class="outline-box-item">
-    <div @mouseover.stop="changeHlItem(viewData)" @mouseleave.stop="changeHlItem(null)" @click="handlerClick(viewData)" :class="['outline-box-item-title', { 'outline-box-item-selected': isSelected, 'outline-box-item-heightlight': isHlItem }]">
-      <mu-icon class="outline-box-item-icon" :value="expaned ? 'keyboard_arrow_down' : 'keyboard_arrow_right'" @click="toggleExpand" />
+    <div
+      draggable="true"
+      @dragstart.stop="beginDrag({ source: 'inner', type: 'view-data', data: viewData })"
+      @dragend.stop="endDrag(null)"
+      @dragover.stop="_onTitleDragover"
+      @drop.stop="addDropItem(viewData.parent, viewData.slot, viewData.index, $event)"
+      @mouseover.stop="changeHlItem(viewData)"
+      @mouseleave.stop="changeHlItem(null)"
+      @click="selectItem(viewData)"
+      :class="['outline-box-item-head', { 'outline-box-item-selected': isSelected, 'outline-box-item-heightlight': isHlItem }]"
+      >
+
+      <mu-icon v-if="hasSlotsDef(viewData.type)"
+          class="outline-box-item-icon" :value="expandIcon" @click="toggleExpand" />
       <span>{{title}}</span>
+
     </div>
-    <div class="outline-box-item-slot" v-if="expaned && viewData.slots">
-      <div class="outline-box-item" v-for="(items, name, index) in viewData.slots" :key="index">
-        <div class="outline-box-item-title" >
-          <span>{{`[${components[viewData.type].slots[name].title}]`}}</span>
+    <div class="outline-box-item-body" v-show="expaned" v-if="components[viewData.type].slots">
+      <div class="outline-box-item" v-for="(slotDef, slotName, index) in components[viewData.type].slots" :key="index">
+        <div :class="['outline-box-item-head', { 'outline-box-item-heightlight': slotName === hlslot }]"
+          @dragover.stop="_onSlotDragover(slotName, $event)"
+          @dragleave.stop="hlslot = null"
+          @drop.stop="addDropItem(viewData, slotName, null, $event)"
+        >
+          <span>{{`[${slotDef.title || slotName}]`}}</span>
         </div>
-        <div class="outline-box-item-list" v-if="items && items.length > 0">
-          <OutlineBoxItem @select="handlerClick" slot="nested" :key="index" v-for="(item, index) in items" :viewData="item">
+        <div v-if="hasSlotItem(slotName)" class="outline-box-item-body">
+          <OutlineBoxItem slot="nested" :key="index" v-for="(item, index) in viewData.slots[slotName]" :viewData="item">
           </OutlineBoxItem>
         </div>
       </div>
@@ -21,12 +38,27 @@
 <script>
 import { mapGetters, mapState, mapMutations } from 'vuex'
 import modules from '../../../store/store-modules'
+import _ from '../../../utils'
 
 export default {
   name: 'OutlineBoxItem',
+  props: {
+    viewData: Object,
+    position: {
+      type: String,
+      default: 'default'
+    }
+  },
+  data() {
+    return {
+      expaned: true,
+      // 高亮插糟名称
+      hlslot: ''
+    }
+  },
   computed: {
-    ...mapGetters(modules.UiDesigner, ['components']),
-    ...mapState(modules.UiDesigner, ['selectedItem', 'hlItem']),
+    ...mapGetters(modules.UiDesigner, ['components', 'selectedComponent']),
+    ...mapState(modules.UiDesigner, ['selectedItem', 'hlItem', 'dragData']),
     isSelected() {
       return this.viewData === this.selectedItem
     },
@@ -38,27 +70,74 @@ export default {
       if (this.viewData.title) return this.viewData.title
       const component = this.components[this.viewData.type]
       return component.title || component.name
-    }
-  },
-  data() {
-    return {
-      expaned: false
-    }
-  },
-  props: {
-    viewData: Object,
-    position: {
-      type: String,
-      default: 'default'
+    },
+    expandIcon() {
+      return this.expaned ? 'keyboard_arrow_down' : 'keyboard_arrow_right'
     }
   },
   methods: {
-    ...mapMutations(modules.UiDesigner, [ 'changeHlItem' ]),
-    handlerClick(viewData) {
-      this.$emit('select', viewData)
+    ...mapMutations(modules.UiDesigner, [ 'selectItem', 'changeHlItem', 'addChildItem', 'beginDrag', 'endDrag' ]),
+    component(type) {
+      return this.components[type]
+    },
+    hasSlotItem(slotName) {
+      return this.viewData.slots && this.viewData.slots[slotName] && this.viewData.slots[slotName].length > 0
+    },
+    hasSlotsDef(type) {
+      console.log(this.components)
+      console.log(type)
+      return this.components[type].slots && Object.keys(this.components[type].slots).length > 0
     },
     toggleExpand() {
       this.expaned = !this.expaned
+    },
+    _onTitleDragover(event) {
+      this.expaned = true
+
+      if (!this.viewData.parent) {
+        return
+      }
+      // console.log(this.viewData.parent)
+      // console.log(this.viewData.slot)
+      // console.log(this.dragData)
+      if (!this.checkDragData(this.viewData.parent, this.viewData.slot, this.dragData)) {
+        return
+      }
+
+      event.preventDefault()
+    },
+    checkDragData(container, slot, dragData) {
+      return dragData.type === 'view-data' && this.checkAccepts(container, slot, dragData.data)
+    },
+    checkAccepts(container, slot, item) {
+      // 不可接受类型，拒绝接受
+      const accepts = this.components[container.type].slots[slot].accepts
+      // 有设置可接受类型
+      if (accepts && accepts !== '*') {
+        if (!accepts.includes(item.type)) {
+          return false
+        }
+      }
+      return true
+    },
+    _onSlotDragover(slot, event) {
+      if (this.checkDragData(this.viewData, slot, this.dragData)) {
+        this.hlslot = slot
+        event.preventDefault()
+      }
+    },
+    // 添加到指定节点
+    addDropItem(container, slot, index, event) {
+      // 根节点，不予以理会
+      if (!container) return
+      this.hlslot = null
+
+      const data = this.dragData
+      let item = data.data
+      if (data.source !== 'inner') {
+        item = _.cloneDeep(item)
+      }
+      this.addChildItem({ container, slot, index, item })
     }
   }
 }
@@ -75,7 +154,7 @@ export default {
   background-color: #ddd;
 }
 
-.outline-box-item-title {
+.outline-box-item-head {
   font-size: 9pt;
   height: 28px;
   line-height: 28px;
@@ -85,11 +164,11 @@ export default {
   vertical-align: middle;
 }
 
-.outline-box-item-list {
+.outline-box-item-body {
   margin-left: 12px;
 }
 
-.outline-box-item-slot {
+.outline-box-item-body {
   margin-left: 5px;
 }
 </style>
