@@ -1,13 +1,94 @@
 <template>
   <div class="property-grid">
-    <div @mouseover="curProp = key" :class="['grid-row', { 'grid-property-current': curProp === key } ]" v-for="(item, key, index) in selectedComponent.props" :key="index">
-      <div class="grid-property-name">{{selectedComponent.props[key].title || key}}</div>
-      <div class="grid-property-value">
-          <value-editor :selections="selectedComponent.props[key].selections" class="" :data-type="item.type" :value="props[key]" :hintText="selectedComponent.props[key].description || selectedComponent.props[key].title" @change="changeProp({ prop: key, value: arguments[0] })"/>
+    <div class="body">
+      <div v-for="(prop, name, index) in propsDefine" :key="index"
+        @mouseenter="hoverProp = name"
+        @mouseout="hoverProp = ''"
+        class="row" >
+        <div class="name">{{ prop.title || name }}</div>
+        <div class="value">
+            <value-editor
+              :selections="prop.selections"
+              class="editor"
+              :data-type="prop.type"
+              :value="props[name]"
+              :hintText="prop.description || prop.title"
+              @change="$emit('propchange', { prop: name, value: arguments[0], oldValue: arguments[1] })"
+            />
+        </div>
       </div>
     </div>
-    <div v-if="selectedItem && curProp && selectedComponent.props[curProp]" class="grid-property-description">
-      {{curProp}} - {{selectedComponent.props[curProp].descripion || selectedComponent.props[curProp].title}}
+    <div v-if="showFooter && hoverProp" class="footer">
+      {{hoverProp}} - {{propsDefine[hoverProp].descripion || propsDefine[hoverProp].title}}
     </div>
   </div>
 </template>
+
+<script>
+import ValueEditor from './editors/ValueEditor'
+
+export default {
+  components: {
+    ValueEditor
+  },
+  props: {
+    propsDefine: Object,
+    props: Object,
+    showFooter: {
+      type: Boolean,
+      default: false
+    }
+  },
+  data() {
+    return {
+      hoverProp: ''
+    }
+  }
+}
+</script>
+
+<style lang="less" scoped>
+@import url('~muse-ui/src/styles/colors.less');
+
+.property-grid {
+  display: flex;
+  flex-direction: row;
+  .footer {
+    flex-basis: 32px;
+  }
+  .body {
+    flex-grow: 1;
+    overflow-y: scroll;
+    .row {
+      :hover {
+        background: #eee;
+      }
+      padding: 0px 15px 0px 15px;
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      height: 50px;
+      line-height: 50px;
+      vertical-align: middle;
+      .value {
+        flex-grow: 1;
+        overflow: hidden;
+        vertical-align: middle;
+        overflow: hidden;
+        .editor {
+          width: 100%;
+        }
+      }
+      .name {
+        overflow: hidden;
+        display: inline-block;
+        flex-basis: 120px;
+        vertical-align: middle;
+      }
+      .default {
+        color: @grey200;
+      }
+    }
+  }
+}
+</style>

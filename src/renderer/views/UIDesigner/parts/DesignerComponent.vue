@@ -18,10 +18,10 @@ export default {
   },
   methods: {
     // 逻辑转移到了 DesignerView
-    // ...mapMutations(modules.UiDesigner, [ 'addChildItem' ]),
+    // ...mapMutations(modules.UiDesigner, [ 'addItem' ]),
     // handlerDropComponent(viewData, dropedViewData) {
     //   if (dropedViewData && dropedViewData.type === 'component') {
-    //     this.addChildItem({ viewData, item: dropedViewData.component, slot: 'default' })
+    //     this.addItem({ viewData, item: dropedViewData.component, slot: 'default' })
     //   }
     // },
     create (h, viewData, slot = 'default') {
