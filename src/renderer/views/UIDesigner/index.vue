@@ -1,6 +1,6 @@
 <template>
   <flex-panel class="container">
-    <flex-panel-item class="activitybar" :thickness="64">
+    <flex-panel-item class="activitybar" :thickness="40">
       <flex-panel class="activitybar-box" direction="vertical">
         <flex-panel-item class="body" :grow="1">
           <mu-icon-button :class="{ active: activeSidebar === 'ComponentsSidebar' }" icon="view_headline" @click="selectSidebar('ComponentsSidebar')" /> <br>
@@ -116,7 +116,7 @@ export default {
 
   .activitybar {
     background: @grey200;
-    padding: 10px;
+    padding: 3px;
     // width: 64px;
     display: flex;
     flex-direction: column;
