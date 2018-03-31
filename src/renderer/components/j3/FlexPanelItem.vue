@@ -7,7 +7,10 @@
 <script>
 export default {
   props: {
-    thickness: [Number, String],
+    thickness: {
+      type: [Number, String],
+      default: 0
+    },
     grow: {
       type: Number,
       default: null

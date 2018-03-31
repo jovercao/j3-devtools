@@ -33,7 +33,7 @@
         </flex-panel-item>
         <flex-panel-item class="body" :grow="1">
           <keep-alive>
-            <component :is="activeView" class="component"/>
+            <component :is="activeView" class="dock"/>
           </keep-alive>
         </flex-panel-item>
       </flex-panel>
