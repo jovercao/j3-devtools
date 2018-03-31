@@ -6,16 +6,17 @@
       @dragend.stop="endDrag(null)"
       @dragover.stop="_onTitleDragover"
       @drop.stop="addDropItem(viewData.parent, viewData.slot, viewData.index, $event)"
-      @mouseover.stop="changeHlItem(viewData)"
-      @mouseleave.stop="changeHlItem(null)"
+      @mouseover.stop="hoverEnter(viewData)"
+      @mouseleave.stop="hoverLeave()"
       @click="selectItem(viewData)"
-      :class="['outline-box-item-head', { 'outline-box-item-selected': isSelected, 'outline-box-item-heightlight': isHlItem }]"
+      :class="['outline-box-item-head', { 'outline-box-item-selected': isSelected, 'outline-box-item-heightlight': ishoverItem }]"
       >
 
       <mu-icon v-if="hasSlotsDef(viewData.type)"
           class="outline-box-item-icon" :value="expandIcon" @click="toggleExpand" />
       <span>{{title}}</span>
 
+      <mu-icon :size="13" class='outline-box-clear-icon' value="clear" @click="removeItem(viewData)" />
     </div>
     <div class="outline-box-item-body" v-show="expaned" v-if="components[viewData.type].slots">
       <div class="outline-box-item" v-for="(slotDef, slotName, index) in components[viewData.type].slots" :key="index">
@@ -58,12 +59,12 @@ export default {
   },
   computed: {
     ...mapGetters(modules.UiDesigner, ['components', 'selectedComponent']),
-    ...mapState(modules.UiDesigner, ['selectedItem', 'hlItem', 'dragData']),
+    ...mapState(modules.UiDesigner, ['selectedItem', 'hoverItem', 'dragData']),
     isSelected() {
       return this.viewData === this.selectedItem
     },
-    isHlItem() {
-      return this.hlItem === this.viewData
+    ishoverItem() {
+      return this.hoverItem === this.viewData
     },
     title() {
       if (!this.viewData) return ''
@@ -76,17 +77,30 @@ export default {
     }
   },
   methods: {
-    ...mapMutations(modules.UiDesigner, [ 'selectItem', 'changeHlItem', 'addChildItem', 'beginDrag', 'endDrag' ]),
+    ...mapMutations(modules.UiDesigner, [
+      'selectItem',
+      'hoverEnter',
+      'hoverLeave',
+      'addItem',
+      'removeItem',
+      'beginDrag',
+      'endDrag'
+    ]),
     component(type) {
       return this.components[type]
     },
     hasSlotItem(slotName) {
-      return this.viewData.slots && this.viewData.slots[slotName] && this.viewData.slots[slotName].length > 0
+      return (
+        this.viewData.slots &&
+        this.viewData.slots[slotName] &&
+        this.viewData.slots[slotName].length > 0
+      )
     },
     hasSlotsDef(type) {
-      console.log(this.components)
-      console.log(type)
-      return this.components[type].slots && Object.keys(this.components[type].slots).length > 0
+      return (
+        this.components[type].slots &&
+        Object.keys(this.components[type].slots).length > 0
+      )
     },
     toggleExpand() {
       this.expaned = !this.expaned
@@ -100,14 +114,23 @@ export default {
       // console.log(this.viewData.parent)
       // console.log(this.viewData.slot)
       // console.log(this.dragData)
-      if (!this.checkDragData(this.viewData.parent, this.viewData.slot, this.dragData)) {
+      if (
+        !this.checkDragData(
+          this.viewData.parent,
+          this.viewData.slot,
+          this.dragData
+        )
+      ) {
         return
       }
 
       event.preventDefault()
     },
     checkDragData(container, slot, dragData) {
-      return dragData.type === 'view-data' && this.checkAccepts(container, slot, dragData.data)
+      return (
+        dragData.type === 'view-data' &&
+        this.checkAccepts(container, slot, dragData.data)
+      )
     },
     checkAccepts(container, slot, item) {
       // 不可接受类型，拒绝接受
@@ -137,7 +160,7 @@ export default {
       if (data.source !== 'inner') {
         item = _.cloneDeep(item)
       }
-      this.addChildItem({ container, slot, index, item })
+      this.addItem({ container, slot, index, item })
     }
   }
 }
@@ -148,7 +171,7 @@ export default {
 }
 .outline-box-item-selected {
   .outline-box-item-heightlight;
-  color:rebeccapurple;
+  color: rebeccapurple;
 }
 .outline-box-item-heightlight {
   background-color: #ddd;
@@ -170,5 +193,14 @@ export default {
 
 .outline-box-item-body {
   margin-left: 5px;
+}
+
+.outline-box-clear-icon {
+  float: right;
+  vertical-align: middle;
+}
+.outline-box-clear-icon:hover {
+  color: blueviolet;
+  background: #aaa;
 }
 </style>

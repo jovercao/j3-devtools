@@ -1,7 +1,7 @@
 <template>
   <div class="designer-view">
     <DesignerComponent v-if="viewData" :viewData="viewData" :selected="selectedItem"
-      :heightlight="hlItem" @contextmenu="showFloatBar" 
+      :heightlight="hoverItem" @contextmenu="showFloatBar" 
        @select="_onComponentSelect"
        @mouseleave="_onComponentMouseleave"
        @dragover="_onComponentDragover"
@@ -35,14 +35,16 @@
       :style="{ left: choosebarPos.x + 'px', top: choosebarPos.y + 'px' } ">
       <div class="header">请将组件拖动到以下插糟中</div>
       <div v-if="dropContainer && dropContainer.parent"
-        :class="[ 'designer-choosebar-item' ]"
-        @dragenter.stop="selectItem(dropContainer = dropContainer.parent)"
+        :class="[ 'designer-choosebar-item', { 'designer-choosebar-item-hover': parentHeightlight} ]"
+        @dragenter.stop="hoverEnter(dropContainer = dropContainer.parent)"
+        @dragleave.stop="hoverLeave()"
+        @dragover.stop="parentHeightlight = true"
         >
         [父级] - {{ getComponetTitle(dropContainer.parent) }}
       </div>
       <div
         v-for="(slot, name, index) in dropContainerSorts"
-        :class="['designer-choosebar-item', { 'designer-choosebar-item-heightlight': catcheSlot === name }]"
+        :class="['designer-choosebar-item', { 'designer-choosebar-item-hover': catcheSlot === name }]"
         :key="index"
         @dragover.stop="_onChoosebarDragover(name, $event)"
         @dragleave.stop="catcheSlot = ''"
@@ -84,7 +86,7 @@ export default {
     ...mapState(modules.UiDesigner, [
       'viewData',
       'selectedItem',
-      'hlItem',
+      'hoverItem',
       'dragging',
       'dragData'
     ]),
@@ -106,9 +108,10 @@ export default {
   },
   methods: {
     ...mapMutations(modules.UiDesigner, [
-      'changeHlItem',
+      'hoverEnter',
+      'hoverLeave',
       'selectItem',
-      'addChildItem',
+      'addItem',
       'removeItem',
       'beginDrag',
       'endDrag',
@@ -125,7 +128,7 @@ export default {
     //   return ''
     // },
     _onComponentMouseover(item) {
-      this.changeHlItem(item)
+      this.hoverEnter(item)
     },
     hasSlotsDef(type) {
       return this.components[type].slots && Object.keys(this.components[type].slots).length > 0
@@ -155,7 +158,7 @@ export default {
     //   return true
     // },
     _onComponentDragover(item, event) {
-      this.changeHlItem(item)
+      this.hoverEnter(item)
       this.catcheSlot = ''
       // if (this.dropContainer === item) {
       //   return
@@ -193,7 +196,7 @@ export default {
       }
     },
     _onComponentDragleave() {
-      this.changeHlItem(null)
+      this.hoverLeave()
     },
     _onChoosebarDragover(slotname, event) {
       if (!this.checkDragData(this.dropContainer, slotname, this.dragData)) {
@@ -209,11 +212,12 @@ export default {
       // this.choosebarPos = this.$helper.getMousePos(event)
       // DOM 操作尽量封装到API中,如 $helper
 
-      const rect = this.$helper.getRect(event.currentTarget)
+      const rect = this.$helper.getOffsetRect(event.currentTarget)
+      const size = this.$helper.getClientSize(this.$refs.choosebar)
       this.choosebarPos.x =
-        rect.x + rect.width / 2 - this.$refs.choosebar.clientWidth / 2
+        rect.x + rect.width / 2 - size.width / 2
       this.choosebarPos.y =
-        rect.y + rect.height / 2 - this.$refs.choosebar.clientHeight / 2
+        rect.y + rect.height / 2 - size.height / 2
 
       this.slotChoosebarOpened = true
     },
@@ -238,12 +242,12 @@ export default {
       } else if (container === item.parent && slotName === item.slot && item.index === index) {
         return
       }
-      this.addChildItem({ container, item, slot: slotName, index })
+      this.addItem({ container, item, slot: slotName, index })
 
       this.hideChoosebar()
     },
     _onComponentMouseleave(item) {
-      this.changeHlItem(null)
+      this.hoverLeave()
     },
     _onComponentSelect(item, event) {
       this.selectItem(item)
@@ -274,8 +278,7 @@ export default {
 
 <style lang="less">
 .designer-view {
-  height: 100%;
-  width: 100%;
+
 }
 .designer-view-quick {
   padding: 32px;
@@ -330,10 +333,10 @@ export default {
   text-align: center;
   line-height: 64px;
 }
-.designer-choosebar-item-heightlight {
+.designer-choosebar-item-hover {
   background-color: rgb(152, 195, 236);
 }
 .designer-choosebar-item:hover {
-  background-color: #eee;
+  .designer-choosebar-item-hover;
 }
 </style>

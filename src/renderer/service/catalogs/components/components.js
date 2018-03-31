@@ -19,7 +19,7 @@ function loadFiles(files) {
     components[comp.name] = comp
   })
 }
-console.log(components)
+
 const j3Files = require.context('./j3', false, /\.js$/)
 loadFiles(j3Files)
 

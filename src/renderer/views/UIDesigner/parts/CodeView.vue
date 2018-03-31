@@ -7,28 +7,7 @@
 
 <script>
 import { mapState } from 'vuex'
-import marked from 'marked'
 import modules from '../../../store/store-modules'
-import 'highlight.js/styles/default.css'
-import hljs from 'highlight.js'
-
-var rendererMD = new marked.Renderer()
-marked.setOptions({
-  renderer: rendererMD,
-  gfm: true,
-  tables: true,
-  breaks: false,
-  pedantic: false,
-  sanitize: false,
-  smartLists: true,
-  smartypants: false
-})
-
-marked.setOptions({
-  highlight: function (code) {
-    return hljs.highlightAuto(code).value
-  }
-})
 
 export default {
   data() {
@@ -41,8 +20,13 @@ export default {
     ...mapState(modules.UiDesigner, ['viewData'])
   },
   activated() {
-    this.sourceCode = this.$service.generate(this.viewData)
-    this.htmlCode = marked('```html\n' + this.sourceCode + '\n```')
+    if (!this.viewData) {
+      this.sourceCode = ''
+      this.htmlCode = '<h1>尚未打开组件</h1>'
+    } else {
+      this.sourceCode = this.$service.generate.view(this.viewData)
+      this.htmlCode = this.$helper.markVue(this.sourceCode)
+    }
   }
 }
 </script>

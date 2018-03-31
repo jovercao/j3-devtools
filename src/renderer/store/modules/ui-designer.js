@@ -22,8 +22,9 @@ const state = {
   viewData: null,
   // 选中的视图项
   selectedItem: null,
+  viewId: '',
   // 高亮的视图项
-  hlItem: null,
+  hoverItem: null,
   // 当前显示的侧边栏
   activeSidebar: 'ComponentsSidebar',
   // 当前显示的页
@@ -65,14 +66,20 @@ const mutations = {
       state.selectedItem = state.selectedItem.parent
     }
   },
-  changeHlItem(state, item) {
-    state.hlItem = item
+  hoverEnter(state, item) {
+    state.hoverItem = item
+  },
+  hoverLeave(state) {
+    state.hoverItem = null
   },
   changeProp(state, { prop, value }) {
     state.selectedItem.props[prop] = value
   },
   removeItem(state, item) {
-    console.log(item)
+    if (item.isRoot) {
+      this.viewData = null
+      return
+    }
     // 从原有插糟移除
     if (item.parent) {
       const slot = item.parent.slots[item.slot]
@@ -86,7 +93,7 @@ const mutations = {
     }
     this.commit('ui-designer/selectItem', null)
   },
-  addChildItem(state, { container, slot, item, index }) {
+  addItem(state, { container, slot, item, index }) {
     const comp = state.catalogs.components[container.type]
     const accepts = comp.slots[slot].accepts
     if (accepts !== '*') {
@@ -125,11 +132,13 @@ const mutations = {
   selectSidebar(state, sidebar) {
     state.activeSidebar = sidebar
   },
-  openView(state, viewData) {
-    state.viewData = viewData
+  openView(state, { id, data }) {
+    state.viewData = data
+    state.viewId = id
+    data.isRoot = true
+    properViewData(data)
   },
   loadCatalogs(state, catalogs) {
-    console.log(catalogs)
     state.catalogs = catalogs
   }
 }
@@ -145,19 +154,16 @@ const actions = {
   // changeProp({ commit }, { prop, value }) {
   //   commit('changeProp', { prop, value })
   // },
-  // changeHlItem({ commit }, item) {
-  //   commit('changeHlItem', item)
+  // hoverEnter({ commit }, item) {
+  //   commit('hoverEnter', item)
   // },
   async openView({ commit }, id) {
-    const viewData = await service.resource('demo-view').get(id)
-    viewData.isRoot = true
+    const data = await service.resource('demo-view').get(id)
     // * 为子级添加上低级指针，方便后续操作。
-    properViewData(viewData)
-    commit('openView', viewData)
+    commit('openView', { id, data })
   },
   loadCatalogs({ commit }, uri) {
     const catalogs = service.catalogs
-    console.log(service)
     commit('loadCatalogs', catalogs)
   }
 }
