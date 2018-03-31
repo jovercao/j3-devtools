@@ -1,5 +1,5 @@
 <template>
-  <flex-panel class="container" @mousemove.native="resizeSidebar">
+  <flex-panel class="container" @mouseup.native="endResize" @mousemove.native="resizeSidebar">
     <flex-panel-item :thickness="48" class="activitybar">
       <flex-panel class="dock" direction="vertical">
         <flex-panel-item class="body" :grow="1">

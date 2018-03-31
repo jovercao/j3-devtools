@@ -35,11 +35,11 @@
       :style="{ left: choosebarPos.x + 'px', top: choosebarPos.y + 'px' } ">
       <div class="header">请将组件拖动到以下插糟中</div>
       <div v-if="dropContainer && dropContainer.parent"
-        :class="[ 'designer-choosebar-item', { 'designer-choosebar-item-hover': parentHeightlight} ]"
+        class="designer-choosebar-item"
         @dragenter.stop="hoverEnter(dropContainer = dropContainer.parent)"
         @dragleave.stop="hoverLeave()"
-        @dragover.stop="parentHeightlight = true"
         >
+        <!-- @dragover.stop="parentHeightlight = true" -->
         [父级] - {{ getComponetTitle(dropContainer.parent) }}
       </div>
       <div
