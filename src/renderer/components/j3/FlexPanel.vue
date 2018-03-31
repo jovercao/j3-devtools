@@ -1,5 +1,10 @@
 <template>
-  <div class="j3-flex-panel" :style="{ 'align-items': align, 'flex-direction': direction === 'vertical' ? 'column' : 'row' }">
+  <div class="j3-flex-panel" :style="{
+      'align-items': align,
+      'flex-direction': direction === 'vertical' ? 'column' : 'row',
+      width: fill ? '100%' : 'auto',
+      height: fill ? '100%' : 'auto'
+    }">
     <slot></slot>
   </div>
 </template>
@@ -10,6 +15,10 @@ export default {
     align: {
       type: String,
       default: 'stretch'
+    },
+    fill: {
+      type: Boolean,
+      default: true
     },
     direction: {
       type: String,

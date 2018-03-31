@@ -1,10 +1,10 @@
 <template>
-  <flex-panel class="container">
-    <flex-panel-item class="activitybar" :thickness="64">
-      <flex-panel class="activitybar-box" direction="vertical">
+  <flex-panel class="container" @mouseup.native="endResize" @mousemove.native="resizeSidebar">
+    <flex-panel-item :thickness="48" class="activitybar">
+      <flex-panel class="dock" direction="vertical">
         <flex-panel-item class="body" :grow="1">
           <mu-icon-button :class="{ active: activeSidebar === 'ComponentsSidebar' }" icon="view_headline" @click="selectSidebar('ComponentsSidebar')" /> <br>
-          <mu-icon-button v-dropable @dragover="handlerDrogover('ExplorerSidebar', $event)" icon="view_module" :class="{ active: activeSidebar === 'ExplorerSidebar' }" @click="selectSidebar('ExplorerSidebar')"/> <br>
+          <mu-icon-button @dragover.native="handlerDrogover('DesignerSidebar', $event)" icon="view_module" :class="{ active: activeSidebar === 'DesignerSidebar' }" @click="selectSidebar('DesignerSidebar')"/> <br>
           <!-- <mu-icon-button :class="{ active: activeSidebar === 'property' }" icon="build" @click="selectSidebar('property')" /> <br> -->
           <mu-icon-button icon="mouse" /> <br>
           <mu-icon-button icon="flash_on" /> <br>
@@ -15,22 +15,21 @@
         </flex-panel-item>
       </flex-panel>
     </flex-panel-item>
-    <flex-panel-item class="sidebar" :thickness="250">
-      <keep-alive>
+    <flex-panel-item class="sidebar" :thickness="sidebarWidth">
+      <keep-alive>  
         <component :is="activeSidebar"></component>
       </keep-alive>
     </flex-panel-item>
-    <flex-panel-item class="content">
+    <flex-panel-item class="sidebar-resizer"
+      :thickness="3"
+      @mousedown.native="beginResize"
+      @mouseup.native="endResize"
+    />
+    <flex-panel-item :grow="1" class="content">
       <flex-panel class="dock" direction="vertical">
-        <flex-panel-item class="header" :thickness="36">
+        <flex-panel-item class="header" :thicknes="36">
           <mu-flat-button @click="changeActiveView('DesignerView')" :class="{ active: activeView === 'DesignerView' }" icon="computer" label="设计视图"></mu-flat-button>
           <mu-flat-button @click="changeActiveView('CodeView')" :class="{ active: activeView === 'CodeView' }" icon="code" label="查看代码"></mu-flat-button>
-          <!-- <mu-flat-button @click="selectTab('preview')" :class="{ active: activeTab === 'preview' }" icon="camera" label="预览效果"></mu-flat-button> -->
-          <!-- <mu-tabs :value="activeTab" @change="handlerTabChange">
-            <mu-tab icon="computer" value="design" title="可视化设计器" />
-            <mu-tab value="code" icon="code" title="查看代码" />
-            <mu-tab value="preview" icon="camera" title="预览效果" />
-          </mu-tabs> -->
         </flex-panel-item>
         <flex-panel-item class="body" :grow="1">
           <keep-alive>
@@ -43,7 +42,7 @@
 </template>
 
 <script>
-import ExplorerSidebar from './parts/ExplorerSidebar'
+import DesignerSidebar from './parts/DesignerSidebar'
 import ComponentsSidebar from './parts/ComponentsSidebar'
 import DesignerView from './parts/DesignerView'
 import CodeView from './parts/CodeView'
@@ -51,8 +50,16 @@ import { mapState, mapActions, mapMutations } from 'vuex'
 import modules from '../../store/store-modules'
 
 export default {
+  data() {
+    return {
+      sidebarWidth: 250,
+      resizing: false,
+      resizeStartPos: null,
+      resizeStartSidebarWidth: 0
+    }
+  },
   components: {
-    ExplorerSidebar,
+    DesignerSidebar,
     DesignerView,
     ComponentsSidebar,
     CodeView
@@ -74,6 +81,26 @@ export default {
       'selectSidebar',
       'selectTab'
     ]),
+    resizeSidebar(event) {
+      if (!this.resizing) return
+      const p = this.$helper.getMousePos(event)
+      let move = p.x - this.resizeStartPos.x
+      this.sidebarWidth = this.resizeStartSidebarWidth + move
+      // event.currentTarget.previousSibling.style.flexBasis = this.sidebarWidth + 'px'
+    },
+    beginResize(event) {
+      this.resizing = true
+      this.resizeStartPos = this.$helper.getMousePos(event)
+      this.resizeStartSidebarWidth = this.sidebarWidth
+    },
+    endResize(event) {
+      if (this.resizing) {
+        this.resizeSidebar(event)
+        this.resizeStartPos = null
+        this.resizeStartSidebarWidth = 0
+        this.resizing = false
+      }
+    },
     async loadData() {
       await this.loadCatalogs('http://simple.com/catalogs')
       await this.openView('http://simple.com/views/simple.view')
@@ -88,63 +115,65 @@ export default {
 </script>
 
 
-<style lang="less">
-@import url('~muse-ui/src/styles/colors.less');
-
-.mu-tabs {
-  background: @grey200;
-}
-
-.mu-tab-link {
-  color: @grey800;
-}
+<style lang="less" scoped>
+@import url('../../assets/define.less');
 
 .dock {
-  height: 100%;
   width: 100%;
+  height: 100%;
 }
 
 .container {
   .dock;
-
+  // .flex-v;
   .sidebar {
-    background: @grey100;
+    background: @bg1;
     overflow: auto;
-    // width: 200px;
-    // color: @grey100;
+  }
+
+  .sidebar-resizer {
+    // flex-basis: 3px;
+    cursor: e-resize;
+    background: @bg1;
   }
 
   .activitybar {
-    background: @grey200;
-    padding: 10px;
-    // width: 64px;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-
-    .activitybar-box {
-      height: 100%;
+    // .fixed50;
+    // .flex-h;
+    background: @bg2;
+    padding: 3px;
+    .active {
+      color: @active;
     }
+    // .body {
+    //   // .scale1;
+    // }
+
+    // .footer {
+    //   // .fixed50;
+    // }
   }
 
   .content {
-    flex: 1;
-    display: flex;
-    align-items: stretch;
-    flex-direction: column;
-
+    // .scale1;
+    // .flex-h;
     .header {
-      display: flex;
-      background: @grey100;
+      // flex-basis: 32px;
+      background: @bg2;
       .active {
-        color: rebeccapurple;
-        background: @grey200;
+        color: @active;
+        background: @bg1;
       }
     }
-
-    .body {
-      flex: 1;
-    }
+    // .body {
+    //   // .scale1;
+    //   // .flex;
+    //   // .component {
+    //   //   .dock;
+    //   //   // .scale1;
+    //   //   overflow: auto;
+    //   // }
+    // }
   }
 }
 </style>

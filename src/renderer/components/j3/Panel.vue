@@ -1,22 +1,6 @@
 <template>
   <div class="dock-container">
-    <div :class="[ 'dock-top', topClass ]" :style="{ height: $helper.metric(topThick) }">
-      <slot name="top"></slot>
-    </div>
-    <div class="dock-middle">
-      <div :class="[ 'dock-left', leftClass ]" :style="{ width: $helper.metric(leftThick) }">
-        <slot name="left"></slot>
-      </div>
-      <div :class="[ 'dock-center', centerClass ]">
-        <slot></slot>
-      </div>
-      <div :class="[ 'dock-right', rightClass ]" :style="{ width: $helper.metric(rightThick) }">
-        <slot name="right"></slot>
-      </div>
-    </div>
-    <div :class="[ 'dock-bottom', bottomClass ]" :style="{ height: $helper.metric(bottomThick) }">
-      <slot name="bottom"></slot>
-    </div>
+   
   </div>
 </template>
 
