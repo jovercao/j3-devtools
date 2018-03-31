@@ -131,21 +131,11 @@ export default {
     overflow: auto;
   }
 
-<<<<<<< HEAD
-  .activitybar {
-    background: @grey200;
-    padding: 3px;
-    // width: 64px;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-=======
   .sidebar-resizer {
     // flex-basis: 3px;
     cursor: e-resize;
     background: @bg1;
   }
->>>>>>> issue-01
 
   .activitybar {
     // .fixed50;
