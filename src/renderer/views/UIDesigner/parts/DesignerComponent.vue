@@ -104,12 +104,12 @@ export default {
 }
 
 .designer-component-selected {
-  background: rgb(211, 211, 211);
-  border: rgb(158, 158, 158) 1px solid;
+  background: rgba(235, 216, 250, 0.685);
+  border: rgb(218, 192, 248) 1px solid;
 }
 
 .designer-component-heightlight {
-  background: rgb(229, 229, 230);
+  background: rgba(242, 231, 255, 0.5);
 }
 
 // .designer-component-dragover {

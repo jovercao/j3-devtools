@@ -15,8 +15,9 @@
       <mu-icon v-if="hasSlotsDef(viewData.type)"
           class="outline-box-item-icon" :value="expandIcon" @click="toggleExpand" />
       <span>{{title}}</span>
-
-      <mu-icon :size="13" class='outline-box-clear-icon' value="clear" @click="removeItem(viewData)" />
+      <div class="right">
+        <mu-icon class='outline-box-clear-icon' :size="14" value="clear" @click="removeItem(viewData)" />
+      </div>
     </div>
     <div class="outline-box-item-body" v-show="expaned" v-if="components[viewData.type].slots">
       <div class="outline-box-item" v-for="(slotDef, slotName, index) in components[viewData.type].slots" :key="index">
@@ -182,6 +183,11 @@ export default {
   height: 28px;
   line-height: 28px;
   cursor: pointer;
+  .right {
+    float: right;
+    height: 28px;
+    line-height: 28px;
+  }
 }
 .outline-box-item-icon {
   vertical-align: middle;
@@ -196,7 +202,6 @@ export default {
 }
 
 .outline-box-clear-icon {
-  float: right;
   vertical-align: middle;
 }
 .outline-box-clear-icon:hover {

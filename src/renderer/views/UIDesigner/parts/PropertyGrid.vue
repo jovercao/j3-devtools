@@ -58,7 +58,7 @@ export default {
   }
   .body {
     flex-grow: 1;
-    overflow-y: scroll;
+    overflow-y: auto;
     .row {
       :hover {
         background: #eee;
@@ -72,8 +72,10 @@ export default {
       vertical-align: middle;
       .value {
         flex-grow: 1;
+        flex-basis: 0px;
+        height: 50px;
+        line-height: 50px;
         overflow: hidden;
-        vertical-align: middle;
         overflow: hidden;
         .editor {
           width: 100%;
@@ -81,8 +83,9 @@ export default {
       }
       .name {
         overflow: hidden;
-        display: inline-block;
-        flex-basis: 120px;
+        height: 50px;
+        line-height: 50px;
+        flex-basis: 80px;
         vertical-align: middle;
       }
       .default {

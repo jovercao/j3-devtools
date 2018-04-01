@@ -72,7 +72,7 @@ const mutations = {
   hoverLeave(state) {
     state.hoverItem = null
   },
-  changeProp(state, { prop, value }) {
+  changeProp(state, { prop, value, oldValue }) {
     state.selectedItem.props[prop] = value
   },
   removeItem(state, item) {

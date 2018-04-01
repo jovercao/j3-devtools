@@ -1,5 +1,5 @@
 <template>
-  <property-grid class="property-box" :propsDefine="selectedComponent.props" :props="selectedProps">
+  <property-grid class="property-box" @propchange="changeProp" :propsDefine="selectedComponent.props" :props="selectedProps">
   </property-grid>
 </template>
 
@@ -33,6 +33,6 @@ export default {
 
 <style lang="less" scoped>
 .property-box {
-
+  height: 100%;
 }
 </style>

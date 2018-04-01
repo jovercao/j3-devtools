@@ -33,7 +33,6 @@ export default {
   ],
   methods: {
     emitChange(...args) {
-      console.log(args)
       this.$emit('change', ...args)
     }
   }
