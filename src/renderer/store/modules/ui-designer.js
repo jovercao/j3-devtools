@@ -133,6 +133,7 @@ const mutations = {
     state.activeSidebar = sidebar
   },
   openView(state, { id, data }) {
+    this.selectedItem = null
     state.viewData = data
     state.viewId = id
     data.isRoot = true

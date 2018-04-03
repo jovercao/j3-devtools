@@ -13,15 +13,20 @@
        />
     <!-- 快速浮动操作栏 -->
     <mu-popover v-if="selectedItem" :trigger="floatbarTrigger" :open="floatbarOpened" @close="hideFloatBar">
-      <div class="designer-view-quick">
-        <div class="designer-view-quick-header">
+      <div class="designer-quickbar">
+        <div class="header">
           {{ propTitle }}
         </div>
-        <div class="designer-view-quick-row" v-for="prop in quickProps" :key="prop">
-          <span class="designer-view-value-label">{{selectedComponent.props[prop].title || prop}}</span>
-          <value-editor @change="changeProp({ prop, value: arguments[0] })" class="designer-view-value-editor" :value="selectedItem.props[prop]" :data-type="selectedComponent.props[prop].type"></value-editor>
+        <div class="row" v-for="prop in quickProps" :key="prop">
+          <span class="value-label">{{selectedComponent.props[prop].title || prop}}</span>
+          <value-editor @change="changeProp({ prop, value: arguments[0] })" 
+            :selections="selectedComponent.props[prop].selections"
+            class="value-editor"
+            :value="selectedItem.props[prop]"
+            :data-type="selectedComponent.props[prop].type">
+          </value-editor>
         </div>
-        <div class="designer-view-quick-row" v-show="selectedItem !== viewData">
+        <div class="footer" v-show="selectedItem !== viewData">
           <mu-icon-button tooltip="删除" icon="clear" @click="removeItem(selectedItem)"/>
           <mu-icon-button v-show="selectedItem.parent" tooltip="选择父级" icon="developer_board" @click="doSelectParent" />
         </div>
@@ -35,7 +40,7 @@
       :style="{ left: choosebarPos.x + 'px', top: choosebarPos.y + 'px' } ">
       <div class="header">请将组件拖动到以下插糟中</div>
       <div v-if="dropContainer && dropContainer.parent"
-        class="designer-choosebar-item"
+        class="item"
         @dragenter.stop="hoverEnter(dropContainer = dropContainer.parent)"
         @dragleave.stop="hoverLeave()"
         >
@@ -44,7 +49,7 @@
       </div>
       <div
         v-for="(slot, name, index) in dropContainerSorts"
-        :class="['designer-choosebar-item', { 'designer-choosebar-item-hover': catcheSlot === name }]"
+        :class="['item', { 'item-hover': catcheSlot === name }]"
         :key="index"
         @dragover.stop="_onChoosebarDragover(name, $event)"
         @dragleave.stop="catcheSlot = ''"
@@ -59,7 +64,6 @@
 import DesignerComponent from './DesignerComponent'
 import { mapState, mapMutations, mapGetters } from 'vuex'
 import modules from '../../../store/store-modules'
-import ValueEditor from './editors/ValueEditor'
 import _ from 'lodash'
 import { checkAccepts } from '../../../service/catalogs'
 // import './DesignerBox.less'
@@ -67,8 +71,7 @@ import { checkAccepts } from '../../../service/catalogs'
 
 export default {
   components: {
-    DesignerComponent,
-    ValueEditor
+    DesignerComponent
   },
   data() {
     return {
@@ -131,13 +134,20 @@ export default {
       this.hoverEnter(item)
     },
     hasSlotsDef(type) {
-      return this.components[type].slots && Object.keys(this.components[type].slots).length > 0
+      return (
+        this.components[type].slots &&
+        Object.keys(this.components[type].slots).length > 0
+      )
     },
     hasDefaultSlotDef(type) {
       return this.components[type].slots && this.components[type].slots.default
     },
     getComponetTitle(item) {
-      return item.title || this.components[item.type].title || this.components[item.type].name
+      return (
+        item.title ||
+        this.components[item.type].title ||
+        this.components[item.type].name
+      )
     },
     checkDragData(container, slot, dragData) {
       return (
@@ -172,16 +182,21 @@ export default {
         // 显示选择器
         this.showChoosebar(item, event)
         // 检查当前容器兼容性
-        if (!this.hasDefaultSlotDef(item.type) || !checkAccepts(item, 'default', dragData.data)) {
+        if (
+          !this.hasDefaultSlotDef(item.type) ||
+          !checkAccepts(item, 'default', dragData.data)
+        ) {
           return
         }
       } else {
         this.hideChoosebar()
         // 检查上级容器兼容性，以及是否父窗口向子窗口拖动
-        if (item.parent && !checkAccepts(item.parent, item.slot, dragData.data)) {
+        if (
+          item.parent &&
+          !checkAccepts(item.parent, item.slot, dragData.data)
+        ) {
           return
         }
-
       }
 
       // 允许拖放
@@ -214,10 +229,8 @@ export default {
 
       const rect = this.$helper.getOffsetRect(event.currentTarget)
       const size = this.$helper.getClientSize(this.$refs.choosebar)
-      this.choosebarPos.x =
-        rect.x + rect.width / 2 - size.width / 2
-      this.choosebarPos.y =
-        rect.y + rect.height / 2 - size.height / 2
+      this.choosebarPos.x = rect.x + rect.width / 2 - size.width / 2
+      this.choosebarPos.y = rect.y + rect.height / 2 - size.height / 2
 
       this.slotChoosebarOpened = true
     },
@@ -239,7 +252,11 @@ export default {
       if (dragData.source !== 'inner') {
         item = _.cloneDeep(item)
         // 非外部来源，检测是否未移动位置
-      } else if (container === item.parent && slotName === item.slot && item.index === index) {
+      } else if (
+        container === item.parent &&
+        slotName === item.slot &&
+        item.index === index
+      ) {
         return
       }
       this.addItem({ container, item, slot: slotName, index })
@@ -276,46 +293,46 @@ export default {
 }
 </script>
 
-<style lang="less">
+<style lang="less" scoped>
 .designer-view {
+  // .designer-component-selected {
+  //   background: #ddd;
+  // }
+}
+.designer-quickbar {
+  padding: 20px 32px 20px 32px;
+  width: 400px;
+  .row {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    height: 50px;
+    line-height: 50px;
+    .value-editor {
+      flex-grow: 1;
+      flex-basis: 0px;
+      overflow: hidden;
+      vertical-align: middle;
+      overflow: hidden;
+    }
 
-}
-.designer-view-quick {
-  padding: 32px;
-}
-.designer-view-value-editor {
-  flex-grow: 1;
-  overflow: hidden;
-  vertical-align: middle;
-  overflow: hidden;
-}
+    .value-label {
+      overflow: hidden;
+      display: inline-block;
+      flex-basis: 120px;
+      vertical-align: middle;
+    }
+  }
 
-.designer-view-value-label {
-  overflow: hidden;
-  display: inline-block;
-  flex-basis: 120px;
-  vertical-align: middle;
-}
+  .footer {
+    text-align: right;
+  }
 
-.designer-component-selected {
-  background: #ddd;
+  .header {
+    color: #888;
+    height: 28px;
+  }
 }
-
-.designer-view-quick-row {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  height: 50px;
-  line-height: 50px;
-  vertical-align: middle;
-}
-
-.designer-view-quick-header {
-  color: #888;
-  height: 28px;
-  padding: 5px;
-}
-
 .designer-choosebar {
   position: absolute;
   width: 300px;
@@ -326,17 +343,18 @@ export default {
     padding: 5px 25px 5px 25px;
     color: #888;
   }
-}
-.designer-choosebar-item {
-  height: 64px;
-  border: #888 dashed 1px;
-  text-align: center;
-  line-height: 64px;
-}
-.designer-choosebar-item-hover {
-  background-color: rgb(152, 195, 236);
-}
-.designer-choosebar-item:hover {
-  .designer-choosebar-item-hover;
+
+  .item {
+    height: 64px;
+    border: #888 dashed 1px;
+    text-align: center;
+    line-height: 64px;
+    :hover {
+      .item-hover;
+    }
+  }
+  .item-hover {
+    background-color: rgb(152, 195, 236);
+  }
 }
 </style>

@@ -15,5 +15,16 @@ export default {
     title: '高',
     type: String,
     description: '高度'
+  },
+  display: {
+    title: '内容显示方式',
+    type: String,
+    selections: [
+      'inline',
+      'block',
+      'inline-block',
+      'hidden',
+      'flex'
+    ]
   }
 }

@@ -10,7 +10,10 @@ function loadComponents(files) {
 files = require.context('.', false, /\.vue$/)
 loadComponents(files)
 
-files = require.context('./j3', false, /\.vue$/)
+files = require.context('./layout', false, /\.vue$/)
+loadComponents(files)
+
+files = require.context('./dev', false, /\.vue$/)
 loadComponents(files)
 
 export default {

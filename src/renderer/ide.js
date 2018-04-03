@@ -4,14 +4,11 @@ import App from './App'
 import router from './router'
 import store from './store'
 import Helper from './helper'
+// 为了能自动初始化组件props属性定义，必须先加载组件。
 import Service from './service'
-import MuseUI from 'muse-ui'
 import 'material-design-icons/iconfont/material-icons.css'
 import 'muse-ui/dist/muse-ui.css'
 import 'muse-ui/dist/theme-carbon.css'
-import ElementUI from 'element-ui'
-import 'element-ui/lib/theme-chalk/index.css'
-import Components from '@'
 import directives from './directives'
 import filters from './filters'
 
@@ -20,11 +17,8 @@ Vue.http = Vue.prototype.$http = axios
 Vue.config.productionTip = false
 Vue.use(Helper)
 Vue.use(filters)
-Vue.use(MuseUI)
-Vue.use(ElementUI)
-Vue.use(Components)
-Vue.use(Service)
 Vue.use(directives)
+Vue.use(Service)
 
 function run() {
   /* eslint-disable no-new */

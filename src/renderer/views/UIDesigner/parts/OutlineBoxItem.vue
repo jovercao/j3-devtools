@@ -169,6 +169,7 @@ export default {
 
 <style lang="less" scoped>
 .outline-box-item {
+
 }
 .outline-box-item-selected {
   .outline-box-item-heightlight;
