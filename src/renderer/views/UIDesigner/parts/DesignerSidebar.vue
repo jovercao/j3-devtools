@@ -5,7 +5,7 @@
         <div class="left">
           <i class="el-icon-share"/>
         </div>
-        <div class="center"> 组件</div>
+        <div class="center">组件大纲</div>
         <div class="right"> 
           <i :class="{ 'el-icon-arrow-down': outlineExpaned, 'el-icon-arrow-right': !outlineExpaned }"/>
         </div>

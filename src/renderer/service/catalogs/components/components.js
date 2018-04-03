@@ -1,5 +1,5 @@
 import { defaultTemplate } from './template'
-import validate from '../schemas/validate'
+import validate from '../../schemas/validate'
 import proper from './proper'
 import MuseUI from 'muse-ui'
 import ElementUI from 'element-ui'
