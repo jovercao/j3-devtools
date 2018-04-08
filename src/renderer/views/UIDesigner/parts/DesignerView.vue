@@ -295,9 +295,6 @@ export default {
 
 <style lang="less" scoped>
 .designer-view {
-  // .designer-component-selected {
-  //   background: #ddd;
-  // }
 }
 .designer-quickbar {
   padding: 20px 32px 20px 32px;

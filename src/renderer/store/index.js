@@ -9,48 +9,38 @@ Vue.use(Vuex)
 const { resource } = service
 export default new Vuex.Store({
   mutations: {
-    selectTab(state, item) {
-      state.activeTab = item
-    },
-    selectSidebar(state, item) {
-      state.activeSidebar = item
-    },
-    /**
-     * 切换侧边栏是否可见
-     */
-    toggleSidebar(state) {
-      state.sidebarVisible = !state.sidebarVisible
+    setActive(state, item) {
+      state.actived = item
     },
     /**
      * 打开标签页
      * item = { editor, content, title, icon }
      */
-    openTab(state, item) {
-      const index = state.openedTabs.indexOf(item)
+    open(state, item) {
+      const index = state.openeds.indexOf(item)
       if (index < 0) {
-        Vue.set(state.openedTabs, state.openedTabs.length, item)
+        Vue.set(state.openeds, state.openeds.length, item)
       }
-      this.commit('selectTab', item)
+      this.commit('setActive', item)
     },
     /**
      *  关闭指定标签页
      */
-    closeTab(state, item) {
-      const index = state.openedTabs.indexOf(item)
+    close(state, item) {
+      const index = state.openeds.indexOf(item)
       if (index >= 0) {
-        state.openedTabs.splice(index, 1)
+        state.openeds.splice(index, 1)
       }
       // 切换到下一个标签
-      const activeIndex = (state.openedTabs.length > index ? index : state.openedTabs.length - 1)
-      this.commit('selectTab', state.openedTabs[activeIndex])
+      const activeIndex = (state.openeds.length > index ? index : state.openeds.length - 1)
+      this.commit('setActive', state.openeds[activeIndex])
     }
   },
   state: {
     version: '0.1.0',
-    activeTab: null,
-    sidebarVisible: true,
+    actived: null,
     // 打开的编辑器
-    openedTabs: [
+    openeds: [
       /*
       {
         * 标题
@@ -87,6 +77,7 @@ export default new Vuex.Store({
         ]
       }
     ],
+    // 资源列表
     contentList: {
     },
     // 内容类型列表
@@ -109,7 +100,7 @@ export default new Vuex.Store({
     async openContent({ commit }, { contentType, id }) {
       const mgr = resource(contentType)
       const data = await mgr.get(id)
-      commit('openTab', {
+      commit('open', {
         icon: '',
         title: _.shortString(id),
         data,

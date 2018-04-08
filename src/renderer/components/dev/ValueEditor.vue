@@ -1,10 +1,10 @@
 <template>
   <div>
-    <mu-select-field class="text-field"  v-if="selections" :value="value" @change="emitChange">
+    <mu-select-field underlineClass="text-field-underline" class="text-field"  v-if="selections" :value="value" @change="emitChange">
       <mu-menu-item v-for="(item,index) in selections" :key="index" :value="item.value" :title="item.title || item.value" />
     </mu-select-field>
 
-    <mu-text-field type="number" v-else-if="isType(Number)" 
+    <mu-text-field underlineClass="text-field-underline" type="number" v-else-if="isType(Number)" 
       class="text-field" :value="value" :hintText="hintText" 
       @change="emitChange(parseFloat(arguments[1]))"/>
     <mu-date-picker v-if="isType(Date)" container="inline" :value="value" :hintText="hintText" @change="emitChange(arguments[1])"/>

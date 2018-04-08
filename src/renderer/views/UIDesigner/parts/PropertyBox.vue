@@ -1,5 +1,7 @@
 <template>
-  <property-grid class="property-box" @propchange="changeProp" :props="selectedComponent.props" :propsData="selectedProps">
+  <property-grid class="property-box" @propchange="changeProp"
+    :props="selectedComponent.props" :propsData="selectedProps"
+    :showFooter="true">
   </property-grid>
 </template>
 

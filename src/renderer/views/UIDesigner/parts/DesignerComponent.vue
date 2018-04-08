@@ -104,7 +104,7 @@ export default {
 }
 
 .designer-component-selected {
-  background: rgba(235, 216, 250, 0.685);
+  background: rgba(235, 216, 250, 0.45);
   border: rgb(218, 192, 248) 1px solid;
 }
 

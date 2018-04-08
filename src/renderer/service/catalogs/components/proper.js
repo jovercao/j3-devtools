@@ -3,7 +3,7 @@
  */
 
 import mapProps from './map-props'
-import _ from '#'
+import _ from 'lodash'
 
 export default function(component) {
   format(component.name, component)
@@ -19,7 +19,7 @@ export function format(name, component) {
   }
   if (!component.props) {
     console.warn(`组件${component.name}未定义props属性，将从组件${component.tag}中获取。`)
-    component.props = mapProps(component.tag)
+    component.props = mapProps(component.tag || component.component)
   }
   formatItem(name, component)
   formatProps(name, component)
@@ -40,7 +40,7 @@ function formatProps(name, item) {
   const { props } = item
   Object.keys(props).forEach((key) => {
     const value = props[key]
-    props[value] = formatProp(key, value)
+    props[key] = formatProp(key, value)
   })
 }
 

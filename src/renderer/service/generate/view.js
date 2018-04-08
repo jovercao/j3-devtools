@@ -45,7 +45,10 @@ ${slots}${indent}</${tag}>`
   buildProps(props) {
     let res = ''
     for (const key in props) {
-      res += ` :${key} = "${this.buildValue(props[key])}"`
+      const value = props[key]
+      if (value !== undefined) {
+        res += ` :${key} = "${this.buildValue(value)}"`
+      }
     }
     return res
   },
