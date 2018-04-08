@@ -61,33 +61,37 @@ export default new Vuex.Store({
       }
       */
     ],
-    // 已注册的编辑器，用于打开编辑
-    editors: [
-      {
-        // 编辑器名称
-        name: '',
-        // 编辑器所带的Vue组件名称
-        component: '',
-        // 是否允许多开
-        multiple: false,
-        // 兼容的资源类型
-        contentType: [
-          'j3-view',
-          'vue-component-file'
-        ]
-      }
-    ],
-    // 资源列表
-    contentList: {
+    // 打开的工具栏
+    toolboxes: {
+      'j3-components-box': true
     },
-    // 内容类型列表
-    contentTypes: [
-      'vue-file',
-      'any-file',
-      'j3-view',
-      'j3-query',
-      'j3-model'
-    ],
+    // // 已注册的编辑器，用于打开编辑
+    // editors: [
+    //   {
+    //     // 编辑器名称
+    //     name: '',
+    //     // 编辑器所带的Vue组件名称
+    //     component: '',
+    //     // 是否允许多开
+    //     multiple: false,
+    //     // 兼容的资源类型
+    //     contentType: [
+    //       'j3-view',
+    //       'vue-component-file'
+    //     ]
+    //   }
+    // ],
+    // // 资源列表
+    // contentList: {
+    // },
+    // // 内容类型列表
+    // contentTypes: [
+    //   'vue-file',
+    //   'any-file',
+    //   'j3-view',
+    //   'j3-query',
+    //   'j3-model'
+    // ],
     activeSidebar: 'ExplorerSidebar',
     sidebars: {
       ExplorerSidebar: 'ExplorerSidebar',

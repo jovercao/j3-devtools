@@ -14,7 +14,7 @@
           <mu-icon-button icon="data_usage" /> <br>
         </flex-panel-item>
         <flex-panel-item :thickness="64">
-          <mu-icon-button icon="settings" @click="loadData"/> <br>
+          <mu-icon-button icon="settings"/> <br>
         </flex-panel-item>
       </flex-panel>
     </flex-panel-item>
@@ -78,10 +78,7 @@ export default {
     // PropertyBox
   },
   computed: {
-    ...mapState(['actived']),
-    activeTab() {
-      return this.actived
-    }
+    ...mapState(['actived'])
   },
   methods: {
     ...mapActions(modules.UiDesigner, [
@@ -123,10 +120,6 @@ export default {
         this.resizeStartSidebarWidth = 0
         this.resizing = false
       }
-    },
-    async loadData() {
-      await this.loadCatalogs('http://simple.com/catalogs')
-      await this.openView('http://simple.com/views/simple.view')
     },
     handlerDrogover(viewName, event) {
       event.stopPropagation()

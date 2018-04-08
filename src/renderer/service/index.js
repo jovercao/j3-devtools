@@ -1,24 +1,17 @@
-import catalogs from './catalogs'
-import generate from './generate'
-import resource from './resource'
+const Services = {}
 
-const service = {
-  // 资源管理
-  resource,
-  /**
-   * 获取所有设计摘要列表
-   */
-  catalogs,
-  // 代码生成器
-  generate
+export default function service(name, options) {
+  if (!options) {
+    return Services[name]
+  }
+  if (Services[name] && Services[name] !== options) {
+    throw new Error(`service ${name} exists.`)
+  }
+  Services[name] = options
 }
 
-export default {
+export const VueServicePlugin = {
   install(Vue, options) {
     Vue.prototype.$service = service
   }
-}
-
-export {
-  service
 }

@@ -8,7 +8,7 @@ export default new Router({
     {
       path: '/',
       name: 'landing-page',
-      component: require('../views/UIDesigner').default
+      component: require('../views/IDE').default
     },
     {
       path: '*',

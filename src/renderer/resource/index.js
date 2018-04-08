@@ -1,12 +1,7 @@
 import url from 'url'
 import { dirname } from 'path'
-import views from './views'
-import reports from './reports'
-import querys from './querys'
-import packages from './packages'
-import connections from './connections'
 
-import demoView from './demo-view'
+import file from './file'
 
 /*
   * content结构:
@@ -18,24 +13,19 @@ import demoView from './demo-view'
   * }
 */
 function resource(name) {
-  const mgr = contentTypes[name]
+  const mgr = resourceTypes[name]
   if (!mgr) {
     throw new Error('资源类型不存在！')
   }
   return mgr
 }
 
-const contentTypes = {
-  'demo-view': demoView,
-  views,
-  packages,
-  querys,
-  connections,
-  reports
+const resourceTypes = {
+  file
 }
 
 Object.assign(resource, {
-  contentTypes,
+  resourceTypes,
   /**
    * 解释Uri
    */
@@ -43,8 +33,8 @@ Object.assign(resource, {
   /**
   * 转换为获取Uri字符串
   */
-  toUriString(contentType, id) {
-    return `${contentType}:/${id}`
+  toUriString(resourceType, id) {
+    return `${resourceType}:/${id}`
   },
   /**
    *  获取父级ID
@@ -52,32 +42,32 @@ Object.assign(resource, {
   parentId: dirname,
   async get(uri) {
     const info = url.parse(uri)
-    const contentType = info.protocol
+    const resourceType = info.protocol
     const id = info.path
-    const mgr = resource(contentType)
+    const mgr = resource(resourceType)
     const data = await mgr.get(id)
     return data
   },
   async set (uri, data) {
     const info = url.parse(uri)
-    const contentType = info.protocol
+    const resourceType = info.protocol
     const id = info.path
-    const mgr = resource(contentType)
+    const mgr = resource(resourceType)
     await mgr.set(id, data)
   },
   async list (uri) {
     const info = url.parse(uri)
-    const contentType = info.protocol
+    const resourceType = info.protocol
     const id = info.path
-    const mgr = resource(contentType)
+    const mgr = resource(resourceType)
     const res = await mgr.list(id)
     return res
   },
   async create(uri, data) {
     const info = url.parse(uri)
-    const contentType = info.protocol
+    const resourceType = info.protocol
     const id = info.path
-    const mgr = resource(contentType)
+    const mgr = resource(resourceType)
     await mgr.create(id, data)
   }
 })
