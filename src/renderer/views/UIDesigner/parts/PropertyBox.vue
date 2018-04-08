@@ -1,21 +1,19 @@
 <template>
-  <property-grid class="property-box" :propsDefine="selectedComponent.props" :props="selectedProps">
+  <property-grid class="property-box" @propchange="changeProp"
+    :props="selectedComponent.props" :propsData="selectedProps"
+    :showFooter="true">
   </property-grid>
 </template>
 
 <script>
 import { mapState, mapMutations, mapGetters } from 'vuex'
 import modules from '../../../store/store-modules'
-import PropertyGrid from './PropertyGrid'
 
 export default {
   data() {
     return {
       curProp: null
     }
-  },
-  components: {
-    PropertyGrid
   },
   computed: {
     ...mapState(modules.UiDesigner, {
@@ -33,6 +31,6 @@ export default {
 
 <style lang="less" scoped>
 .property-box {
-
+  height: 100%;
 }
 </style>

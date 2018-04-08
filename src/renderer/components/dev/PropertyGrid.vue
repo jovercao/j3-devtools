@@ -1,9 +1,9 @@
 <template>
   <div class="property-grid">
     <div class="body">
-      <div v-for="(prop, name, index) in propsDefine" :key="index"
+      <div v-for="(prop, name, index) in props" :key="index"
         @mouseenter="hoverProp = name"
-        @mouseout="hoverProp = ''"
+        @mouseleave="hoverProp = ''"
         class="row" >
         <div class="name">{{ prop.title || name }}</div>
         <div class="value">
@@ -11,29 +11,29 @@
               :selections="prop.selections"
               class="editor"
               :data-type="prop.type"
-              :value="props[name]"
+              :value="propsData[name]"
               :hintText="prop.description || prop.title"
               @change="$emit('propchange', { prop: name, value: arguments[0], oldValue: arguments[1] })"
             />
         </div>
       </div>
     </div>
-    <div v-if="showFooter && hoverProp" class="footer">
-      {{hoverProp}} - {{propsDefine[hoverProp].descripion || propsDefine[hoverProp].title}}
+    <div v-if="showFooter" class="footer">
+      {{propDescription}}
     </div>
   </div>
 </template>
 
 <script>
-import ValueEditor from './editors/ValueEditor'
+import ValueEditor from './ValueEditor'
 
 export default {
   components: {
     ValueEditor
   },
   props: {
-    propsDefine: Object,
     props: Object,
+    propsData: Object,
     showFooter: {
       type: Boolean,
       default: false
@@ -42,6 +42,14 @@ export default {
   data() {
     return {
       hoverProp: ''
+    }
+  },
+  computed: {
+    propDescription() {
+      if (this.hoverProp) {
+        const prop = this.props[this.hoverProp]
+        return this.hoverProp + ' - ' + prop.descripion || prop.title || '略'
+      }
     }
   }
 }
@@ -54,26 +62,32 @@ export default {
   display: flex;
   flex-direction: row;
   .footer {
-    flex-basis: 32px;
+    flex-basis: 64px;
+    border-top: #bbb solid 1px;
+    padding: 10px;
   }
   .body {
     flex-grow: 1;
-    overflow-y: scroll;
+    flex-basis: 0px;
+    overflow-y: auto;
     .row {
-      :hover {
-        background: #eee;
+      &:hover {
+        background: #ddd;
       }
       padding: 0px 15px 0px 15px;
       display: flex;
       flex-direction: row;
       align-items: stretch;
-      height: 50px;
-      line-height: 50px;
+      height: 46px;
+      line-height: 46px;
       vertical-align: middle;
       .value {
         flex-grow: 1;
+        flex-basis: 0px;
+        height: 50px;
+        text-align: center;
+        line-height: 50px;
         overflow: hidden;
-        vertical-align: middle;
         overflow: hidden;
         .editor {
           width: 100%;
@@ -81,8 +95,10 @@ export default {
       }
       .name {
         overflow: hidden;
-        display: inline-block;
-        flex-basis: 120px;
+        height: 50px;
+        line-height: 50px;
+        flex-basis: 85px;
+        font-size: 9pt;
         vertical-align: middle;
       }
       .default {

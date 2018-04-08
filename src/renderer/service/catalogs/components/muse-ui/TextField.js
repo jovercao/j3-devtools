@@ -1,4 +1,6 @@
 import category from '../categroy'
+// import TextField from 'muse-ui/src/textField'
+// import mapProps from '../map-props'
 
 export default {
   name: 'MuTextField',
@@ -7,13 +9,7 @@ export default {
   category: category.form,
   tag: 'mu-text-field',
   description: '',
-  props: {
-    value: {
-      type: String,
-      default: '文本框',
-      description: '默认值'
-    }
-  },
+  // props: mapProps(TextField),
   events: [
     {
       name: 'change',

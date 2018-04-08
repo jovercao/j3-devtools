@@ -10,6 +10,13 @@ const CopyWebpackPlugin = require('copy-webpack-plugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 
+const museUiThemePath = path.join(
+  __dirname,
+  'node_modules',
+  'muse-ui',
+  'src/styles/themes/variables/default.less'
+)
+
 let webConfig = {
   devtool: '#cheap-module-eval-source-map',
   entry: {
@@ -34,6 +41,10 @@ let webConfig = {
           fallback: 'style-loader',
           use: 'css-loader'
         })
+      },
+      {
+        test: /\.less$/,
+        loader: 'style-loader!css-loader!less-loader'
       },
       {
         test: /\.html$/,
@@ -104,9 +115,9 @@ let webConfig = {
   },
   resolve: {
     alias: {
-      '@': path.join(__dirname, '../src/renderer/components'),
       'vue$': 'vue/dist/vue.esm.js',
-      'modules$': '../src/renderer/store/store-modules.js'
+      '@': path.join(__dirname, '../src/renderer/components'),
+      '#': path.join(__dirname, '../src/renderer/utils')
     },
     extensions: ['.js', '.vue', '.json', '.css', '.less']
   },

@@ -1,16 +1,29 @@
 <template>
-  <div v-model="activeNames" class="designer-sidebar">
-    <div class="outline-box">
-      <div class="header">
-        <i class="el-icon-share"/> 组件
+  <div class="designer-sidebar">
+    <div :class="['outline-box', { 'collapsed': !outlineExpaned }]">
+      <div class="header" @click="outlineExpaned = !outlineExpaned">
+        <div class="left">
+          <i class="el-icon-share"/>
+        </div>
+        <div class="center">组件大纲</div>
+        <div class="right"> 
+          <i :class="{ 'el-icon-arrow-down': outlineExpaned, 'el-icon-arrow-right': !outlineExpaned }"/>
+        </div>
       </div>
       <div class="body">
         <OutlineBox/>
       </div>
     </div>
-    <div class="property-box">
-      <div slot="title" class="header">
-        <i class="el-icon-tickets"/> 属性
+    <div  :class="['property-box', { 'collapsed': !propertyExpand }]">
+      <div slot="title" class="header" @click="propertyExpand = !propertyExpand">
+        <div class="left">
+          <i class="el-icon-tickets"/> 
+        </div>
+        <div class="center"> 属性</div>
+        <div class="right">
+          <i :class="{ 'el-icon-arrow-down': propertyExpand, 'el-icon-arrow-right': !propertyExpand }"/>
+        </div>
+        
       </div>
       <div class="body">
         <PropertyBox/>
@@ -29,13 +42,16 @@ export default {
   },
   data() {
     return {
-      activeNames: ['outline', 'property']
+      activeNames: ['outline', 'property'],
+      outlineExpaned: true,
+      propertyExpand: true
     }
   }
 }
 </script>
 
 <style lang="less" scoped>
+@import url('../../../assets/define.less');
 
 .designer-sidebar {
   height: 100%;
@@ -43,12 +59,13 @@ export default {
   display: flex;
   flex-direction: column;
   .outline-box {
-    flex-basis: 250px;
+    flex-basis: 300px;
     .box;
   }
 
   .property-box {
     flex-grow: 1;
+    flex-basis: 0px;
     .box;
   }
 
@@ -56,21 +73,44 @@ export default {
     display: flex;
     flex-direction: column;
     .header {
-      flex-basis: 32px;
+      flex-basis: 36px;
+      color: @font-light;
+      cursor: pointer;
       display: flex;
-      padding: 12px;
+      padding: 0px 12px 0px 12px;
+      line-height: 36px;
+      border-bottom: @bg3 solid 1px;
+      border-top: @bg1 solid 1px;
+      background: #e1e1e1;
+      .left {
+        font-size: 12px;
+        flex-basis: 36px;
+      }
+      line-height: 36px;
       // 两端
-      .side {
-        flex-basis: 32px;
+      .right {
+        flex-basis: 36px;
+        line-height: 36px;
+        text-align: right;
       }
       // 中间
       .center {
+        flex-basis: 0px;
+        text-align: center;
         flex-grow: 1;
       }
     }
     .body {
       flex-grow: 1;
+      flex-basis: 0px;
       overflow: auto;
+    }
+  }
+
+.collapsed {
+    flex-basis: 36px;
+    .body {
+      display: none;
     }
   }
 }

@@ -72,7 +72,7 @@ const mutations = {
   hoverLeave(state) {
     state.hoverItem = null
   },
-  changeProp(state, { prop, value }) {
+  changeProp(state, { prop, value, oldValue }) {
     state.selectedItem.props[prop] = value
   },
   removeItem(state, item) {
@@ -133,6 +133,7 @@ const mutations = {
     state.activeSidebar = sidebar
   },
   openView(state, { id, data }) {
+    this.selectedItem = null
     state.viewData = data
     state.viewId = id
     data.isRoot = true
