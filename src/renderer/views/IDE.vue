@@ -8,8 +8,6 @@
         <flex-panel-item class="body" :grow="1">
           <mu-icon-button :class="{ active: activeSidebar === 'ComponentsSidebar' }" icon="view_module" @click="selectSidebar('ComponentsSidebar')" /> <br>
           <mu-icon-button @dragover.native="handlerDrogover('DesignerSidebar', $event)" icon="view_headline" :class="{ active: activeSidebar === 'DesignerSidebar' }" @click="selectSidebar('DesignerSidebar')"/> <br>
-          <!-- <mu-icon-button :class="{ active: activeSidebar === 'property' }" icon="build" @click="selectSidebar('property')" /> <br> -->
-          <mu-icon-button icon="mouse" /> <br>
           <mu-icon-button icon="flash_on" /> <br>
           <mu-icon-button icon="data_usage" /> <br>
         </flex-panel-item>

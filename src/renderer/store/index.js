@@ -1,13 +1,8 @@
 import Vue from 'vue'
-import Vuex from 'vuex'
-import uiDesigner from './modules/ui-designer'
-import { service } from '../service'
 import _ from '../utils'
+import resource from '../resource'
 
-Vue.use(Vuex)
-
-const { resource } = service
-export default new Vuex.Store({
+export default {
   mutations: {
     setActive(state, item) {
       state.actived = item
@@ -65,44 +60,19 @@ export default new Vuex.Store({
     toolboxes: {
       'j3-components-box': true
     },
-    // // 已注册的编辑器，用于打开编辑
-    // editors: [
-    //   {
-    //     // 编辑器名称
-    //     name: '',
-    //     // 编辑器所带的Vue组件名称
-    //     component: '',
-    //     // 是否允许多开
-    //     multiple: false,
-    //     // 兼容的资源类型
-    //     contentType: [
-    //       'j3-view',
-    //       'vue-component-file'
-    //     ]
-    //   }
-    // ],
-    // // 资源列表
-    // contentList: {
-    // },
-    // // 内容类型列表
-    // contentTypes: [
-    //   'vue-file',
-    //   'any-file',
-    //   'j3-view',
-    //   'j3-query',
-    //   'j3-model'
-    // ],
     activeSidebar: 'ExplorerSidebar',
     sidebars: {
       ExplorerSidebar: 'ExplorerSidebar',
       ComponentsSidebar: 'ComponentsSidebar'
     }
   },
-
   actions: {
+    async openResource({ commit }, { id }) {
+
+    },
     // 打开资源
-    async openContent({ commit }, { contentType, id }) {
-      const mgr = resource(contentType)
+    async openContent({ commit }, { resourceType, id }) {
+      const mgr = resource(resourceType)
       const data = await mgr.get(id)
       commit('open', {
         icon: '',
@@ -110,6 +80,7 @@ export default new Vuex.Store({
         data,
         content: {
           id,
+          resourceType,
           contentType,
           openTime: new Date()
         }
@@ -139,7 +110,6 @@ export default new Vuex.Store({
     }
   },
   modules: {
-    'ui-designer': uiDesigner
   },
   strict: process.env.NODE_ENV !== 'production'
-})
+}

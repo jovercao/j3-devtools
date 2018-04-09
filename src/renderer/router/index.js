@@ -1,18 +1,15 @@
-import Vue from 'vue'
-import Router from 'vue-router'
+import IDE from '../views/IDE'
 
-Vue.use(Router)
-
-export default new Router({
+export default {
   routes: [
     {
       path: '/',
       name: 'landing-page',
-      component: require('../views/IDE').default
+      component: IDE
     },
     {
       path: '*',
       redirect: '/'
     }
   ]
-})
+}

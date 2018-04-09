@@ -12,26 +12,43 @@ const urlMatch = /^((ht|f)tps?):\/\/[\w\-]+(\.[\w\-]+)+([\w\-\.,@?^=%&:\/~\+#]*[
 
 const nameMatch = /[a-z][a-z0-9]*(-[a-z][a-z0-9]*)*/
 
+async function download(url) {
+
+}
+
+function nameToUrl(name) {
+  return name
+}
+
+function doInstall(path) {
+  // unzip
+}
+
 export default {
-  install(plugin) {
+  async install(plugin) {
+    let path
     // 如果是文件路径
     if (pathMattch.test(plugin)) {
-      
+      path = plugin
     } else if (urlMatch.test(plugin)) {
-
+      path = await download(plugin)
     } else if (nameMatch.test(plugin)) {
-
+      const url = nameToUrl(plugin)
+      path = await download(url)
+    } else {
+      throw new Error('plugin 不符合匹配！')
     }
 
-    throw new Error('plugin 不符合匹配！')
+    doInstall(path)
+    // 执行安装
   },
-  uninstall(plugin) {
+  async uninstall(plugin) {
 
   },
-  getInstalleds() {
-
+  async getInstalleds() {
+    
   },
-  getList() {
+  async getList() {
 
   }
 }
