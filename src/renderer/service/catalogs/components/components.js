@@ -39,7 +39,4 @@ loadFiles(j3Files)
 const museFiles = require.context('./muse-ui', false, /\.js$/)
 loadFiles(museFiles)
 
-const domFiles = require.context('./dom', false, /\.js$/)
-loadFiles(domFiles)
-
 export default components
