@@ -1,7 +1,5 @@
-import axios from 'axios'
-import helper from './helper'
-// 为了能自动初始化组件props属性定义，必须先加载组件。
 import service from './service'
+import helper from './helper'
 import directives from './directives'
 import filters from './filters'
 
@@ -56,10 +54,9 @@ export default {
     } */)
 
     // 注册工具栏
-    ide.toolbox(/*
-    {
+    ide.toolbox(/* name, {
       // 工具栏名称必须唯一
-      name: 'component-library',
+      // name: 'component-library',
       // 位置 [ 'sidebar', 'tabs','footer' ]
       positoion: 'sidebar',
       component: ...
@@ -67,7 +64,7 @@ export default {
     */)
 
     // 注册服务
-    ide.service(/* id, svc */)
+    ide.service(/* id, svc, options */)
 
     ide.Vue.use(helper)
     ide.Vue.use(filters)
