@@ -3,16 +3,16 @@
     <menubar class="menubar" />
     <div class="container"
         @mouseup="endResize"
-        @mousemove="resizeSidebar">
+        @mousemove="resize">
       <!-- @mouseup.native="endResize" @mousemove.native="resizeSidebar" -->
       <div class="activitybar">
         <div class="body" :grow="1">
-          <div :key="index" v-for="(item, index) in sidebars">
+          <div :key="index" v-for="(item, index) in visibleSidebars">
             <mu-icon-button
               :class="{ active: activeSidebar === item }"
               :icon="item.icon"
               @click="handlerSidebar(item)"
-              @dragover.native.stop.prevent="handlerDrogonSidebar(item)"
+              @dragover.native.stop.prevent="handlerSidebar(item)"
               />
           </div>
         </div>
@@ -26,7 +26,7 @@
         </keep-alive>
       </div>
       <div class="sidebar-resizer"
-        @mousedown.stop.prevent="beginResize"
+        @mousedown.stop.prevent="beginResize($event, 'sidebar')"
       />
       <div class="content">
         <div class="header">
@@ -46,89 +46,90 @@
             v-model="tab.content.data"
             />
         </div>
-        <div class="bottombar" v-if="bottombarVisible">
-          <div class="header">
-            <mu-flat-button v-for="(bar, index) in bottombars" :key="index"
-              :class="{ actived: activeBottombar === bar }"
-              :label="bar.title"
-              @click="setActiveBottombar(bar)" />
-          </div>
-          <keep-alive>
-            <component :is="activeBottombar.component"></component>
-          </keep-alive>
-        </div>
+        <div class="bottombar-resizer" @mousedown.stop.prevent="beginResize($event, 'bottombar')"></div>
+        <bottombar v-if="bottombarVisible" class="footer" :style="{ 'flex-basis': bottombarHeight + 'px' }"/>
       </div>
     </div>
   </div>  
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
 import Menubar from './parts/Menubar'
-import ideApi from '../mixins/ide'
+import Bottombar from './parts/Bottombar'
+import ideApi from '../mixin/ide'
 
 export default {
   mixins: [
     ideApi
   ],
+  created() {
+    this.activeDefaultSidebar()
+    this.activeDefaultBottombar()
+  },
   data() {
     return {
       sidebarWidth: 250,
-      resizing: false,
+      bottombarHeight: 200,
+      sidebarResizing: false,
+      bottombarResizing: false,
       resizeStartPos: null,
-      resizeStartSidebarWidth: 0
+      resizeStartThickness: 0
     }
   },
   components: {
-    Menubar
-  },
-  computed: {
-    ...mapGetters(['sidebars', 'bottombars'])
+    Menubar,
+    Bottombar
   },
   methods: {
     handlerBottombar(item) {
-      if (this.activeBottombar === item) {
+      if (!this.bottombarVisible) {
+        this.showBottombar(item)
+        // 如果已经是相同的bottombar，则隐藏
+      } else if (this.activeBottombar === item) {
         this.toggleBottombar()
-        return
       }
       this.setActiveBottombar(item)
     },
     handlerSidebar(item) {
-      // 如果已经是相同的sidebar，则隐藏
-      if (this.activeSidebar === item) {
-        this.toggleSidebar()
-        return
-      }
-      this.setActiveSidebar(item)
-    },
-    handlerDrogonSidebar(item) {
       if (!this.sidebarVisible) {
         this.showSidebar(item)
+        // 如果已经是相同的sidebar，则隐藏
+      } else if (this.activeSidebar === item) {
+        this.toggleSidebar()
       }
       this.setActiveSidebar(item)
     },
-    resizeSidebar(event) {
-      if (!this.resizing) return
+    resize(event) {
+      if (this.sidebarResizing) {
+        const p = this.$helper.getMousePos(event)
+        const offsetX = p.x - this.resizeStartPos.x
+        this.sidebarWidth = this.resizeStartThickness + offsetX
+      }
+      if (this.bottombarResizing) {
+        const p = this.$helper.getMousePos(event)
+        const offsetY = this.resizeStartPos.y - p.y
+        this.bottombarHeight = this.resizeStartThickness + offsetY
+      }
       if (event.buttons !== 1) {
         this.endResize()
-        return
       }
-      const p = this.$helper.getMousePos(event)
-      let move = p.x - this.resizeStartPos.x
-      this.sidebarWidth = this.resizeStartSidebarWidth + move
-      // event.currentTarget.previousSibling.style.flexBasis = this.sidebarWidth + 'px'
     },
-    beginResize(event) {
-      this.resizing = true
+    beginResize(event, bar) {
+      if (bar === 'sidebar') {
+        this.sidebarResizing = true
+        this.resizeStartThickness = this.sidebarWidth
+      }
+      if (bar === 'bottombar') {
+        this.resizeStartThickness = this.bottombarHeight
+        this.bottombarResizing = true
+      }
       this.resizeStartPos = this.$helper.getMousePos(event)
-      this.resizeStartSidebarWidth = this.sidebarWidth
     },
     endResize() {
-      if (this.resizing) {
-        this.resizeStartPos = null
-        this.resizeStartSidebarWidth = 0
-        this.resizing = false
-      }
+      this.resizeStartPos = null
+      this.resizeStartThickness = 0
+      if (this.sidebarResizing) this.sidebarResizing = false
+      if (this.bottombarResizing) this.bottombarResizing = false
     }
   }
 }
@@ -165,7 +166,7 @@ export default {
     }
 
     .sidebar-resizer {
-      flex: 0 0 3px;
+      flex: 0 0 2px;
       cursor: e-resize;
       background: @bg2;
     }
@@ -207,17 +208,13 @@ export default {
         flex: 1 1 0px;
         .dock;
       }
-      .bottombar {
+      .bottombar-resizer {
+        flex: 0 0 2px;
+        cursor: n-resize;
+        background: @bg2;
+      }
+      .footer {
         flex: 0 0 180px;
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-        .header {
-          flex: 0 0 35px;
-        }
-        .body {
-          flex: 1 1 0px;
-        }
       }
     }
   }

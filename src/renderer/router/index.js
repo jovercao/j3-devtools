@@ -1,6 +1,10 @@
 import IDE from '../views/IDE'
+import VueRouter from 'vue-router'
+import Vue from 'vue'
 
-export default {
+Vue.use(VueRouter)
+
+export default new VueRouter({
   routes: [
     {
       path: '/',
@@ -12,4 +16,4 @@ export default {
       redirect: '/'
     }
   ]
-}
+})

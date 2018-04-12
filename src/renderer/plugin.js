@@ -1,7 +1,7 @@
 import os from 'os'
 import config from './config'
 import fs from 'fs'
-import { join, resolve } from 'path'
+import { join } from 'path'
 import http from 'axios'
 // import unzip from 'unzip'
 
@@ -16,8 +16,8 @@ if (os.platform() === 'win32') {
 }
 
 // dir path
-const pluginLocalpath = resolve(config.get('plugins-path'))
-console.log(pluginLocalpath)
+// const pluginLocalpath = resolve(config.get('plugins-path'))
+
 // url
 const pluginRegistry = config.get('plugin-registry')
 const tempPath = config.get('temp-path')
@@ -31,7 +31,7 @@ function nameToUrl(name) {
 }
 
 function getLocalPath(name) {
-  return join(pluginLocalpath, name)
+  return require.resolve('#', name)
 }
 
 // async function doInstall(path, name) {
@@ -100,7 +100,7 @@ async function install(plugin) {
 }
 
 async function uninstall(plugin) {
-  const path = join(pluginLocalpath, plugin)
+  const path = require.resolve('#', plugin)
   if (!fs.existsSync(path)) {
     fs.rmdirSync(path)
   }
@@ -147,16 +147,16 @@ async function getList() {
 /**
  * 初始化已安装插件
  */
-function initPlugins(ide) {
+function initPlugins(app) {
   for (const pluginName of installedPlugins) {
     // const localPath = getLocalPath(pluginName)
     // const entryPath = join(localPath, 'plugin.js')
     // require.ensure([], function (require) {
     // console.log(entryPath)
-    const plugin = require('../plugins/' + pluginName + '/plugin.js')
+    const plugin = require('#/' + pluginName + '/plugin.js')
     // 初始化默认参数
     const options = config.get('#' + pluginName)
-    plugin.go(ide, options)
+    plugin.go(app, options)
     // })
   }
 }

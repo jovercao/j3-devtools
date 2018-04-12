@@ -3,13 +3,30 @@ import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 // 将常用api置于此处
 export default {
   computed: {
-    ...mapState(['activeTab', 'openedTabs', 'activeSidebar', 'activeBottombar', 'bottombarVisible', 'sidebarVisible']),
-    ...mapGetters(['openedItems', 'activeItem'])
+    ...mapState([
+      'activeTab',
+      'openedTabs',
+      'activeSidebar',
+      'activeBottombar',
+      'bottombarVisible',
+      'sidebarVisible'
+    ]),
+    ...mapGetters([
+      'openedItems',
+      'activeItem',
+      'sidebars',
+      'bottombars',
+      'hidedToolboxes',
+      'visibleSidebars',
+      'visibleBottombars'
+    ])
   },
   methods: {
     ...mapActions([
       'open',
-      'openFromUri'
+      'openFromUri',
+      'activeDefaultBottombar',
+      'activeDefaultSidebar'
     ]),
     ...mapMutations([
       // openeds

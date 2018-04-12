@@ -10,7 +10,7 @@ function go(ide, options) {
   // 将资源管理器注册到IDE中
   ide.toolbox('explorer-box', {
     title: '资源管理器',
-    position: 'sidebar',
+    dock: 'sidebar', // 注册到侧边栏位置
     icon: 'view_modules',
     component: 'explorer-box'
   })
