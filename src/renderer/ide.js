@@ -1,55 +1,89 @@
 import Vue from 'vue'
 import axios from 'axios'
 import App from './App'
-import router from './router'
-import mainStore from './store'
+import routers from './routers'
+import store from './store'
+// import toolbox from './toolbox'
+import Vuex from 'vuex'
+import Router from 'vue-router'
+import plugin from './plugin'
+import MuseUI from 'muse-ui'
 import 'material-design-icons/iconfont/material-icons.css'
 import 'muse-ui/dist/muse-ui.css'
 import 'muse-ui/dist/theme-carbon.css'
-import directives from './directives'
-import filters from './filters'
-import Vuex from 'vuex'
-import Router from 'vue-router'
+// import filters from './filters'
+// import helper from './helper'
+// import directives from './directives'
 
-import service, { VuePlugin as ServiceVuePlugin } from './service'
-import resource, { VuePlugin as ResourceVuePlugin } from './resource'
+// import service from './service'
+// import resource from './resource'
 
-if (!process.env.IS_WEB) Vue.use(require('vue-electron'))
-Vue.http = Vue.prototype.$http = axios
+if (!process.env.IS_WEB) {
+  Vue.use(require('vue-electron'))
+}
+
 Vue.config.productionTip = false
 Vue.use(Vuex)
 Vue.use(Router)
-Vue.use(filters)
-Vue.use(directives)
-Vue.use(ServiceVuePlugin)
-Vue.use(ResourceVuePlugin)
+Vue.use(MuseUI)
+// Vue.use(filters)
+// Vue.use(directives)
+Vue.http = Vue.prototype.$http = axios
+// Vue.service = Vue.prototype.$service = service
 
-let isRunning = false
+// let isRunning = false
+// let root
 
-function run() {
-  isRunning = true
-  /* eslint-disable no-new */
+function go() {
+  // 加载插件
+  plugin.initPlugins(ide)
+  // isRunning = true
+
+  const rootStore = store()
+  const router = new Router(routers)
+
+  // // // 通过service进行调用
+  // Object.assign(uiApi, {
+  //   $store: rootStore,
+  //   ...mapMutations([
+  //     'setActive',
+  //     'setActiveSidebar',
+  //     'showToolbox',
+  //     'openContent',
+  //     'saveContent',
+  //     'createContent'
+  //   ]),
+  //   ...mapState([
+  //     'actived'
+  //   ])
+  // })
+
   new Vue({
     components: { App },
-    router: new Router(router),
-    store: new Vuex.Store(mainStore),
+    router,
+    store: rootStore,
     template: '<App/>'
   }).$mount('#app')
 }
 
-function store(id, module) {
-  if (isRunning) {
-    throw new Error('process is running')
-  }
-  mainStore.modules[id] = module
-}
+// const uiApi = {}
+
+// 将uiapi注册到服务中，在其他Vue中可以
+// 这种方式调用: this.$service('ide').setActive()
+// 或者: this.$service.ide.setActive()
+// service('ide', uiApi)
 
 const ide = {
-  run,
-  service,
+  // ui,
+  // service,
+  // toolbox,
   store,
-  resource,
+  // resource,
   Vue
 }
 
 export default ide
+
+export {
+  go
+}

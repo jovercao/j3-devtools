@@ -1,106 +1,118 @@
 <template>
-  <flex-panel class="container"
-      @mouseup.native="endResize"
-      @mousemove.native="resizeSidebar">
-    <!-- @mouseup.native="endResize" @mousemove.native="resizeSidebar" -->
-    <flex-panel-item :thickness="48" class="activitybar">
-      <flex-panel class="dock" direction="vertical">
-        <flex-panel-item class="body" :grow="1">
-          <mu-icon-button :class="{ active: activeSidebar === 'ComponentsSidebar' }" icon="view_module" @click="selectSidebar('ComponentsSidebar')" /> <br>
-          <mu-icon-button @dragover.native="handlerDrogover('DesignerSidebar', $event)" icon="view_headline" :class="{ active: activeSidebar === 'DesignerSidebar' }" @click="selectSidebar('DesignerSidebar')"/> <br>
-          <mu-icon-button icon="flash_on" /> <br>
-          <mu-icon-button icon="data_usage" /> <br>
-        </flex-panel-item>
-        <flex-panel-item :thickness="64">
+  <div class="viewport">
+    <menubar class="menubar" />
+    <div class="container"
+        @mouseup="endResize"
+        @mousemove="resizeSidebar">
+      <!-- @mouseup.native="endResize" @mousemove.native="resizeSidebar" -->
+      <div class="activitybar">
+        <div class="body" :grow="1">
+          <div :key="index" v-for="(item, index) in sidebars">
+            <mu-icon-button
+              :class="{ active: activeSidebar === item }"
+              :icon="item.icon"
+              @click="handlerSidebar(item)"
+              @dragover.native.stop.prevent="handlerDrogonSidebar(item)"
+              />
+          </div>
+        </div>
+        <div class="footer">
           <mu-icon-button icon="settings"/> <br>
-        </flex-panel-item>
-      </flex-panel>
-    </flex-panel-item>
-    <flex-panel-item class="sidebar" :thickness="sidebarWidth">
-      <keep-alive>  
-        <component :is="activeSidebar"></component>
-      </keep-alive>
-    </flex-panel-item>
-    <flex-panel-item class="sidebar-resizer"
-      :thickness="2"
-      @mousedown.native.stop.prevent="beginResize"
-    />
-    <flex-panel-item :grow="1" class="content">
-      <flex-panel class="dock" direction="vertical">
-        <flex-panel-item class="header" :thicknes="36">
+        </div>
+      </div>
+      <div class="sidebar" v-show="sidebarVisible" :style="{ 'flex-basis': sidebarWidth + 'px' }">
+        <keep-alive>  
+          <component :is="activeSidebar.component" />
+        </keep-alive>
+      </div>
+      <div class="sidebar-resizer"
+        @mousedown.stop.prevent="beginResize"
+      />
+      <div class="content">
+        <div class="header">
           <mu-flat-button
-            v-for="(item, index) in openeds" :key="index"
-            @click="setActive(item)"
-            :class="{ active: actived === item }"
-            :icon="item.icon" :label="item.title"/>
-        </flex-panel-item>
-        <flex-panel-item class="body" :grow="1">
+            v-for="(tab, index) in openedTabs" :key="index"
+            @click="setActiveTab(tab)"
+            @dragover.native.stop.prevent="setActiveTab(tab)"
+            :class="{ active: actived === tab }"
+            :icon="tab.icon" :label="tab.title"
+            />
+        </div>
+        <div class="body">
           <component
-            v-show="actived === item" v-for="(item, index) in openeds"
+            v-show="actived === item" v-for="(tab, index) in openedTabs"
             :key="index"
-            :is="getEditor(item)"
-            class="dock"/>
-        </flex-panel-item>
-      </flex-panel>
-    </flex-panel-item>
-  </flex-panel>
+            :is="tab.editor"
+            v-model="tab.content.data"
+            />
+        </div>
+        <div class="bottombar" v-if="bottombarVisible">
+          <div class="header">
+            <mu-flat-button v-for="(bar, index) in bottombars" :key="index"
+              :class="{ actived: activeBottombar === bar }"
+              :label="bar.title"
+              @click="setActiveBottombar(bar)" />
+          </div>
+          <keep-alive>
+            <component :is="activeBottombar.component"></component>
+          </keep-alive>
+        </div>
+      </div>
+    </div>
+  </div>  
 </template>
 
 <script>
-import DesignerSidebar from './parts/DesignerSidebar'
-import ComponentsSidebar from './parts/ComponentsSidebar'
-import DesignerView from './parts/DesignerView'
-import CodeView from './parts/CodeView'
-import { mapState, mapActions, mapMutations } from 'vuex'
-import modules from '../../store/store-modules'
+import { mapGetters } from 'vuex'
+import Menubar from './parts/Menubar'
+import ideApi from '../mixins/ide'
 
 export default {
+  mixins: [
+    ideApi
+  ],
   data() {
     return {
       sidebarWidth: 250,
-      sidebarVisible: true,
-      activeSidebar: null,
       resizing: false,
       resizeStartPos: null,
       resizeStartSidebarWidth: 0
     }
   },
   components: {
-    DesignerSidebar,
-    DesignerView,
-    ComponentsSidebar,
-    CodeView
-    // FlexContainer,
-    // FlexContainerItem,
-    // OutlineBox,
-    // PropertyBox
+    Menubar
   },
   computed: {
-    ...mapState(['actived'])
+    ...mapGetters(['sidebars', 'bottombars'])
   },
   methods: {
-    ...mapActions(modules.UiDesigner, [
-      'loadCatalogs',
-      'openView'
-    ]),
-    ...mapMutations(modules.UiDesigner, [
-      'setActive'
-    ]),
-    getEditor(item) {
-      // item.content.contentType
-      return 'view-editor'
+    handlerBottombar(item) {
+      if (this.activeBottombar === item) {
+        this.toggleBottombar()
+        return
+      }
+      this.setActiveBottombar(item)
     },
-    selectSidebar(name) {
-      this.activeSidebar = name
+    handlerSidebar(item) {
+      // 如果已经是相同的sidebar，则隐藏
+      if (this.activeSidebar === item) {
+        this.toggleSidebar()
+        return
+      }
+      this.setActiveSidebar(item)
     },
-    /**
-     * 切换侧边栏是否可见
-     */
-    toggleSidebar(state) {
-      state.sidebarVisible = !state.sidebarVisible
+    handlerDrogonSidebar(item) {
+      if (!this.sidebarVisible) {
+        this.showSidebar(item)
+      }
+      this.setActiveSidebar(item)
     },
     resizeSidebar(event) {
       if (!this.resizing) return
+      if (event.buttons !== 1) {
+        this.endResize()
+        return
+      }
       const p = this.$helper.getMousePos(event)
       let move = p.x - this.resizeStartPos.x
       this.sidebarWidth = this.resizeStartSidebarWidth + move
@@ -111,18 +123,12 @@ export default {
       this.resizeStartPos = this.$helper.getMousePos(event)
       this.resizeStartSidebarWidth = this.sidebarWidth
     },
-    endResize(event) {
+    endResize() {
       if (this.resizing) {
-        this.resizeSidebar(event)
         this.resizeStartPos = null
         this.resizeStartSidebarWidth = 0
         this.resizing = false
       }
-    },
-    handlerDrogover(viewName, event) {
-      event.stopPropagation()
-      event.preventDefault()
-      this.selectSidebar(viewName)
     }
   }
 }
@@ -130,64 +136,90 @@ export default {
 
 
 <style lang="less" scoped>
-@import url('../../assets/define.less');
+@import url('../assets/define.less');
 
 .dock {
   width: 100%;
   height: 100%;
 }
 
-.container {
+.viewport {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   .dock;
-  // .flex-v;
-  .sidebar {
-    background: @bg1;
-    overflow: auto;
-  }
 
-  .sidebar-resizer {
-    // flex-basis: 3px;
-    cursor: e-resize;
-    background: @bg2;
+  .menubar {
+    flex: 0 0 35px;
   }
+  .container {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    flex: 1 1 0px;
 
-  .activitybar {
-    // .fixed50;
-    // .flex-h;
-    background: @bg2;
-    padding: 3px;
-    .active {
-      color: @active;
+    .sidebar {
+      background: @bg1;
+      overflow: auto;
+      flex: 0 0 auto;
     }
-    // .body {
-    //   // .scale1;
-    // }
 
-    // .footer {
-    //   // .fixed50;
-    // }
-  }
-
-  .content {
-    // .scale1;
-    // .flex-h;
-    .header {
-      // flex-basis: 32px;
+    .sidebar-resizer {
+      flex: 0 0 3px;
+      cursor: e-resize;
       background: @bg2;
-      .active {
-        color: @active;
-        background: @bg1;
+    }
+
+    .activitybar {
+      flex-basis: 48px;
+      flex-grow: 0;
+      background: @bg2;
+      padding: 3px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      .body {
+        flex: 1 1 0px;
+        .active {
+          color: @active;
+        }
+      }
+
+      .footer {
+        flex: 0 0 64px;
       }
     }
-    // .body {
-    //   // .scale1;
-    //   // .flex;
-    //   // .component {
-    //   //   .dock;
-    //   //   // .scale1;
-    //   //   overflow: auto;
-    //   // }
-    // }
+
+    .content {
+      flex: 1 1 0px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      .header {
+        flex: 0 0 32px;
+        background: @bg2;
+        .active {
+          color: @active;
+          background: @bg1;
+        }
+      }
+      .body {
+        flex: 1 1 0px;
+        .dock;
+      }
+      .bottombar {
+        flex: 0 0 180px;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        .header {
+          flex: 0 0 35px;
+        }
+        .body {
+          flex: 1 1 0px;
+        }
+      }
+    }
   }
 }
 </style>

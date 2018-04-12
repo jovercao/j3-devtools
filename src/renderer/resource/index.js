@@ -1,31 +1,37 @@
 import url from 'url'
 import { dirname } from 'path'
 
-import file from './file'
+const Resources = {}
 
-/*
-  * content结构:
-  * {
-  *    id: String,
-  *    data: Any,
-  *    openTime: Date
-  *    lastSaveTime: Date,
-  * }
-*/
-function resource(name) {
-  const mgr = resourceTypes[name]
-  if (!mgr) {
-    throw new Error('资源类型不存在！')
+/**
+ * options:
+ * {
+ *   get(id): { id: String, contentType: String, data: Any },
+ *   set(id, content: { contentType: String, data: Any }),
+ *   list(path) : [{ id: String, contentType: String }]
+ *   create(id, content: { contentType: String, data: Any })
+ * }
+ */
+function resource(name, options) {
+  if (!options) {
+    const mgr = Resources[name]
+    if (!mgr) {
+      throw new Error('资源类型不存在！')
+    }
+    return mgr
   }
-  return mgr
-}
 
-const resourceTypes = {
-  file
+  Resources[name] = options
 }
 
 Object.assign(resource, {
-  resourceTypes,
+  all() {
+    const list = []
+    for (const item in Resources) {
+      list.push(item)
+    }
+    return list
+  },
   /**
    * 解释Uri
    */
@@ -46,6 +52,7 @@ Object.assign(resource, {
     const id = info.path
     const mgr = resource(resourceType)
     const data = await mgr.get(id)
+    data.resourceType = resourceType
     return data
   },
   async set (uri, data) {

@@ -13,8 +13,6 @@ export default {
 <style lang="less">
 /* LESS */
 
-@import url('../../node_modules/muse-ui/src/styles/colors.less');
-
 html,
 body,
 #app {
@@ -26,11 +24,4 @@ body,
   font-family: "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","微软雅黑",Arial,sans-serif;
 }
 
-html {
-}
-
-body {
-  // background-color: @grey900;
-  // color: @grey100;
-}
 </style>

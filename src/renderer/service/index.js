@@ -10,20 +10,16 @@ function service(name, options) {
   Services[name] = options
 }
 
-export default new Proxy(service, {
+const proxy = new Proxy(service, {
   get(target, key) {
-    return Services[name]
+    return Services[key]
+  },
+  has(target, key) {
+    return Services[key] !== undefined
   },
   ownKeys(target) {
     return Object.keys(Services)
-  },
-  has(target, key) {
-    return Object.hasOwnProperty(Services, key)
   }
 })
 
-export const VuePlugin = {
-  install(Vue, options) {
-    Vue.prototype.$service = service
-  }
-}
+export default proxy

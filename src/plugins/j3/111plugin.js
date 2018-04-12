@@ -2,15 +2,16 @@ import service from './service'
 import helper from './helper'
 import directives from './directives'
 import filters from './filters'
+import components from './service/catalogs/components';
 
 export default {
   go(ide, options) {
 
-    // 获取其他组件定义内容
-    const uiDesigners = ide.service('UiDesigner')
+    // // 获取其他组件定义内容
+    // const uiDesigners = ide.service('UiDesigner')
 
-    // 执行其组件功能，本例为注册组件
-    uiDesigners.component(/* id, component */)
+    // // 执行其组件功能，本例为注册组件
+    // uiDesigners.component(/* id, component */)
 
     // 注册内容类型
     ide.contentType({
@@ -66,10 +67,12 @@ export default {
     // 注册服务
     ide.service(/* id, svc, options */)
 
+    // 加载Vue相关资源
     ide.Vue.use(helper)
     ide.Vue.use(filters)
     ide.Vue.use(directives)
     ide.Vue.use(service)
+    ide.Vue.use(components)
 
     // 加载css文件
     ide.css(/* path */)
