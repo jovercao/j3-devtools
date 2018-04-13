@@ -24,5 +24,5 @@ export default function commands(name, item) {
  */
 commands.exec = commands.execute = function(name, context) {
   const handler = commands(name).handler
-  handler.call(context)
+  handler(context)
 }

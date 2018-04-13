@@ -1,8 +1,6 @@
 <template>
-  <div>
-    <h1>
-      测试一下
-    </h1>
+  <div class="explorer-box">
+    
   </div>
 </template>
 
@@ -12,3 +10,13 @@ export default {
 
 }
 </script>
+
+<style lang="less" scoped>
+
+@import url('../../../renderer/assets/define.less');
+
+.explorer-box {
+
+}
+
+</style>

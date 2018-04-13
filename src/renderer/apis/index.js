@@ -1,6 +1,7 @@
 import { mapActions, mapMutations, mapState, mapGetters } from 'vuex'
 import helper from '../helper'
 import store from '../store'
+import service from '../service'
 
 // **************api只有store正确加载后方可生效*****************
 // 将常用api置于此处
@@ -63,5 +64,8 @@ helper.mapProperties(api, true, mapGetters, [
   'visibleSidebars',
   'openedItems'
 ])
+
+// 注册服务
+service('ide', api)
 
 export default api

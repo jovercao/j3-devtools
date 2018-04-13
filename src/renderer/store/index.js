@@ -5,6 +5,7 @@ import menus from '../menus'
 import helper from '../helper'
 import commands from '../commands'
 import config from '../config'
+import service from '../service'
 
 import _ from '../utils'
 import Vue from 'vue'
@@ -262,7 +263,7 @@ function store(name, module) {
   return instance
 }
 
-let app = { store }
+let app = {}
 
 /**
  * 将app 传入store， 以便store用到，应该在应用程序初始化时调用
@@ -271,5 +272,8 @@ let app = { store }
 store.init = function($app) {
   app = $app
 }
+
+// 注册服务
+service('store', store)
 
 export default store

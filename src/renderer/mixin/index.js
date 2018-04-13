@@ -1,4 +1,5 @@
 import ide from './ide'
+import service from '../service'
 
 const Mixins = {}
 
@@ -29,3 +30,5 @@ mixin.joinTo = function(name, ...components) {
 }
 
 mixin('ide', ide)
+
+service('mixin', mixin)

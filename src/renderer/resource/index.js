@@ -1,5 +1,6 @@
 import url from 'url'
 import { dirname } from 'path'
+import service from '../service'
 
 const Resources = {}
 
@@ -80,3 +81,5 @@ Object.assign(resource, {
 })
 
 export default resource
+
+service('resource', resource)

@@ -1,10 +1,11 @@
 import IDE from '../views/IDE'
 import VueRouter from 'vue-router'
 import Vue from 'vue'
+import service from '../service'
 
 Vue.use(VueRouter)
 
-export default new VueRouter({
+const router = new VueRouter({
   routes: [
     {
       path: '/',
@@ -17,3 +18,7 @@ export default new VueRouter({
     }
   ]
 })
+
+service('router', router)
+
+export default router

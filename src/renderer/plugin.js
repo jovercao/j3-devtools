@@ -2,8 +2,12 @@ import os from 'os'
 import config from './config'
 import fs from 'fs'
 import { join } from 'path'
-import http from 'axios'
+import axios from 'axios'
+import service from './service'
 // import unzip from 'unzip'
+
+// 独立出来，不与vm.$http共享配置
+const http = axios.create({})
 
 let pathMattch
 const urlMatch = /^((ht|f)tps?):\/\/[\w\-]+(\.[\w\-]+)+([\w\-\.,@?^=%&:\/~\+#]*[\w\-\@?^=%&\/~\+#])?$/
@@ -161,7 +165,7 @@ function initPlugins(app) {
   }
 }
 
-export default {
+const plugin = {
   initPlugins,
   view,
   getInstalleds,
@@ -173,3 +177,7 @@ export default {
   nameToUrl,
   getLocalPath
 }
+
+service('plugin', plugin)
+
+export default plugin

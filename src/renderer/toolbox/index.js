@@ -1,3 +1,5 @@
+import service from '../service'
+
 const Toolboxes = {}
 
 /**
@@ -42,5 +44,24 @@ toolbox.sidebars = function() {
 toolbox.bottombars = function() {
   return toolbox.filter(tb => tb.dock === 'bottombar')
 }
+// 注册工具栏
+service('toolbox', toolbox)
 
+toolbox.menus = function() {
+  const commands = service('commands')
+  const menus = service('menus')
+
+  const items = toolbox.all().map(item => {
+    const command = 'ide.toggle-' + item.name
+    // 注册命令
+    commands(command, {
+      title: item.title,
+      handler(app) {
+        app.ide.hideToolbox(item)
+      }
+    })
+    return { title: item.title, icon: item.icon, command }
+  })
+  menus.add(items, [2, 0])
+}
 export default toolbox

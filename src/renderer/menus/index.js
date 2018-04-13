@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import service from '../service'
 
 const Menus = [
   {
@@ -50,31 +51,7 @@ const Menus = [
   }
 ]
 
-function menus() {
-  return Menus
-}
-
-/**
- * @param {object} item - menuItem { title, icon, command, children: [...] }，也可以是 '-'，分隔符。
- * @param {int[]} indexes - 菜单项插入的位置
- */
-function addItem(item, indexes) {
-  if ((!indexes || indexes.length === 1) && _.isString(item)) {
-    throw new Error('父级元素不允许出现分隔符！')
-  }
-  if (_.isString(item) && item !== '-') {
-    throw new Error('如果要指定分隔符，则item的值必须为"-"')
-  }
-  if (indexes) {
-    const x = getArray(indexes)
-    // 插入项
-    x.array.children.splice(x.index, 0, item)
-  } else {
-    Menus.push(item)
-  }
-}
-
-function getArray(indexes) {
+function getListChildren(indexes) {
   let array = Menus
   if (indexes.length > 1) {
     for (let i = 0; i < indexes.length - 1; i++) {
@@ -87,21 +64,65 @@ function getArray(indexes) {
       array = array[i].children
     }
   }
-  return {
-    array,
-    index: indexes[indexes.length - 1]
+  return array
+}
+
+/**
+ * 菜单管理器
+ */
+function menus(indexes, items) {
+  if (indexes && !items) {
+    return menus.get(indexes)
+  }
+  if (indexes && items) {
+    return menus.add(items, indexes)
+  }
+  return Menus
+}
+
+/**
+ * @param {object} item - menuItem { title, icon, command, children: [...] }，也可以是 '-'，分隔符。
+ * @param {int[]} indexes - 菜单项插入的位置
+ */
+menus.add = function(item, indexes) {
+  if ((!indexes || indexes.length === 1) && _.isString(item)) {
+    throw new Error('父级元素不允许出现分隔符！')
+  }
+  if (_.isString(item) && item !== '-') {
+    throw new Error('如果要指定分隔符，则item的值必须为"-"')
+  }
+  const items = _.isArray(item) ? item : [ item ]
+  if (indexes) {
+    const children = getListChildren(indexes)
+    // 插入项
+    children.splice(indexes[indexes.length - 1], 0, ...items)
+  } else {
+    Menus.push(...item)
   }
 }
 
-function indexesOf(item) {
+menus.get = function(indexes) {
+  return getListChildren(indexes)[indexes[indexes.length - 1]]
+}
+
+/**
+ * 获取菜单项所处的索引位置
+ * @param {MenuItem} item - 菜单项
+ * @return {integer[]} 返回索引
+ */
+menus.indexesOf = function(item) {
+  return menus.findIndexes(xitem => item === xitem)
+}
+
+/**
+ * 通过自定义函数查找索引
+ * @param {function} fn (item, index) => boolean
+ */
+menus.findIndexes = function(fn) {
   const indexes = []
   function find(items) {
     const index = items.findIndex((el, index) => {
-      if (item === el) {
-        return true
-      } else {
-        return find(el.children)
-      }
+      return fn(el, index) || find(el.children)
     })
     if (index >= 0) {
       indexes.unshift(index)
@@ -113,19 +134,15 @@ function indexesOf(item) {
   return indexes
 }
 
-function removeItem(item) {
-  const indexes = indexesOf(item)
+menus.remove = function(item) {
+  const indexes = menus.indexesOf(item)
   if (indexes.length > 0) {
-    const x = getArray(indexes)
+    const children = getListChildren(indexes)
     // 删除元素
-    x.array.splice(x.index, 1)
+    children.splice(indexes[indexes.length - 1], 1)
   }
 }
 
-Object.assign(menus, {
-  indexesOf,
-  addItem,
-  removeItem
-})
+service('menus', menus)
 
 export default menus

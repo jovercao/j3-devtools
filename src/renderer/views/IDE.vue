@@ -20,14 +20,29 @@
           <mu-icon-button icon="settings"/> <br>
         </div>
       </div>
-      <div class="sidebar" v-show="sidebarVisible" :style="{ 'flex-basis': sidebarWidth + 'px' }">
+      <div class="sidebar" v-show="sidebarVisible"
+        :style="{ 'flex-basis': sidebarWidth + 'px', cursor: sidebarCursor }"
+        @mousemove="handlerSidebarMousemove"
+        @mousedown.stop.prevent="beginResize($event, 'sidebar')">
+        <div class="header">
+          <span>{{ activeSidebar ? activeSidebar.title : '未打开' }}</span>
+          <div class="right">
+            <mu-icon class="hide-btn"
+              @click.native="hideSidebar"
+              value="keyboard_arrow_left" :size="16" />
+          </div>
+        </div>
         <keep-alive>  
-          <component :is="activeSidebar.component" />
+          <component class="body" :is="activeSidebar.component" />
         </keep-alive>
       </div>
-      <div class="sidebar-resizer"
+      <!-- <div class="sidebar-resizer"
         @mousedown.stop.prevent="beginResize($event, 'sidebar')"
-      />
+      >
+        <div class="header"></div>
+        <div class="body"></div>
+      </div>
+      -->
       <div class="content">
         <div class="header">
           <mu-flat-button
@@ -46,8 +61,13 @@
             v-model="tab.content.data"
             />
         </div>
-        <div class="bottombar-resizer" @mousedown.stop.prevent="beginResize($event, 'bottombar')"></div>
-        <bottombar v-if="bottombarVisible" class="footer" :style="{ 'flex-basis': bottombarHeight + 'px' }"/>
+        <!-- <div class="bottombar-resizer" ></div> -->
+        <bottombar v-if="bottombarVisible"
+          class="footer"
+          :style="{ 'flex-basis': bottombarHeight + 'px', cursor: bottombarCursor }"
+          @mousemove.native="handlerBottombarMousemove"
+          @mousedown.native.stop.prevent="beginResize($event, 'bottombar')"
+          />
       </div>
     </div>
   </div>  
@@ -73,7 +93,9 @@ export default {
       sidebarResizing: false,
       bottombarResizing: false,
       resizeStartPos: null,
-      resizeStartThickness: 0
+      resizeStartThickness: 0,
+      sidebarCursor: 'auto',
+      bottombarCursor: 'auto'
     }
   },
   components: {
@@ -81,6 +103,20 @@ export default {
     Bottombar
   },
   methods: {
+    handlerSidebarMousemove(event) {
+      if (event.offsetX >= this.sidebarWidth - 3) {
+        this.sidebarCursor = 'e-resize'
+      } else {
+        this.sidebarCursor = 'auto'
+      }
+    },
+    handlerBottombarMousemove(event) {
+      if (event.offsetY <= 3) {
+        this.bottombarCursor = 'n-resize'
+      } else {
+        this.bottombarCursor = 'auto'
+      }
+    },
     handlerBottombar(item) {
       if (!this.bottombarVisible) {
         this.showBottombar(item)
@@ -115,11 +151,11 @@ export default {
       }
     },
     beginResize(event, bar) {
-      if (bar === 'sidebar') {
+      if (bar === 'sidebar' && this.sidebarCursor === 'e-resize') {
         this.sidebarResizing = true
         this.resizeStartThickness = this.sidebarWidth
       }
-      if (bar === 'bottombar') {
+      if (bar === 'bottombar' && this.bottombarCursor === 'n-resize') {
         this.resizeStartThickness = this.bottombarHeight
         this.bottombarResizing = true
       }
@@ -161,15 +197,47 @@ export default {
 
     .sidebar {
       background: @bg1;
+      min-width: 150px;
       overflow: auto;
       flex: 0 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      .header {
+        font-size: 11pt;
+        color: @font-light;
+        line-height: 26px;
+        flex: 0 0 32px;
+        padding: 3px 12px 3px 12px;
+        background: @bg1;
+        .right {
+          float: right;
+          .hide-btn {
+            vertical-align: middle;
+            cursor: pointer;
+          }
+        }
+      }
+      .body {
+        flex: 1 1 0px;
+      }
     }
 
-    .sidebar-resizer {
-      flex: 0 0 2px;
-      cursor: e-resize;
-      background: @bg2;
-    }
+    // .sidebar-resizer {
+    //   flex: 0 0 2px;
+    //   cursor: e-resize;
+    //   display: flex;
+    //   flex-direction: column;
+    //   align-items: stretch;
+    //   .header {
+    //     flex: 0 0 32px;
+    //     background: @bg2;
+    //   }
+    //   .body {
+    //     flex: 1 1 0px;
+    //     background: @bg1;
+    //   }
+    // }
 
     .activitybar {
       flex-basis: 48px;
@@ -187,7 +255,7 @@ export default {
       }
 
       .footer {
-        flex: 0 0 64px;
+        flex: 0 0 48px;
       }
     }
 
@@ -198,7 +266,7 @@ export default {
       align-items: stretch;
       .header {
         flex: 0 0 32px;
-        background: @bg2;
+        background: #f8f8f8;
         .active {
           color: @active;
           background: @bg1;
@@ -215,6 +283,7 @@ export default {
       }
       .footer {
         flex: 0 0 180px;
+        border-top: @bg2 solid 1px;
       }
     }
   }
