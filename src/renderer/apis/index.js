@@ -11,9 +11,17 @@ const api = {
     'open',
     'openFromUri',
     'activeDefaultBottombar',
-    'activeDefaultSidebar'
+    'activeDefaultSidebar',
+
+    // commands
+    'executeCommand',
+    'exec'
   ]),
   ...mapMutations([
+    // menus
+    'addMenu',
+    'removeMenu',
+
     // toolbox
     'showToolbox',
     'hideToolbox',

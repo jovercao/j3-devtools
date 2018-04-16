@@ -1,12 +1,15 @@
 import url from 'url'
 import { dirname } from 'path'
 import service from '../service'
+import commands from '../commands'
 
 const Resources = {}
 
 /**
  * options:
  * {
+ *   title: '显示名称',
+ *   icon: '图标',
  *   get(id): { id: String, contentType: String, data: Any },
  *   set(id, content: { contentType: String, data: Any }),
  *   list(path) : [{ id: String, contentType: String }]
@@ -15,21 +18,24 @@ const Resources = {}
  */
 function resource(name, options) {
   if (!options) {
+    if (!name) {
+      return Resources
+    }
     const mgr = Resources[name]
     if (!mgr) {
       throw new Error('资源类型不存在！')
     }
     return mgr
   }
-
   Resources[name] = options
+  options.name = name
 }
 
 Object.assign(resource, {
   all() {
     const list = []
-    for (const item in Resources) {
-      list.push(item)
+    for (const name in Resources) {
+      list.push(Resources[name])
     }
     return list
   },
@@ -83,3 +89,8 @@ Object.assign(resource, {
 export default resource
 
 service('resource', resource)
+commands('ide.open-resource', {
+  handler(ctx) {
+    alert(ctx)
+  }
+})

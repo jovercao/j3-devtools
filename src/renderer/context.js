@@ -16,7 +16,7 @@ import plugin from './plugin'
 
 Vue.prototype.$helper = helper
 Vue.prototype.$service = service
-Vue.prototype.$resource = resource
+// Vue.prototype.$resource = resource
 Vue.ide = Vue.prototype.$ide = ide
 
 let instance

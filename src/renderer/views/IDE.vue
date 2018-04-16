@@ -10,7 +10,7 @@
           <div :key="index" v-for="(item, index) in visibleSidebars">
             <mu-icon-button
               :class="{ active: activeSidebar === item }"
-              :icon="item.icon"
+              :icon="item.icon | muIcon"
               @click="handlerSidebar(item)"
               @dragover.native.stop.prevent="handlerSidebar(item)"
               />
@@ -20,22 +20,11 @@
           <mu-icon-button icon="settings"/> <br>
         </div>
       </div>
-      <div class="sidebar" v-show="sidebarVisible"
+      <sidebar class="sidebar" v-show="sidebarVisible"
         :style="{ 'flex-basis': sidebarWidth + 'px', cursor: sidebarCursor }"
-        @mousemove="handlerSidebarMousemove"
-        @mousedown.stop.prevent="beginResize($event, 'sidebar')">
-        <div class="header">
-          <span>{{ activeSidebar ? activeSidebar.title : '未打开' }}</span>
-          <div class="right">
-            <mu-icon class="hide-btn"
-              @click.native="hideSidebar"
-              value="keyboard_arrow_left" :size="16" />
-          </div>
-        </div>
-        <keep-alive>  
-          <component class="body" :is="activeSidebar.component" />
-        </keep-alive>
-      </div>
+        @mousemove.native="handlerSidebarMousemove"
+        @mousedown.native.stop.prevent="beginResize($event, 'sidebar')">
+      </sidebar>
       <!-- <div class="sidebar-resizer"
         @mousedown.stop.prevent="beginResize($event, 'sidebar')"
       >
@@ -77,8 +66,19 @@
 import Menubar from './parts/Menubar'
 import Bottombar from './parts/Bottombar'
 import ideApi from '../mixin/ide'
+import Sidebar from './parts/Sidebar'
 
 export default {
+  components: {
+    Menubar,
+    Bottombar,
+    Sidebar
+  },
+  filters: {
+    muIcon(value) {
+      return value ? value.replace(/-/g, '_') : ''
+    }
+  },
   mixins: [
     ideApi
   ],
@@ -97,10 +97,6 @@ export default {
       sidebarCursor: 'auto',
       bottombarCursor: 'auto'
     }
-  },
-  components: {
-    Menubar,
-    Bottombar
   },
   methods: {
     handlerSidebarMousemove(event) {
@@ -195,33 +191,6 @@ export default {
     align-items: stretch;
     flex: 1 1 0px;
 
-    .sidebar {
-      background: @bg1;
-      min-width: 150px;
-      overflow: auto;
-      flex: 0 0 auto;
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      .header {
-        font-size: 11pt;
-        color: @font-light;
-        line-height: 26px;
-        flex: 0 0 32px;
-        padding: 3px 12px 3px 12px;
-        background: @bg1;
-        .right {
-          float: right;
-          .hide-btn {
-            vertical-align: middle;
-            cursor: pointer;
-          }
-        }
-      }
-      .body {
-        flex: 1 1 0px;
-      }
-    }
 
     // .sidebar-resizer {
     //   flex: 0 0 2px;
@@ -259,6 +228,13 @@ export default {
       }
     }
 
+    .sidebar {
+      transform: display 1s;
+      min-width: 150px;
+      max-width: 80%;
+      flex: 0 0 auto;
+    }
+
     .content {
       flex: 1 1 0px;
       display: flex;
@@ -283,6 +259,8 @@ export default {
       }
       .footer {
         flex: 0 0 180px;
+        min-height: 100px;
+        max-height: 80%;
         border-top: @bg2 solid 1px;
       }
     }

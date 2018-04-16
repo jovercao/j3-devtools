@@ -2,6 +2,8 @@ import service from '../service'
 
 const Toolboxes = {}
 
+let changed = false
+
 /**
  * @param {string} name - 名称
  * @param {string} options.icon - 显示的图标，如果为sidebar时，则为点击的图标
@@ -17,6 +19,7 @@ function toolbox(name, options) {
   }
 
   Toolboxes[name] = options
+  changed = true
 }
 
 /**
@@ -47,9 +50,11 @@ toolbox.bottombars = function() {
 // 注册工具栏
 service('toolbox', toolbox)
 
-toolbox.menus = function() {
-  const commands = service('commands')
+// 获取查看菜单下的菜单项
+toolbox.refreshViewMenus = function() {
+  if (!changed) return
   const menus = service('menus')
+  const commands = service('commands')
 
   const items = toolbox.all().map(item => {
     const command = 'ide.toggle-' + item.name
@@ -57,11 +62,16 @@ toolbox.menus = function() {
     commands(command, {
       title: item.title,
       handler(app) {
-        app.ide.hideToolbox(item)
+        app.ide.toggleToolbox(item)
       }
     })
     return { title: item.title, icon: item.icon, command }
   })
-  menus.add(items, [2, 0])
+  menus([2], {
+    title: '查看',
+    children: items
+  }, true)
+  changed = false
 }
+
 export default toolbox

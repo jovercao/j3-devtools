@@ -28,6 +28,24 @@ async function exists(path) {
 }
 
 const file = {
+  title: '本地文件',
+  icon: 'el-icon-document',
+  description: '从本地文件打开',
+  // 工具栏按钮，只允许添加按钮
+  tools: [
+    {
+      icon: '',
+      title: '',
+      handler() {
+
+      },
+      command: '' // command 与 handler 二选一, 将优先执行command
+    }
+  ],
+  // 右键弹出菜单
+  propMenus: [
+
+  ],
   // * 描述内容如何获取
   // * id 一般为完整路径
   async get(id) {

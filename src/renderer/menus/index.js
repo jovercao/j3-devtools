@@ -67,24 +67,7 @@ function getListChildren(indexes) {
   return array
 }
 
-/**
- * 菜单管理器
- */
-function menus(indexes, items) {
-  if (indexes && !items) {
-    return menus.get(indexes)
-  }
-  if (indexes && items) {
-    return menus.add(items, indexes)
-  }
-  return Menus
-}
-
-/**
- * @param {object} item - menuItem { title, icon, command, children: [...] }，也可以是 '-'，分隔符。
- * @param {int[]} indexes - 菜单项插入的位置
- */
-menus.add = function(item, indexes) {
+function insert(item, indexes, replace = false) {
   if ((!indexes || indexes.length === 1) && _.isString(item)) {
     throw new Error('父级元素不允许出现分隔符！')
   }
@@ -94,11 +77,46 @@ menus.add = function(item, indexes) {
   const items = _.isArray(item) ? item : [ item ]
   if (indexes) {
     const children = getListChildren(indexes)
+    const deleteCount = replace ? items.length : 0
     // 插入项
-    children.splice(indexes[indexes.length - 1], 0, ...items)
+    children.splice(indexes[indexes.length - 1], deleteCount, ...items)
   } else {
     Menus.push(...item)
   }
+}
+
+/**
+ * 菜单管理器
+ */
+function menus(indexes, items, replace = false) {
+  if (indexes && !items) {
+    return menus.get(indexes)
+  }
+  if (indexes && items) {
+    if (replace) {
+      return menus.replace(items, indexes)
+    } else {
+      return menus.add(items, indexes)
+    }
+  }
+  return Menus
+}
+
+/**
+ * @param {object} item - menuItem { title, icon, command, children: [...] }，也可以是 '-'，分隔符。
+ * @param {int[]} indexes - 菜单项插入的位置
+ */
+menus.add = function(item, indexes) {
+  return insert(item, indexes)
+}
+
+/**
+ * 替换菜单项
+ * @param {menus} item - 菜单项
+ * @param {int[]} indexes - 索引
+ */
+menus.replace = function(item, indexes) {
+  return insert(item, indexes, true)
 }
 
 menus.get = function(indexes) {

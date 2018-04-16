@@ -1,7 +1,7 @@
 import resource from '../resource'
-import toolbox from '../toolbox'
 import editor from '../editor'
 import menus from '../menus'
+import toolbox from '../toolbox'
 import helper from '../helper'
 import commands from '../commands'
 import config from '../config'
@@ -20,7 +20,6 @@ const instance = new Vuex.Store({
   state: {
     version: '0.1.0',
     activeBottombareTab: null,
-    menus: menus(),
     // 打开的内容
     openeds: [],
     // 打开的标签页
@@ -42,6 +41,10 @@ const instance = new Vuex.Store({
     bottombars() { return toolbox.bottombars() },
     activeItem(state) {
       return state.activeTab ? state.activeTab.content : null
+    },
+    menus() {
+      toolbox.refreshViewMenus()
+      return menus()
     },
     openedItems(state) {
       return state.openedTabs.map(tab => tab.content)
@@ -77,7 +80,7 @@ const instance = new Vuex.Store({
     },
     // *************************Menus*****************************
     addMenu(state, { menu, indexes }) {
-      menus.addItem(menu, indexes)
+      menus.add(menu, indexes)
     },
     removeMenu(state, menu) {
       menus.removeItem(menu)
@@ -188,7 +191,10 @@ const instance = new Vuex.Store({
   },
   actions: {
     async executeCommand(x, command) {
-      commands.exec(command, app)
+      commands.exec(command)
+    },
+    async exec(x, command) {
+      commands.exec(command)
     },
     async refreshContentList({ commit }, { resourceType, path }) {
       resource.list(`${resourceType}://${path}`)
@@ -263,17 +269,24 @@ function store(name, module) {
   return instance
 }
 
-let app = {}
-
-/**
- * 将app 传入store， 以便store用到，应该在应用程序初始化时调用
- * @param {app}  $app - 全局app对象
- */
-store.init = function($app) {
-  app = $app
-}
-
 // 注册服务
 service('store', store)
 
 export default store
+
+// if (module.hot) {
+//   // 使 action 和 mutation 成为可热重载模块
+//   module.hot.accept(['./mutations', './modules/a'], () => {
+//     // 获取更新后的模块
+//     // 因为 babel 6 的模块编译格式问题，这里需要加上 `.default`
+//     const newMutations = require('./mutations').default
+//     const newModuleA = require('./modules/a').default
+//     // 加载新模块
+//     store.hotUpdate({
+//       mutations: newMutations,
+//       modules: {
+//         a: newModuleA
+//       }
+//     })
+//   })
+// }
