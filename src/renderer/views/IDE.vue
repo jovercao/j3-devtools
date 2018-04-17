@@ -1,38 +1,4 @@
 <template>
-<<<<<<< HEAD
-  <flex-panel class="container"
-      @mouseup.native="endResize"
-      @mousemove.native="resizeSidebar">
-    <!-- @mouseup.native="endResize" @mousemove.native="resizeSidebar" -->
-    
-    <flex-panel-item :thickness="48" class="activitybar">
-      <flex-panel class="dock" direction="vertical">
-        <flex-panel-item class="body" :grow="1">
-          <mu-icon-button :class="{ active: activeSidebar === 'ComponentsSidebar' }" icon="view_module" @click="selectSidebar('ComponentsSidebar')" /> <br>
-          <mu-icon-button @dragover.native="handlerDrogover('DesignerSidebar', $event)" icon="view_headline" :class="{ active: activeSidebar === 'DesignerSidebar' }" @click="selectSidebar('DesignerSidebar')"/> <br>
-          <!-- <mu-icon-button :class="{ active: activeSidebar === 'property' }" icon="build" @click="selectSidebar('property')" /> <br> -->
-          <mu-icon-button icon="mouse" /> <br>
-          <mu-icon-button icon="flash_on" /> <br>
-          <mu-icon-button icon="data_usage" /> <br>
-        </flex-panel-item>
-        <flex-panel-item :thickness="64">
-          <mu-icon-button icon="settings" @click="loadData"/> <br>
-        </flex-panel-item>
-      </flex-panel>
-    </flex-panel-item>
-    <flex-panel-item class="sidebar" :thickness="sidebarWidth">
-      <keep-alive>  
-        <component :is="activeSidebar"></component>
-      </keep-alive>
-    </flex-panel-item>
-    <flex-panel-item class="sidebar-resizer"
-      :thickness="2"
-      @mousedown.native.stop.prevent="beginResize"
-    />
-    <flex-panel-item :grow="1" class="content">
-      <flex-panel class="dock" direction="vertical">
-        <flex-panel-item class="header" :thicknes="36">
-=======
   <div class="viewport">
     <menubar class="menubar" />
     <div class="container"
@@ -68,7 +34,6 @@
       -->
       <div class="content">
         <div class="header">
->>>>>>> ide
           <mu-flat-button
             v-for="(tab, index) in openedTabs" :key="index"
             @click="setActiveTab(tab)"
