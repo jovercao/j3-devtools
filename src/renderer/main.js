@@ -9,7 +9,6 @@ import 'material-design-icons/iconfont/material-icons.css'
 import 'muse-ui/dist/muse-ui.css'
 import 'muse-ui/dist/theme-carbon.css'
 import 'element-ui/lib/theme-chalk/index.css'
-import init from './init'
 
 import App from './App.vue'
 
@@ -20,8 +19,6 @@ Vue.use(directives)
 Vue.use(filters)
 
 const ctx = context()
-
-init(ctx)
 
 // **********初始化应用程序******** ***
 // 设置默认context

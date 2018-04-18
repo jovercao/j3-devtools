@@ -83,6 +83,9 @@ Object.assign(resource, {
     const id = info.path
     const mgr = resource(resourceType)
     await mgr.create(id, data)
+  },
+  contentType(type) {
+    return ''
   }
 })
 

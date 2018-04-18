@@ -1,4 +1,5 @@
 import service from '../service'
+import _ from 'lodash'
 
 const Toolboxes = {}
 
@@ -12,12 +13,27 @@ let changed = false
  */
 function toolbox(name, options) {
   if (!options) {
-    return Toolboxes[name]
+    if (_.isString(name)) return Toolboxes[name]
+    if (_.isObject(name)) {
+      const items = name
+      for (const key in items) {
+        toolbox(key, items[key])
+      }
+      return
+    }
+    if (_.isArray(name)) {
+      const items = name
+      for (const item of items) {
+        toolbox(item.name, item)
+      }
+      return
+    }
   }
   if (Toolboxes[name] && options !== Toolboxes[name]) {
     throw new Error(`Toolbox 命名冲突！ 名称 '${name}' 已经存在！`)
   }
 
+  options.name = name
   Toolboxes[name] = options
   changed = true
 }

@@ -1,17 +1,32 @@
 import config from './config'
+import _ from 'lodash'
 
 const Editors = {}
 
 const defaultEditors = config.get('content-editors')
 
 /**
- * @param {string} name - 编辑器名称
+ * @param {string | object | array} name - 编辑器名称
  * @param {string[]} options.contentTypes - 支持的内容类型
  * @param {string} options.component - Vue组件名称
  */
 function editor(name, options) {
   if (!options) {
-    return Editors[name]
+    if (_.isString(name)) return Editors[name]
+    if (_.isObject(name)) {
+      const opts = name
+      for (const key in opts) {
+        editor(key, opts[key])
+      }
+      return
+    }
+    if (_.isArray(name)) {
+      const items = name
+      for (const item of items) {
+        editor(item.name, item)
+      }
+      return
+    }
   }
   if (Editors[name] && options !== Editors[name]) {
     throw new Error(`编辑器命名冲突！名称'${name}'已经存在!`)
@@ -37,7 +52,8 @@ editor.getEditor = function(contentType) {
   if (def && Editors[def]) {
     return Editors[def]
   }
-  for (const editor of Editors) {
+  for (const name in Editors) {
+    const editor = Editors[name]
     if ((editor.contentTypes || []).includes(contentType)) {
       return editor
     }

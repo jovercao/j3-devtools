@@ -10,7 +10,7 @@
       </div>
     </div>
     <keep-alive>  
-      <component class="body" :is="activeSidebar.component" />
+      <component v-if="activeSidebar !== null" class="body" :is="activeSidebar.component" />
     </keep-alive>
   </div>
 </template>

@@ -151,7 +151,7 @@ async function getList() {
 /**
  * 初始化已安装插件
  */
-function initPlugins(app) {
+function initPlugins(ctx) {
   for (const pluginName of installedPlugins) {
     // const localPath = getLocalPath(pluginName)
     // const entryPath = join(localPath, 'plugin.js')
@@ -160,7 +160,7 @@ function initPlugins(app) {
     const plugin = require('#/' + pluginName + '/plugin.js')
     // 初始化默认参数
     const options = config.get('#' + pluginName)
-    plugin.go(app, options)
+    plugin.go(ctx, options)
     // })
   }
 }

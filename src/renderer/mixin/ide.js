@@ -24,6 +24,7 @@ export default {
   methods: {
     ...mapActions([
       'open',
+      'close',
       'openFromUri',
       'activeDefaultBottombar',
       'activeDefaultSidebar'

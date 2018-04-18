@@ -38,20 +38,27 @@
             v-for="(tab, index) in openedTabs" :key="index"
             @click="setActiveTab(tab)"
             @dragover.native.stop.prevent="setActiveTab(tab)"
-            :class="{ active: actived === tab }"
-            :icon="tab.icon" :label="tab.title"
-            />
+            @mouseenter.native="hoverTab = tab"
+            @mouseleave.native="hoverTab = null"
+            :class="['tab-sheet', { active: activeTab === tab }]"
+            :icon="tab.icon | muIcon"
+            :label="tab.title"
+          >
+            <i @click.stop="close(tab.id)" v-show="tab === activeTab || hoverTab === tab" class="el-icon-close close-btn"/>
+          </mu-flat-button>
         </div>
         <div class="body">
           <component
-            v-show="actived === item" v-for="(tab, index) in openedTabs"
+            class="dock"
+            v-for="(tab, index) in openedTabs"
+            v-show="activeTab === tab"
             :key="index"
             :is="tab.editor"
             v-model="tab.content.data"
-            />
+          />
         </div>
         <!-- <div class="bottombar-resizer" ></div> -->
-        <bottombar v-if="bottombarVisible"
+        <bottombar v-show="bottombarVisible" v-if="activeBottombar !== null"
           class="footer"
           :style="{ 'flex-basis': bottombarHeight + 'px', cursor: bottombarCursor }"
           @mousemove.native="handlerBottombarMousemove"
@@ -69,6 +76,7 @@ import ideApi from '../mixin/ide'
 import Sidebar from './parts/Sidebar'
 
 export default {
+
   components: {
     Menubar,
     Bottombar,
@@ -76,7 +84,19 @@ export default {
   },
   filters: {
     muIcon(value) {
-      return value ? value.replace(/-/g, '_') : ''
+      if (value) {
+        if (value.indexOf('-') >= 0) {
+          return ':' + value
+        }
+        return value
+      }
+      return ''
+    },
+    title(value) {
+      if (value && value.length > 20) {
+        return value.substr(0, 18) + '..'
+      }
+      return value
     }
   },
   mixins: [
@@ -88,6 +108,7 @@ export default {
   },
   data() {
     return {
+      hoverTab: null,
       sidebarWidth: 250,
       bottombarHeight: 200,
       sidebarResizing: false,
@@ -243,9 +264,19 @@ export default {
       .header {
         flex: 0 0 32px;
         background: #f8f8f8;
-        .active {
-          color: @active;
-          background: @bg1;
+        .close-btn {
+          position: absolute;
+          right: 6%;
+          font-size: 14pt;
+          color: #444;
+        }
+        .tab-sheet {
+          width: 180px;
+          justify-content: flex-start !important;
+          &.active {
+            color: @active;
+            background: @bg1;
+          }
         }
       }
       .body {

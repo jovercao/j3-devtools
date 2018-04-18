@@ -13,6 +13,7 @@ import store from './store'
 import menus from './menus'
 import commands from './commands'
 import plugin from './plugin'
+import editor from './editor'
 
 Vue.prototype.$helper = helper
 Vue.prototype.$service = service
@@ -30,6 +31,8 @@ export default function context() {
       router,
       // ide api
       ide,
+      // 编辑器
+      editor,
       // 混入器
       mixin,
       // 服务，context成员下的许多其他对象也被注册进了服务

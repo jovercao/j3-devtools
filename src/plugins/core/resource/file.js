@@ -4,14 +4,16 @@ import fs from 'fs'
 import { basename, join } from 'path'
 import { promisify } from 'util'
 import os from 'os'
+import { readLogicalDisks } from './util'
 
 const readFile = promisify(fs.readFile)
 const readdir = promisify(fs.readdir)
 const writeFile = promisify(fs.writeFile)
 const stat = promisify(fs.stat)
+const isWin32 = os.platform() === 'win32'
 
 function idToPath(id) {
-  if (id.startsWith('/') && os.platform() === 'win32') {
+  if (id.startsWith('/') && isWin32) {
     return id.substr(1, id.length - 1)
   }
   return id
@@ -31,28 +33,28 @@ const file = {
   title: '本地文件',
   icon: 'el-icon-document',
   description: '从本地文件打开',
-  // 工具栏按钮，只允许添加按钮
-  tools: [
-    {
-      icon: '',
-      title: '',
-      handler() {
+  // // 工具栏按钮，只允许添加按钮
+  // tools: [
+  //   {
+  //     icon: '',
+  //     title: '',
+  //     handler() {
 
-      },
-      command: '' // command 与 handler 二选一, 将优先执行command
-    }
-  ],
-  // 右键弹出菜单
-  propMenus: [
+  //     },
+  //     command: '' // command 与 handler 二选一, 将优先执行command
+  //   }
+  // ],
+  // // 右键弹出菜单
+  // propMenus: [
 
-  ],
+  // ],
   // * 描述内容如何获取
   // * id 一般为完整路径
   async get(id) {
     const path = idToPath(id)
     const filename = basename(path)
     const fn = filename.split('.')
-    const data = await readFile(path)
+    const data = (await readFile(path)).toString()
     return {
       id,
       title: filename,
@@ -84,17 +86,26 @@ const file = {
   // * 描述内容列表查询
   // * 返回 [{ id, title, data?: Any }]
   async list(path) {
+    if (isWin32 && path === '/') {
+      const disks = await readLogicalDisks()
+      return disks.map(disk => ({ path: disk + '/', name: disk + '/', isPath: true }))
+    }
     const files = await readdir(path)
     const result = []
     for (const filename of files) {
       const fn = filename.split('.')
       const filePath = join(path, filename)
-      const st = await stat(filePath)
-      const isFile = st.isFile()
-      const isDir = st.isDirectory()
+      let isFile = false
+      let isDir = false
+      try {
+        const st = await stat(filePath)
+        isFile = st.isFile()
+        isDir = st.isDirectory()
+      } catch (err) {}
       if (isDir) {
         result.push({
           path: filePath,
+          name: filename,
           isPath: true
         })
       } else if (isFile) {
@@ -102,7 +113,7 @@ const file = {
           path: filePath,
           name: filename,
           isPath: false,
-          contentType: fn[fn.length - 1]
+          type: fn[fn.length - 1]
         })
       }
     }
