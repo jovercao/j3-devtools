@@ -39,7 +39,6 @@
 
 <script>
 import { mapGetters, mapState, mapMutations } from 'vuex'
-import modules from '../../../store/store-modules'
 import _ from '../../../utils'
 
 export default {

@@ -63,7 +63,6 @@
 <script>
 import DesignerComponent from './DesignerComponent'
 import { mapState, mapMutations, mapGetters } from 'vuex'
-import modules from '../../../store/store-modules'
 import _ from 'lodash'
 import { checkAccepts } from '../../../service/catalogs'
 // import './DesignerBox.less'

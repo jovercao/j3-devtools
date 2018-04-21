@@ -6,17 +6,21 @@ import defaultConfig from './default-config'
 import store from './store'
 import editors from './editors'
 
-function go(ide, options) {
+function go(ide, config) {
+  console.log(ide)
   // 注册资源
-  ide.resource('file', file)
+  ide.resource('file', file(ide, config))
+
   // 注册store
-  store(ide)
+  ide.store(store(ide, config))
+
   // 注册工具栏
-  ide.toolbox(toolbox)
+  ide.toolbox(toolbox(ide, config))
 
   ide.editor(editors)
+
   // 注册命令
-  ide.commands(commands)
+  ide.commands(commands(ide, config))
 }
 
 export default {

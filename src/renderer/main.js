@@ -1,4 +1,4 @@
-import context from './context'
+import context from '@'
 import Vue from 'vue'
 import directives from './directives'
 import filters from './filters'
@@ -10,6 +10,8 @@ import 'muse-ui/dist/muse-ui.css'
 import 'muse-ui/dist/theme-carbon.css'
 import 'element-ui/lib/theme-chalk/index.css'
 
+import './assets/proper.less'
+
 import App from './App.vue'
 
 Vue.use(components)
@@ -18,7 +20,7 @@ Vue.use(ElementUI)
 Vue.use(directives)
 Vue.use(filters)
 
-const ctx = context()
+const ctx = global.ctx = context
 
 // **********初始化应用程序******** ***
 // 设置默认context

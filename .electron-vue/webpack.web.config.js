@@ -44,7 +44,11 @@ let webConfig = {
       },
       {
         test: /\.less$/,
-        loader: 'style-loader!css-loader!less-loader'
+        use: [
+          'style-loader',
+          { loader: 'css-loader', options: { importLoaders: 1 } },
+          'less-loader'
+        ]
       },
       {
         test: /\.html$/,
@@ -116,7 +120,8 @@ let webConfig = {
   resolve: {
     alias: {
       'vue$': 'vue/dist/vue.esm.js',
-      '#': path.join(__dirname, '../src/plugins')
+      '#': path.join(__dirname, '../src/plugins'),
+      '@': path.join(__dirname, '../src/renderer/context.js')
     },
     extensions: ['.js', '.vue', '.json', '.css', '.less']
   },

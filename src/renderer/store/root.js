@@ -6,7 +6,6 @@ import helper from '../helper'
 import commands from '../commands'
 import config from '../config'
 import _ from '../utils'
-import { basename } from 'path'
 
 const hidedToolboxes = config.get('hide-toolboxes')
 
@@ -98,9 +97,6 @@ export default {
       }
 
       state.activeTab = tab
-
-      console.log(tab)
-      console.log(state.activeTab)
     },
     closeActiveTab(state) {
       this.commit('closeTab', state.activeTab)
@@ -116,64 +112,29 @@ export default {
       const index = state.openedTabs.indexOf(tab)
       if (index < 0) {
         state.openedTabs.push(tab)
-        state.openeds[tab.id] = tab.content
+        state.openeds[tab.uri] = tab.content
       }
       this.commit('setActiveTab', tab)
-      console.log('openTab')
     },
     closeTab(state, tab) {
       const index = _.isNumber(tab) ? tab : state.openedTabs.indexOf(tab)
       tab = _.isNumber(tab) ? state.openedTabs[index] : tab
       if (index >= 0) {
-        delete state.openeds[tab.id]
+        delete state.openeds[tab.uri]
         state.openedTabs.splice(index, 1)
-        console.log('delete', tab.id)
       }
       if (state.openedTabs.length > 0) {
         const activeIndex = (state.openedTabs.length > index ? index : state.openedTabs.length - 1)
         this.commit('setActiveTab', activeIndex)
-        console.log('closeTab 1')
       } else {
         this.commit('setActiveTab', null)
-        console.log('closeTab 2')
       }
     },
-    setActiveTabById(state, id) {
-      const index = state.openedTabs.findIndex(tab => tab.id === id)
+    setActiveTabByUri(state, uri) {
+      const index = state.openedTabs.findIndex(tab => tab.uri === uri)
       if (index >= 0) {
         this.commit('setActiveTab', index)
-        console.log('setActiveTabById')
       }
-    },
-    /**
-     * 打开内容，内容将在标签页中打开
-     * item = { editor, content, title, icon }
-     */
-    openItem(state, item) {
-      // 如果已经打开，则激活显示
-      const openedTab = state.openedTabs.find(tab => tab.content === item)
-      if (openedTab) {
-        this.commit('setActiveTab', openedTab)
-        return
-      }
-
-      let editorOptions = editor.getEditor(item.contentType)
-      if (!editorOptions) {
-        editorOptions = editor.getEditor('*')
-        if (!editorOptions) {
-          throw new Error(`没有找到类型${item.contentType}的编辑器！`)
-        }
-      }
-      const title = _.shortString(basename(item.id))
-      const newTab = {
-        id: item.id,
-        title,
-        icon: editorOptions.icon,
-        content: item,
-        editor: editorOptions.component,
-        openTime: new Date()
-      }
-      this.commit('openTab', newTab)
     },
     /**
      *  关闭指定标签页
@@ -223,53 +184,77 @@ export default {
     async exec(x, command) {
       commands.exec(command)
     },
-    async refreshContentList({ commit }, { resourceType, path }) {
-      resource.list(`${resourceType}://${path}`)
-    },
     // 保存所有打开的项
-    async saveAll({ commit }, { id }) {
+    async saveAll({ commit }) {
 
     },
-    // 打开资源, arg可以是uri字符串，也可以是对象{ resourceType, id }
-    async open({ commit, state }, arg) {
+    // 打开资源, arg可以是uri字符串，也可以是对象{ resourceType, uri }
+    async open({ commit, dispatch, state }, arg) {
       let data
+      let uri = arg
       if (_.isObject(arg)) {
-        const { resourceType, id } = arg
-        if (state.openeds[id]) {
-          commit('setActiveItemById', id)
-          return
-        }
-        const mgr = resource(resourceType)
-        data = await mgr.get(id)
-        data.resourceType = resourceType
-      } else if (_.isString(arg)) {
-        const uri = arg
-        data = await resource.get(uri)
+        uri = resource.toUriString(arg)
       }
-      commit('openItem', data)
+      if (state.openeds[uri]) {
+        commit('setActiveTabByUri', uri)
+        return
+      }
+      data = await resource.get(uri)
+      return dispatch('openContent', data)
     },
-    close({ commit, state }, id) {
-      const index = state.openedTabs.findIndex(tab => tab.id === id)
+
+    /**
+     * 打开内容，内容将在标签页中打开
+     * item = { editor, content, title, icon }
+     */
+    openContent({ state }, content) {
+      // 如果已经打开，则激活显示
+      const openedTab = state.openedTabs.find(tab => tab.content === content)
+      if (openedTab) {
+        this.commit('setActiveTab', openedTab)
+        return
+      }
+
+      const editorOptions = editor.getEditor(content.contentType)
+      if (!editorOptions) {
+        // editorOptions = editor.getEditor('*')
+        // if (!editorOptions) {
+        return new Error(`没有找到类型${content.contentType}的编辑器！`)
+        // }
+      }
+      const newTab = {
+        uri: content.uri,
+        path: content.path,
+        title: content.name,
+        icon: editorOptions.icon,
+        content: content,
+        value: editorOptions.convertFrom ? editorOptions.convertFrom(content.data) : _.toString(content.data),
+        editor: editorOptions,
+        openTime: new Date()
+      }
+      this.commit('openTab', newTab)
+    },
+    // 关闭打开的项
+    close({ commit, state }, arg) {
+      let uri = arg
+      if (_.isObject(arg)) {
+        uri = resource.parse(arg)
+      }
+      console.log(uri)
+      const index = state.openedTabs.findIndex(tab => tab.uri === uri)
       if (index >= 0) {
         commit('closeTab', index)
       }
     },
     // 保存内容
     async save({ commit, dispatch }, content) {
-      const { id, contentType, resourceType, data } = content
-      const mgr = resource(contentType)
-      await mgr.set(id, data)
-      commit('contentSaved', content)
-      const path = resource.parentId(id)
-      await dispatch('refreshContentList', { resourceType, path })
+      const { uri, data } = content
+      await resource.set(uri, data)
     },
+    // 创建内容
     async create({ commit, dispatch }, content) {
-      const { id, resourceType, data } = content
-      const mgr = resource(resourceType)
-      await mgr.create(id, data)
-      commit('contentSaved', content)
-      const path = resource.parentId(id)
-      await dispatch('refreshContentList', { resourceType, path })
+      const { uri, data } = content
+      await resource.create(uri, data)
     },
     activeDefaultBottombar({ commit, getters }) {
       if (getters.bottombars.length > 0) {

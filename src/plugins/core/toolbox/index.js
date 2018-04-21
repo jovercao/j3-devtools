@@ -1,5 +1,7 @@
 import ExplorerBox from './ExplorerBox'
 
-export default {
-  'explorer-box': ExplorerBox
+export default function(ctx) {
+  return {
+    'explorer-box': ExplorerBox
+  }
 }

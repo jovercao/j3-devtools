@@ -1,7 +1,6 @@
 <script>
 
 import { mapGetters } from 'vuex'
-import modules from '../../../store/store-modules'
 
 export default {
   props: {

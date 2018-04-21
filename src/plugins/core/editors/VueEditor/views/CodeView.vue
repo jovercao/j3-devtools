@@ -7,7 +7,6 @@
 
 <script>
 import { mapState } from 'vuex'
-import modules from '../../../store/store-modules'
 
 export default {
   data() {
@@ -17,7 +16,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(modules.UiDesigner, ['viewData'])
+    ...mapState('vue-editor', ['viewData'])
   },
   activated() {
     if (!this.viewData) {

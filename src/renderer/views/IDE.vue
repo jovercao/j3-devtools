@@ -4,7 +4,6 @@
     <div class="container"
         @mouseup="endResize"
         @mousemove="resize">
-      <!-- @mouseup.native="endResize" @mousemove.native="resizeSidebar" -->
       <div class="activitybar">
         <div class="body" :grow="1">
           <div :key="index" v-for="(item, index) in visibleSidebars">
@@ -25,37 +24,62 @@
         @mousemove.native="handlerSidebarMousemove"
         @mousedown.native.stop.prevent="beginResize($event, 'sidebar')">
       </sidebar>
-      <!-- <div class="sidebar-resizer"
-        @mousedown.stop.prevent="beginResize($event, 'sidebar')"
-      >
-        <div class="header"></div>
-        <div class="body"></div>
-      </div>
-      -->
       <div class="content">
         <div class="header">
-          <mu-flat-button
-            v-for="(tab, index) in openedTabs" :key="index"
-            @click="setActiveTab(tab)"
-            @dragover.native.stop.prevent="setActiveTab(tab)"
-            @mouseenter.native="hoverTab = tab"
-            @mouseleave.native="hoverTab = null"
-            :class="['tab-sheet', { active: activeTab === tab }]"
-            :icon="tab.icon | muIcon"
-            :label="tab.title"
-          >
-            <i @click.stop="close(tab.id)" v-show="tab === activeTab || hoverTab === tab" class="el-icon-close close-btn"/>
-          </mu-flat-button>
+          <mu-popover 
+            :trigger="trigger"
+            :open="tabMenuVisibe"
+            @close="tabMenuVisibe = false"
+  
+            >
+            <mu-menu>
+              <mu-menu-item title="关闭当前" />
+              <mu-menu-item title="关闭其他" />
+              <mu-menu-item title="关闭右侧" />
+              <mu-divider />
+              <mu-menu-item title="关闭所有" />
+            </mu-menu>
+          </mu-popover>
+          <div class="tab-sheets"
+            @contextmenu.stop="showTabMenu"
+            @mousewheel="$helper.scroll($event.currentTarget, - $event.wheelDelta)">
+            <mu-flat-button
+              v-for="(tab, index) in openedTabs" :key="index"
+              @click="setActiveTab(tab)"
+              @dragover.native.stop.prevent="setActiveTab(tab)"
+              @mouseenter.native="hoverTab = tab"
+              @mouseleave.native="hoverTab = null"
+              :class="['tab-sheet', { active: activeTab === tab }]"
+              :icon="tab.icon | muIcon"
+              :label="tab.title | title"
+            >
+              <i @click.stop="closeTab(index)" class="el-icon-close close-btn"/>
+            </mu-flat-button>
+          </div>
+          <div class="tools">
+            <template v-if="activeTab">
+              <ide-icon-button v-for="(tool, index) in activeTab.editor.tools"
+                :key="index"
+                :icon="tool.icon"
+                :command="tool.command" />
+            </template>
+            <ide-icon-button icon="more_vert" @click.stop="showTabMenu">
+            </ide-icon-button>
+          </div>
         </div>
         <div class="body">
-          <component
-            class="dock"
+          <keep-alive
             v-for="(tab, index) in openedTabs"
-            v-show="activeTab === tab"
-            :key="index"
-            :is="tab.editor"
-            v-model="tab.content.data"
-          />
+            :key="index">
+            <component
+              class="dock"
+              v-if="activeTab === tab"
+              :id="tab.id"
+              :contentType="tab.contentType"
+              :is="tab.editor.component"
+              :value="tab.value"
+            />
+          </keep-alive>
         </div>
         <!-- <div class="bottombar-resizer" ></div> -->
         <bottombar v-show="bottombarVisible" v-if="activeBottombar !== null"
@@ -93,8 +117,8 @@ export default {
       return ''
     },
     title(value) {
-      if (value && value.length > 20) {
-        return value.substr(0, 18) + '..'
+      if (value && value.length > 15) {
+        return value.substr(0, 13) + '..'
       }
       return value
     }
@@ -108,6 +132,8 @@ export default {
   },
   data() {
     return {
+      tabMenuVisibe: false,
+      trigger: null,
       hoverTab: null,
       sidebarWidth: 250,
       bottombarHeight: 200,
@@ -120,6 +146,11 @@ export default {
     }
   },
   methods: {
+    showTabMenu(event) {
+      console.log(event)
+      this.trigger = event.target
+      this.tabMenuVisibe = true
+    },
     handlerSidebarMousemove(event) {
       if (event.offsetX >= this.sidebarWidth - 3) {
         this.sidebarCursor = 'e-resize'
@@ -149,6 +180,7 @@ export default {
         // 如果已经是相同的sidebar，则隐藏
       } else if (this.activeSidebar === item) {
         this.toggleSidebar()
+        item = null
       }
       this.setActiveSidebar(item)
     },
@@ -189,7 +221,7 @@ export default {
 </script>
 
 
-<style lang="less" scoped>
+<style lang="less">
 @import url('../assets/define.less');
 
 .dock {
@@ -201,15 +233,17 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  overflow: hidden;
   .dock;
 
   .menubar {
-    flex: 0 0 35px;
+    flex: 0 0 28px;
   }
   .container {
     display: flex;
     flex-direction: row;
     align-items: stretch;
+    overflow: hidden;
     flex: 1 1 0px;
 
 
@@ -261,27 +295,67 @@ export default {
       display: flex;
       flex-direction: column;
       align-items: stretch;
+      overflow: hidden;
       .header {
         flex: 0 0 32px;
         background: #f8f8f8;
-        .close-btn {
-          position: absolute;
-          right: 6%;
-          font-size: 14pt;
-          color: #444;
+        display: flex;
+        align-items: stretch;
+        flex-wrap: nowrap;
+        flex-direction: row;
+        .tools {
+          flex: 0 1 0px;
+          padding-right: 5px;
+          max-width: 180px;
+          align-content: space-between;
+          flex-direction: row;
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
         }
-        .tab-sheet {
-          width: 180px;
-          justify-content: flex-start !important;
-          &.active {
-            color: @active;
-            background: @bg1;
+        .tab-sheets {
+          flex: 1 1 0px;
+          min-width: 0px;
+          overflow: hidden;
+          white-space:nowrap;
+          &:hover {
+            overflow-x: auto;
+          }
+          .tab-sheet {
+            display: inline-block;
+            // width: 150px;
+            height: 32px;
+            div.mu-flat-button-wrapper {
+              justify-content: flex-start !important;
+              padding-right: 20px;
+            }
+            .mu-flat-button-label {
+              text-transform: none !important;
+            }
+            &.active {
+              color: @active;
+              background: @bg1;
+              .close-btn {
+                visibility: visible;
+              }
+            }
+            &:hover {
+              .close-btn {
+                visibility: visible;
+              }
+            }
+            .close-btn {
+              visibility: hidden;
+              position: absolute;
+              right: 6%;
+              color: #444;
+              z-index: 200;
+            }
           }
         }
       }
       .body {
         flex: 1 1 0px;
-        .dock;
       }
       .bottombar-resizer {
         flex: 0 0 2px;

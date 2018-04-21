@@ -1,7 +1,6 @@
 <script>
 
 import { mapGetters } from 'vuex'
-import modules from '../../../store/store-modules'
 
 export default {
   props: {
@@ -11,14 +10,14 @@ export default {
     // overitem: Object
   },
   computed: {
-    ...mapGetters(modules.UiDesigner, [ 'components' ])
+    ...mapGetters('vue-editor', [ 'components' ])
   },
   render (h) {
     return this.create(h, this.viewData)
   },
   methods: {
     // 逻辑转移到了 DesignerView
-    // ...mapMutations(modules.UiDesigner, [ 'addItem' ]),
+    // ...mapMutations('vue-editor', [ 'addItem' ]),
     // handlerDropComponent(viewData, dropedViewData) {
     //   if (dropedViewData && dropedViewData.type === 'component') {
     //     this.addItem({ viewData, item: dropedViewData.component, slot: 'default' })

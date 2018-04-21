@@ -7,10 +7,9 @@
       'height': diameter + 'px',
       'width': diameter + 'px',
       'border-radius': diameter / 2 + 'px',
-      'font-size': size + 'px',
       'line-height': diameter + 'px'
     }">
-    <i :class="[ 'icon', icon ]"></i>
+    <i :style="{ 'font-size': size + 'px' }" :class="[ 'icon', { [icon]: !isMaterialIcon, 'mu-icon': isMaterialIcon, 'material-icons': isMaterialIcon } ]">{{ isMaterialIcon ? icon : '' }}</i>
   </button>
 </template>
 
@@ -32,6 +31,10 @@ export default {
   computed: {
     diameter() {
       return this.size * 2
+    },
+    isMaterialIcon() {
+      if (!this.icon) return false
+      return !this.icon.startsWith('el-icon-')
     }
   },
   methods: {
@@ -61,7 +64,7 @@ export default {
   }
 
   .icon {
-    // vertical-align: middle;
+    
   }
 }
 

@@ -117,6 +117,13 @@ export function mapStore(store, namespace, stateWritable = true, getterWritable 
       item = items.reduce((item, key) => item[key] || (item[key] = {}))
     }
     item[last] = mapStore(store, key, stateWritable, getterWritable)
+    // 处理为api别名，便于使用.运算符访问
+    if (last.includes('-')) {
+      const list = last.split('-')
+      const apiName = list.reduce((name, item) => name + item[0].toUpperCase() + item.substr(1))
+      if (item[apiName]) throw new Error('命名冲突')
+      item[apiName] = item[last]
+    }
   }
 
   return api

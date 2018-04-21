@@ -6,7 +6,7 @@
     </mu-popover> -->
     <div v-for="(box, index) in outlineBoxes" :key="index"
       :class="['outline-box', { 'collapsed': !box.expand }]">
-      <div class="header">
+      <div class="header" @click.stop="box.expand = !box.expand">
         <div class="left">
           <i :class="box.icon"/> 
         </div>
@@ -20,7 +20,7 @@
           </button> -->
         </div>
         <div class="right">
-          <ide-icon-button :icon="box.expand ? 'el-icon-arrow-down' : 'el-icon-arrow-right'" @click.stop="box.expand = !box.expand"/>
+          <ide-icon-button :icon="box.expand ? 'el-icon-arrow-down' : 'el-icon-arrow-right'"/>
         </div>
       </div>
       <div class="body">
@@ -62,7 +62,7 @@ export default {
         title: res.title,
         icon: res.icon,
         name: res.name,
-        expand: false,
+        expand: true,
         path: '/'
       }))
       this.$nextTick(() => { this.outlineBoxes = items })
@@ -114,7 +114,7 @@ export default {
     .header {
       flex-basis: 36px;
       color: @font-light;
-      cursor: default;
+      cursor: pointer;
       display: flex;
       align-items: stretch;
       flex-direction: row;
@@ -123,6 +123,10 @@ export default {
       // border-bottom: @bg3 solid 1px;
       // border-top: @bg1 solid 1px;
       background: #e1e1e1;
+      &:hover {
+        color: #555;
+        background: #ccc;
+      }
       .left {
         font-size: 12px;
         flex: 0 0 20px;
@@ -143,26 +147,11 @@ export default {
     }
     .body {
       flex: 1 1 0px;
-      overflow-y: auto;
+      overflow: hidden;
+      &:hover {
+        overflow-y: auto;
+      }
       padding-top: 12px;
-      &::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-      }
-
-      &::-webkit-scrollbar-track {
-        border: 0px;
-        border-radius: 5px;
-      }
-
-      &::-webkit-scrollbar-thumb {
-        background: rgb(187, 187, 187);  
-        border-radius: 5px;
-      }
-
-      &::-webkit-scrollbar-thumb:hover {
-        background: #d1d1d1;  
-      }
     }
   }
 }

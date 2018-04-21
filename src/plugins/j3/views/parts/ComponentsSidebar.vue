@@ -28,7 +28,6 @@
 
 <script>
 import { mapGetters, mapMutations } from 'vuex'
-import modules from '../../../store/store-modules'
 export default {
   computed: {
     ...mapGetters(modules.UiDesigner, ['templates'])

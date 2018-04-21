@@ -44,10 +44,13 @@ export default {
                 await this.toggleExpand(item)
               }
               if (!item.isPath) {
-                this.$ide.open({
+                const err = await this.$ide.open({
                   resourceType: this.type,
-                  id: item.path
+                  path: item.path
                 })
+                if (err) {
+                  this.$alert(err.message, '错误！')
+                }
               }
             }}>
               <i class={ this.contentIcon(item) } style={{ 'margin-left': deep * 12 + 'px' }}/> { this.itmeLabel(item.name) }

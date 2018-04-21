@@ -1,6 +1,7 @@
 import TextEditor from './TextEditor'
-// import VueEditor from './VueEditor'
+import VueEditor from './VueEditor'
 
 export default {
-  [TextEditor.name]: TextEditor
+  [TextEditor.name]: TextEditor,
+  [VueEditor.name]: VueEditor
 }

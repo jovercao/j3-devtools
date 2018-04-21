@@ -12,9 +12,10 @@
 <script>
 import DesignerView from './views/DesignerView'
 import CodeView from './views/CodeView'
-import VueEditor from '../../mixins'
+import VueEditor from '../../mixins/vue-editor'
 
 export default {
+  name: 'vue-editor',
   mixins: [
     VueEditor
   ],

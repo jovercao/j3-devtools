@@ -31,7 +31,7 @@ const state = {
 
 const mutations = {
   select(state, item) {
-    state.state = item
+    state.selected = item
   },
   selectParent(state) {
     if (state.selected && state.selected.parent) {
@@ -48,14 +48,21 @@ const mutations = {
     state.selected.props[prop] = value
   },
   beginEdit(state, viewData) {
+    if (state.viewData) {
+      throw new Error('在调用beginEdit之前必须调用 endEdit以清除上一次的编辑状态！')
+    }
     if (!viewData.propered) {
       properViewData(viewData)
       viewData.propered = true
     }
     state.viewData = viewData
+    // this.commit('select', null)
+    // this.commit('hoverLeave')
   },
   endEdit(state) {
     state.viewData = null
+    this.commit('select', null)
+    this.commit('hoverLeave')
   },
   remove(state, item) {
     // 从原有插糟移除

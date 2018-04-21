@@ -20,38 +20,31 @@ Vue.prototype.$service = service
 // Vue.prototype.$resource = resource
 Vue.ide = Vue.prototype.$ide = ide
 
-let instance
-
-export default function context() {
-  if (!instance) {
-    instance = {
-      // vue对象
-      Vue,
-      // 路由对象
-      router,
-      // ide api
-      ide,
-      // 编辑器
-      editor,
-      // 混入器
-      mixin,
-      // 服务，context成员下的许多其他对象也被注册进了服务
-      service,
-      // 工具栏
-      toolbox,
-      // vuex store
-      store,
-      // 资源管理器中的资源
-      resource,
-      // 命令
-      commands,
-      // 助手
-      helper,
-      // 菜单
-      menus,
-      // 插件管理器
-      plugin
-    }
-  }
-  return instance
+export default {
+  // vue对象
+  Vue,
+  // 路由对象
+  router,
+  // ide api
+  ide,
+  // 编辑器
+  editor,
+  // 混入器
+  mixin,
+  // 服务，context成员下的许多其他对象也被注册进了服务
+  service,
+  // 工具栏
+  toolbox,
+  // vuex store
+  store,
+  // 资源管理器中的资源
+  resource,
+  // 命令
+  commands,
+  // 助手
+  helper,
+  // 菜单
+  menus,
+  // 插件管理器
+  plugin
 }

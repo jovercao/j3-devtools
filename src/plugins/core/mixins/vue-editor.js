@@ -3,30 +3,39 @@ const namespace = 'vue-editor'
 
 export default {
   props: {
-    viewData: Object
+    value: String
+  },
+  created() {
+    try {
+      this.data = JSON.parse(this.value)
+    } catch (err) {
+      this.$msgbox({
+        title: '错误',
+        message: <p>错误信息：文件或数据格式不正确！</p>
+      })
+      this.data = {}
+    }
   },
   activated() {
-    this.beginEdit(this.viewData)
+    this.beginEdit(this.data)
   },
   deactivated() {
     this.endEdit()
     // 如果已经关闭，则销毁，避免占用内容
     if (!this.isOpened(this.viewData)) {
-      this.$desgroy()
+      this.$destroy()
     }
   },
   data() {
     return {
       // 视图数据
-      viewData: null,
       currentView: 'design',
-      selected: null
-      // TODO: 多选待实现
-      // selecteds: []
+      // 编辑值
+      data: null
     }
   },
   computed: {
-    ...mapState(namespace, [ 'selected' ])
+    ...mapState(namespace, [ 'selected', 'viewData' ])
   },
   methods: {
     ...mapMutations(namespace, [ 'beginEdit', 'endEdit' ]),

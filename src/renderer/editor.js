@@ -48,16 +48,20 @@ editor.all = function() {
  * @param {string} contentType - 内容类型，如 "vue"
  */
 editor.getEditor = function(contentType) {
+  // 寻找配置的编辑器
   const def = defaultEditors[contentType]
   if (def && Editors[def]) {
     return Editors[def]
   }
+  // 寻找支持的编辑器
   for (const name in Editors) {
     const editor = Editors[name]
     if ((editor.contentTypes || []).includes(contentType)) {
       return editor
     }
   }
+  // 返回任意类型文件编辑器
+  return Editors[defaultEditors['*']]
 }
 
 export default editor

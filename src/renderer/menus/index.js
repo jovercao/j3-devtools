@@ -21,6 +21,16 @@ const Menus = [
         title: '最近...',
         icon: 'view_list',
         children: [
+          {
+            title: '文件一',
+            icon: 'folder_open',
+            command: 'ide.open-project'
+          },
+          {
+            title: '文件二',
+            icon: 'folder_open',
+            command: 'ide.open-project'
+          }
         ]
       }
     ]

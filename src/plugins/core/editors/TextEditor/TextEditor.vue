@@ -4,11 +4,13 @@
 </template>
 
 <script>
+import ctx from '@'
+// mixin 将被注入
 export default {
-  name: 'text-editor',
-  props: {
-    value: String
-  }
+  mixins: [
+    ctx.mixin('editor')
+  ],
+  name: 'text-editor'
 }
 </script>
 

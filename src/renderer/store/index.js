@@ -2,6 +2,7 @@ import service from '../service'
 import Vue from 'vue'
 import Vuex from 'vuex'
 import root from './root'
+import _ from 'lodash'
 
 Vue.use(Vuex)
 
@@ -20,10 +21,17 @@ function store(namespace, module) {
     }
     return instance.registerModule(namespace, module)
   }
-  if (namespace) {
+  if (_.isString(namespace)) {
     return instance.unregisterModule(namespace)
   }
 
+  if (_.isObject(namespace)) {
+    const options = namespace
+    for (const key in options) {
+      store(key, options[key])
+    }
+    return instance
+  }
   // 直接调用返回
   return instance
 }

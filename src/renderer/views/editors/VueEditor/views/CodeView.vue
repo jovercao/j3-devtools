@@ -7,7 +7,6 @@
 
 <script>
 import { mapState } from 'vuex'
-import modules from '../../../store/store-modules'
 
 export default {
   data() {

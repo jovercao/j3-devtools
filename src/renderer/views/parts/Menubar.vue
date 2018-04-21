@@ -1,7 +1,7 @@
 <template>
   <div class="menubar">
     <mu-flat-button v-for="(mu, index) in menus" :key="index" :label="mu.title" @click="showMenu($event, mu)"
-      :class="{ 'actived-btn': actived === mu}"
+      :class="[ 'menubar-btn', { 'actived-btn': actived === mu}]"
       @mouseover.native="handlerMouseover($event, mu)" />
     <mu-popover :trigger="trigger" :open="!!actived" @close="closeMenu">
       <pop-menu v-if="!!actived" :items="actived.children || []" @command="handlerCommand"/>
@@ -53,8 +53,11 @@ export default {
 }
 </script>
 
-<style lang="less" scoped>
+<style lang="less">
 .menubar {
+  .menubar-btn {
+    min-width: 64px !important;
+  }
   .actived-btn {
     background: #e8e8e8;
   }
