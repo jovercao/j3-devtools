@@ -1,4 +1,4 @@
-import { mapState, mapMutations, mapActions } from 'vuex'
+import { mapState, mapMutations } from 'vuex'
 const namespace = 'vue-editor'
 
 export default {
@@ -21,10 +21,10 @@ export default {
   },
   deactivated() {
     this.endEdit()
-    // 如果已经关闭，则销毁，避免占用内容
-    if (!this.isOpened(this.viewData)) {
-      this.$destroy()
-    }
+    // // 如果已经关闭，则销毁，避免占用内容
+    // if (!this.isOpened(this.viewData)) {
+    //   this.$destroy()
+    // }
   },
   data() {
     return {
@@ -38,7 +38,10 @@ export default {
     ...mapState(namespace, [ 'selected', 'viewData' ])
   },
   methods: {
-    ...mapMutations(namespace, [ 'beginEdit', 'endEdit' ]),
-    ...mapActions([ 'isOpened' ])
+    ...mapMutations(namespace, [
+      'beginEdit',
+      'endEdit' // ,
+      // 'isOpened'
+    ])
   }
 }

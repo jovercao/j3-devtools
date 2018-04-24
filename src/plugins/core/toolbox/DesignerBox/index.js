@@ -1,15 +1,15 @@
-import ExplorerBox from './ExplorerBox'
+import DesignerBox from './DesignerBox.vue'
 import Vue from 'vue'
 
 // 注册组件
-Vue.component(ExplorerBox.name, ExplorerBox)
+Vue.component(DesignerBox.name, DesignerBox)
 
 export default {
-  name: ExplorerBox.name,
-  component: ExplorerBox.name,
-  title: '资源管理器',
+  name: DesignerBox.name,
+  title: '组件库',
   dock: 'sidebar', // 注册到侧边栏位置
-  icon: 'subject',
+  icon: 'edit',
+  component: 'designer-box',
   // 工具栏按钮，只允许添加按钮
   tools: [
     {

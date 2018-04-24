@@ -1,21 +1,9 @@
-import { checkAccepts } from '../service/catalogs'
+import { checkAccepts, load as loadCatalogs } from '../service/catalogs'
 import _ from 'lodash'
+import { properViewData } from '../helper/viewData'
+import ctx from '@'
 
-// * 准备ViewData数据
-function properViewData(item) {
-  for (const slot in item.slots) {
-    const items = item.slots[slot]
-    if (items) {
-      items.forEach((childItem, index) => {
-        // 添加父级指针，方便后续操作
-        childItem.slot = slot
-        childItem.parent = item
-        childItem.index = index
-        properViewData(childItem)
-      })
-    }
-  }
-}
+export const namespace = 'vue-editor'
 
 // editor 需要共享的状态，使用store模块声明
 // vue-eidtor
@@ -26,7 +14,28 @@ const state = {
   // 选中的视图项
   selected: null,
   // 高亮的视图项
-  hoverItem: null
+  hoverItem: null,
+  // 设计摘要信息
+  catalogs: loadCatalogs()
+}
+
+const getters = {
+  // 当前选择组件信息
+  selectedComponent(state) {
+    return state.selected ? state.catalogs.components[state.selected.type] : {}
+  },
+  components(state) {
+    return state.catalogs ? state.catalogs.components : {}
+  },
+  icons(state) {
+    return state.catalogs ? state.catalogs.icons : {}
+  },
+  templates(state) {
+    return state.catalogs ? state.catalogs.templates : []
+  },
+  componentTemplates(state) {
+    return state.catalogs && state.catalogs.templates && state.catalogs.templates.components
+  }
 }
 
 const mutations = {
@@ -56,13 +65,14 @@ const mutations = {
       viewData.propered = true
     }
     state.viewData = viewData
-    // this.commit('select', null)
-    // this.commit('hoverLeave')
   },
   endEdit(state) {
     state.viewData = null
-    this.commit('select', null)
-    this.commit('hoverLeave')
+    this.commit(`${namespace}/select`, null)
+    this.commit(`${namespace}/hoverLeave`)
+  },
+  _loadCatalogs(state, catalogs) {
+    state.catalogs = catalogs
   },
   remove(state, item) {
     // 从原有插糟移除
@@ -93,7 +103,7 @@ const mutations = {
     // 如果是从别处移动过来的
     if (item.parent) {
       // 从原有插糟移除
-      this.commit('remove', item)
+      this.commit(`${namespace}/remove`, item)
       properViewData(item)
     }
     item.parent = container
@@ -112,8 +122,17 @@ const mutations = {
   }
 }
 
+const actions = {
+  async loadCatalogs({ commit }) {
+    const catalogs = await ctx.service('catalogs').load()
+    commit(`${namespace}/_loadCatalogs`, catalogs)
+  }
+}
+
 export default () => ({
   namespaced: true,
+  getters,
   state,
-  mutations
+  mutations,
+  actions
 })

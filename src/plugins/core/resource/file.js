@@ -59,7 +59,6 @@ export default function (ide, options) {
       try {
         const data = await readFile(path)
         return {
-          path,
           name: filename,
           contentType: fn[fn.length - 1],
           data

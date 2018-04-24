@@ -1,13 +1,10 @@
-import catalogs from '../catalogs'
-const components = catalogs.components
-
-export default function generate(viewData) {
-  return helper.buildComponent(viewData)
+export default function generate(viewData, components) {
+  return helper.buildComponent(viewData, components)
 }
 
 const helper = {
-  buildComponent(viewData) {
-    const template = this.buildItem(viewData, 'default', '  ')
+  buildComponent(viewData, components) {
+    const template = this.buildItem(viewData, 'default', '  ', components)
     return `<template>
 ${template}
 </template>
@@ -25,9 +22,9 @@ export default {
 </style>
 `
   },
-  buildItem(viewData, slotName = 'default', indent = '') {
+  buildItem(viewData, slotName = 'default', indent = '', components) {
     const tag = components[viewData.type].tag
-    const slots = this.buildSlots(viewData.slots, indent + '  ')
+    const slots = this.buildSlots(viewData.slots, indent + '  ', components)
     const props = this.buildProps(viewData.props)
     const cls = this.buildClass(viewData.class)
     const style = this.buildStyle(viewData.style)
@@ -59,11 +56,11 @@ ${slots}${indent}</${tag}>`
     // 将双引号替换为单引号
     return JSON.stringify(value).replace(/(([^\\])("))/g, '$2\'')
   },
-  buildSlots(slots, indent) {
+  buildSlots(slots, indent, components) {
     let res = ''
     for (const name in slots) {
       for (const item of slots[name]) {
-        res += this.buildItem(item, name, indent) + '\n'
+        res += this.buildItem(item, name, indent, components) + '\n'
       }
     }
     return res

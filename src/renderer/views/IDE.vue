@@ -11,7 +11,7 @@
               :class="{ active: activeSidebar === item }"
               :icon="item.icon | muIcon"
               @click="handlerSidebar(item)"
-              @dragover.native.stop.prevent="handlerSidebar(item)"
+              @dragover.native.stop.prevent="showSidebar(item)"
               />
           </div>
         </div>
@@ -20,9 +20,10 @@
         </div>
       </div>
       <sidebar class="sidebar" v-show="sidebarVisible"
-        :style="{ 'flex-basis': sidebarWidth + 'px', cursor: sidebarCursor }"
+        :style="{ 'width': sidebarWidth + 'px', cursor: sidebarResizeable ? 'e-resize' : 'auto' }"
+        :scrollable="!sidebarResizeable"
         @mousemove.native="handlerSidebarMousemove"
-        @mousedown.native.stop.prevent="beginResize($event, 'sidebar')">
+        @mousedown.native.stop="beginResize($event, 'sidebar')">
       </sidebar>
       <div class="content">
         <div class="header">
@@ -51,7 +52,7 @@
               @mouseleave.native="hoverTab = null"
               :class="['tab-sheet', { active: activeTab === tab }]"
               :icon="tab.icon | muIcon"
-              :label="tab.title | title"
+              :label="tab.title"
             >
               <i @click.stop="closeTab(index)" class="el-icon-close close-btn"/>
             </mu-flat-button>
@@ -74,10 +75,11 @@
             <component
               class="dock"
               v-if="activeTab === tab"
-              :id="tab.id"
-              :contentType="tab.contentType"
-              :is="tab.editor.component"
+              :uri="tab.uri"
               :value="tab.value"
+              :contentType="tab.contentType"
+              :resourceType="tab.resourceType"
+              :is="tab.editor.component"
             />
           </keep-alive>
         </div>
@@ -115,12 +117,6 @@ export default {
         return value
       }
       return ''
-    },
-    title(value) {
-      if (value && value.length > 15) {
-        return value.substr(0, 13) + '..'
-      }
-      return value
     }
   },
   mixins: [
@@ -135,13 +131,13 @@ export default {
       tabMenuVisibe: false,
       trigger: null,
       hoverTab: null,
-      sidebarWidth: 250,
+      sidebarWidth: 280,
       bottombarHeight: 200,
       sidebarResizing: false,
       bottombarResizing: false,
       resizeStartPos: null,
       resizeStartThickness: 0,
-      sidebarCursor: 'auto',
+      sidebarResizeable: true,
       bottombarCursor: 'auto'
     }
   },
@@ -152,11 +148,7 @@ export default {
       this.tabMenuVisibe = true
     },
     handlerSidebarMousemove(event) {
-      if (event.offsetX >= this.sidebarWidth - 3) {
-        this.sidebarCursor = 'e-resize'
-      } else {
-        this.sidebarCursor = 'auto'
-      }
+      this.sidebarResizeable = (event.offsetX >= this.sidebarWidth - 3)
     },
     handlerBottombarMousemove(event) {
       if (event.offsetY <= 3) {
@@ -200,7 +192,7 @@ export default {
       }
     },
     beginResize(event, bar) {
-      if (bar === 'sidebar' && this.sidebarCursor === 'e-resize') {
+      if (bar === 'sidebar' && this.sidebarResizeable) {
         this.sidebarResizing = true
         this.resizeStartThickness = this.sidebarWidth
       }
@@ -271,10 +263,11 @@ export default {
       display: flex;
       flex-direction: column;
       align-items: stretch;
+      color: #666;
       .body {
         flex: 1 1 0px;
         .active {
-          color: @active;
+          color: @active !important;
         }
       }
 
@@ -285,7 +278,7 @@ export default {
 
     .sidebar {
       transform: display 1s;
-      min-width: 150px;
+      min-width: 180px;
       max-width: 80%;
       flex: 0 0 auto;
     }
@@ -325,12 +318,16 @@ export default {
             display: inline-block;
             // width: 150px;
             height: 32px;
+            max-width: 150px;
             div.mu-flat-button-wrapper {
               justify-content: flex-start !important;
               padding-right: 20px;
             }
             .mu-flat-button-label {
               text-transform: none !important;
+              white-space: nowrap; //强制文本在一行内输出
+              overflow: hidden; //隐藏溢出部分
+              text-overflow: ellipsis; //对溢出部分加上...
             }
             &.active {
               color: @active;

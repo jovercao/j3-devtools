@@ -1,20 +1,11 @@
 import * as marked from './marked'
-import * as dom from './dom'
 import * as style from './style'
+import * as viewData from './viewData'
 
 const helper = Object.assign({},
   marked,
-  dom,
-  style
+  style,
+  viewData
 )
 
-export default {
-  install(Vue, options) {
-    Vue.prototype.$helper = helper
-  },
-  helper
-}
-
-export {
-  helper
-}
+export default helper

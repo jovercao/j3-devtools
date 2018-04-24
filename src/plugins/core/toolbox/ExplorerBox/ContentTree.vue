@@ -44,16 +44,18 @@ export default {
                 await this.toggleExpand(item)
               }
               if (!item.isPath) {
-                const err = await this.$ide.open({
-                  resourceType: this.type,
-                  path: item.path
-                })
-                if (err) {
+                try {
+                  await this.$ide.open({
+                    resourceType: this.type,
+                    path: item.path
+                  })
+                } catch (err) {
                   this.$alert(err.message, '错误！')
                 }
               }
             }}>
-              <i class={ this.contentIcon(item) } style={{ 'margin-left': deep * 12 + 'px' }}/> { this.itmeLabel(item.name) }
+              <i class={ this.contentIcon(item) } style={{ 'margin-left': deep * 12 + 'px' }}/>
+              { item.name }
             </div>
             { item.expand && item.children && item.children.length > 0 && r(item.children) }
           </li>
@@ -117,11 +119,17 @@ ul {
   li {
     padding: 0px;
     margin: 0px;
+    overflow: hidden;
+    display: block;
     .item {
       height: 28px;
       line-height: 28px;
+      padding-right: 10px;
       list-style: none;
       font-size: 10pt;
+      white-space: nowrap; //强制文本在一行内输出
+      overflow: hidden; //隐藏溢出部分
+      text-overflow: ellipsis; //对溢出部分加上...
       &:hover, &.active {
         background: rgba(116, 0, 173, 0.157)
       }

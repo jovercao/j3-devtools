@@ -1,3 +1,36 @@
+
+[contenteditable = "true"], input, textarea {
+  -webkit-user-select: auto!important;
+  -khtml-user-select: auto!important;
+  -moz-user-select: auto!important;
+  -ms-user-select: auto!important;
+  -o-user-select: auto!important;
+  user-select: auto!important;
+}
+
+::-webkit-scrollbar {
+  width: 3%;
+  min-width: 5px;
+  max-width: 10px;
+  height: 3%;
+  min-height: 5px;
+  max-height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  border: 0px;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(187, 187, 187);  
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(150, 150, 150);  
+}
+
 .mu-flat-button {
   height: 28px;
   line-height: 28px;
@@ -30,26 +63,15 @@
   }
 }
 
-
-::-webkit-scrollbar {
-  width: 3%;
-  min-width: 5px;
-  max-width: 10px;
-  height: 3%;
-  min-height: 5px;
-  max-height: 10px;
+.material-icons {
 }
 
-::-webkit-scrollbar-track {
-  border: 0px;
-  border-radius: 5px;
+body {
+  color: #555;
 }
-
-::-webkit-scrollbar-thumb {
-  background: rgb(187, 187, 187);  
-  border-radius: 5px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #d1d1d1;  
-}
+// div {
+//   overflow-y: hidden;
+//   &:hover {
+//     overflow-y: auto;
+//   }
+// }

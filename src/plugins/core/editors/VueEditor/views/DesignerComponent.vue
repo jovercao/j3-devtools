@@ -4,7 +4,7 @@ import { mapGetters } from 'vuex'
 
 export default {
   props: {
-    viewData: Object,
+    value: Object,
     selected: Object,
     heightlight: Object
     // overitem: Object
@@ -13,83 +13,73 @@ export default {
     ...mapGetters('vue-editor', [ 'components' ])
   },
   render (h) {
-    return this.create(h, this.viewData)
-  },
-  methods: {
-    // 逻辑转移到了 DesignerView
-    // ...mapMutations('vue-editor', [ 'addItem' ]),
-    // handlerDropComponent(viewData, dropedViewData) {
-    //   if (dropedViewData && dropedViewData.type === 'component') {
-    //     this.addItem({ viewData, item: dropedViewData.component, slot: 'default' })
-    //   }
-    // },
-    create (h, viewData, slot = 'default') {
+    const create = (h, value, slot = 'default') => {
       const childs = []
-      for (const name in viewData.slots) {
-        const items = viewData.slots[name]
+      for (const name in value.slots) {
+        const items = value.slots[name]
         if (!items) continue
         for (const item of items) {
-          childs.push(this.create(h, item, name))
+          childs.push(create(h, item, name))
         }
 
         // items.forEach((item) => {
         //   if (item.type === 'MuTextField') {
         //     console.log(name, item)
         //   }
-        //   childs.push(this.create(h, item, name))
+        //   childs.push(create(h, item, name))
         // })
       }
       const vm = this
-      const tag = this.components[viewData.type].tag
+      const tag = this.components[value.type].tag
       const item = h(tag, {
         slot,
         class: {
           'designer-component': true,
-          'designer-component-selected': viewData === this.selected,
-          'designer-component-heightlight': viewData === this.heightlight
-          // 'designer-component-dragover': viewData === this.overitem
+          'designer-component-selected': value === this.selected,
+          'designer-component-heightlight': value === this.heightlight
+          // 'designer-component-dragover': value === this.overitem
         },
-        props: viewData.props,
+        props: value.props,
         directives: [
           { name: 'designer-mode' }
-          // 为避免事件名称冲突已转去designer-mode
-          // { name: 'dropable', arg: 'data', value: (dropedViewData) => this.handlerDropComponent(viewData, dropedViewData) }
         ],
         on: {
           '$designer-contextmenu' (event) {
-            vm.$emit('contextmenu', viewData, event)
+            vm.$emit('contextmenu', value, event)
           },
           '$designer-select' (event) {
-            vm.$emit('select', viewData, event)
+            vm.$emit('select', value, event)
           },
           '$designer-mouseover' (event) {
-            vm.$emit('mouseover', viewData, event)
+            vm.$emit('mouseover', value, event)
           },
           '$designer-mouseleave' (event) {
-            vm.$emit('mouseleave', viewData, event)
+            vm.$emit('mouseleave', value, event)
           },
           '$designer-dragstart' (data) {
-            vm.$emit('dragstart', viewData, event)
+            vm.$emit('dragstart', value, event)
           },
           '$designer-dragover' (event) {
-            // vm.$emit('mouseover', viewData, event)
-            vm.$emit('dragover', viewData, event)
+            // vm.$emit('mouseover', value, event)
+            vm.$emit('dragover', value, event)
           },
           '$designer-drop' (event) {
-            vm.$emit('drop', viewData, event)
+            vm.$emit('drop', value, event)
           },
           '$designer-dragleave' (evnet) {
-            // vm.$emit('mouseleave', viewData, event)
-            vm.$emit('dragleave', viewData, evnet)
+            // vm.$emit('mouseleave', value, event)
+            vm.$emit('dragleave', value, evnet)
           },
           '$designer-dragend' (evnet) {
-            // vm.$emit('mouseleave', viewData, event)
-            vm.$emit('dragend', viewData, evnet)
+            // vm.$emit('mouseleave', value, event)
+            vm.$emit('dragend', value, evnet)
           }
         }
       }, childs)
       return item
     }
+
+    return create(h, this.value)
   }
 }
 </script>

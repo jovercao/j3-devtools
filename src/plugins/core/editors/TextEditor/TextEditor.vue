@@ -1,5 +1,5 @@
 <template>
-  <textarea class="text-editor" v-model="value" @change="$emit('change', $event.currentTarget.value)">
+  <textarea class="text-editor" :value="value" @change="$emit('change', $event.currentTarget.value)">
   </textarea>
 </template>
 

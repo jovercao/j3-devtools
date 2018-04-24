@@ -1,5 +1,3 @@
-import category from '../categroy'
-
 export default {
   // 组件名称，必须唯一，不能重复
   name: 'J3FlexPanel',
@@ -10,7 +8,7 @@ export default {
   // 组件标题
   title: '自伸缩Dock面板',
   // 组件类别
-  category: category.layout,
+  category: 'layout',
   // 组件描述
   description: '多栏自伸缩布局组件，可进行横向/纵向切换',
   // 属性描述

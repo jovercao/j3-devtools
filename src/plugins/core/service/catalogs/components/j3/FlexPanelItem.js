@@ -1,11 +1,9 @@
-import category from '../categroy'
-
 export default {
   name: 'J3FlexPanelItem',
   tag: 'flex-panel-item',
   icon: 'list',
   title: 'Dock面板栏目',
-  category: category.layout,
+  category: 'layout',
   description: 'Dock面板的栏',
   props: {
     thickness: {

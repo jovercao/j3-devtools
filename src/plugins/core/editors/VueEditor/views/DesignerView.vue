@@ -1,6 +1,6 @@
 <template>
   <div class="designer-view">
-    <DesignerComponent v-if="viewData" :viewData="viewData" :selected="selectedItem"
+    <DesignerComponent v-if="value" :value="value" :selected="selected"
       :heightlight="hoverItem" @contextmenu="showFloatBar" 
        @select="_onComponentSelect"
        @mouseleave="_onComponentMouseleave"
@@ -12,7 +12,7 @@
        @drop="_onComponentDrop"
        />
     <!-- 快速浮动操作栏 -->
-    <mu-popover v-if="selectedItem" :trigger="floatbarTrigger" :open="floatbarOpened" @close="hideFloatBar">
+    <mu-popover v-if="selected" :trigger="floatbarTrigger" :open="floatbarOpened" @close="hideFloatBar">
       <div class="designer-quickbar">
         <div class="header">
           {{ propTitle }}
@@ -22,13 +22,13 @@
           <value-editor @change="changeProp({ prop, value: arguments[0] })" 
             :selections="selectedComponent.props[prop].selections"
             class="value-editor"
-            :value="selectedItem.props[prop]"
+            :value="selected.props[prop]"
             :data-type="selectedComponent.props[prop].type">
           </value-editor>
         </div>
-        <div class="footer" v-show="selectedItem !== viewData">
-          <mu-icon-button tooltip="删除" icon="clear" @click="removeItem(selectedItem)"/>
-          <mu-icon-button v-show="selectedItem.parent" tooltip="选择父级" icon="developer_board" @click="doSelectParent" />
+        <div class="footer" v-show="selected !== value">
+          <mu-icon-button tooltip="删除" icon="clear" @click="remove(selected)"/>
+          <mu-icon-button v-show="selected.parent" tooltip="选择父级" icon="developer_board" @click="doSelectParent" />
         </div>
       </div>
     </mu-popover>
@@ -62,17 +62,19 @@
 
 <script>
 import DesignerComponent from './DesignerComponent'
-import { mapState, mapMutations } from 'vuex'
+import { mapState, mapMutations, mapGetters } from 'vuex'
 import _ from 'lodash'
-import catalogs, { checkAccepts } from '../../../service/catalogs'
+import { checkAccepts } from '../../../service/catalogs'
+import { namespace } from '../../../store/vue-editor'
 // import './DesignerBox.less'
 // import Vue from 'vue'
-
-const components = catalogs.components
 
 export default {
   components: {
     DesignerComponent
+  },
+  props: {
+    value: Object
   },
   data() {
     return {
@@ -87,10 +89,13 @@ export default {
     }
   },
   computed: {
-    ...mapState('view-editor', [
-      'viewData',
-      'selectedItem',
+    ...mapState(namespace, [
+      'selected',
       'hoverItem'
+    ]),
+    ...mapGetters(namespace, [
+      'selectedComponent',
+      'components'
     ]),
     ...mapState([
       'dragging',
@@ -98,34 +103,36 @@ export default {
     ]),
     dropContainerSorts() {
       if (!this.dropContainer) return null
-      return components[this.dropContainer.type].slots
+      return this.components[this.dropContainer.type].slots
     },
     quickProps() {
       return this.selectedComponent.quickProps
     },
     propTitle() {
-      return this.selectedItem
-        ? this.selectedItem.title ||
+      return this.selected
+        ? this.selected.title ||
             this.selectedComponent.title ||
             this.selectedComponent.name
         : ''
     }
   },
   methods: {
-    ...mapMutations('vue-editor', [
+    ...mapMutations(namespace, [
       'hoverEnter',
       'hoverLeave',
-      'selectItem',
-      'addItem',
-      'removeItem',
-      'beginDrag',
-      'endDrag',
+      'select',
+      'add',
+      'remove',
       'changeProp',
-      'selectParentItem'
+      'selectParent'
+    ]),
+    ...mapMutations([
+      'beginDrag',
+      'endDrag'
     ]),
     // // 选择插糟
-    // async chooseSlot(viewData) {
-    //   const cmp = this.components[viewData.type]
+    // async chooseSlot(value) {
+    //   const cmp = this.components[value.type]
     //   if (cmp) {
 
     //   }
@@ -147,8 +154,8 @@ export default {
     getComponetTitle(item) {
       return (
         item.title ||
-        components[item.type].title ||
-        components[item.type].name
+        this.components[item.type].title ||
+        this.components[item.type].name
       )
     },
     checkDragData(container, slot, dragData) {
@@ -250,7 +257,7 @@ export default {
       ) {
         return
       }
-      this.addItem({ container, item, slot: slotName, index })
+      this.add({ container, item, slot: slotName, index })
 
       this.hideChoosebar()
     },
@@ -258,11 +265,11 @@ export default {
       this.hoverLeave()
     },
     _onComponentSelect(item, event) {
-      this.selectItem(item)
+      this.select(item)
       this.showFloatbar(event.currentTarget)
     },
     doSelectParent() {
-      this.selectParentItem()
+      this.selectParent()
       this.showFloatbar(null)
     },
     showFloatbar(trigger) {
@@ -277,7 +284,7 @@ export default {
     showFloatBar(item, event) {
       console.log(event.currentTarget)
       this.floatbarTrigger = event.currentTarget
-      this.selectItem(item)
+      this.select(item)
       this.floatbarOpened = true
     }
   }

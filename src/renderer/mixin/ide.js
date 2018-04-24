@@ -9,6 +9,7 @@ export default {
       'activeSidebar',
       'activeBottombar',
       'bottombarVisible',
+      'hidedToolboxes',
       'sidebarVisible'
     ]),
     ...mapGetters([
@@ -16,7 +17,6 @@ export default {
       'activeItem',
       'sidebars',
       'bottombars',
-      'hidedToolboxes',
       'visibleSidebars',
       'visibleBottombars'
     ])

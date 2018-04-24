@@ -36,14 +36,14 @@ export default {
   getters: {
     sidebars() { return toolbox.sidebars() },
     bottombars() { return toolbox.bottombars() },
-    activeItem(state) {
+    activeContent(state) {
       return state.activeTab ? state.activeTab.content : null
     },
     menus() {
       toolbox.refreshViewMenus()
       return menus()
     },
-    openedItems(state) {
+    openedContents(state) {
       return state.openedTabs.map(tab => tab.content)
     },
     visibleBottombars(state) {
@@ -175,6 +175,9 @@ export default {
     },
     toggleBottombar(state) {
       state.bottombarVisible = !state.bottombarVisible
+    },
+    dataChange(state, { tab, data }) {
+      tab.content.data = data
     }
   },
   actions: {
@@ -219,20 +222,26 @@ export default {
       if (!editorOptions) {
         // editorOptions = editor.getEditor('*')
         // if (!editorOptions) {
-        return new Error(`没有找到类型${content.contentType}的编辑器！`)
+        throw new Error(`没有找到类型${content.contentType}的编辑器！`)
         // }
       }
+
+      const value = (editorOptions.convertFrom || _.toString)(content.data)
+
       const newTab = {
         uri: content.uri,
         path: content.path,
         title: content.name,
         icon: editorOptions.icon,
         content: content,
-        value: editorOptions.convertFrom ? editorOptions.convertFrom(content.data) : _.toString(content.data),
+        value,
         editor: editorOptions,
         openTime: new Date()
       }
       this.commit('openTab', newTab)
+    },
+    isOpened({ state }, uri) {
+      return state.openeds.hasOwnProperty(uri)
     },
     // 关闭打开的项
     close({ commit, state }, arg) {
@@ -247,9 +256,11 @@ export default {
       }
     },
     // 保存内容
-    async save({ commit, dispatch }, content) {
-      const { uri, data } = content
-      await resource.set(uri, data)
+    async save({ commit, state, dispatch }) {
+      const { editor, value } = state.activeTab
+      const data = (editor.convertTo || _.toString)(value)
+      commit('dataChange', { tab: state.activeTab, data })
+      await resource.set(state.activeTab.content)
     },
     // 创建内容
     async create({ commit, dispatch }, content) {

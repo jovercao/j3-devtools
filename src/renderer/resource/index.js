@@ -70,15 +70,17 @@ Object.assign(resource, {
   async get(uri) {
     const info = resource.parseUri(uri)
     const mgr = resource(info.resourceType)
-    const data = await mgr.get(info.path)
-    data.resourceType = info.resourceType
-    data.uri = uri
-    return data
+    const content = await mgr.get(info.path)
+    content.resourceType = info.resourceType
+    content.uri = uri
+    content.path = info.path
+    return content
   },
-  async set (uri, data) {
+  async set (content) {
+    const { uri } = content
     const info = resource.parseUri(uri)
     const mgr = resource(info.resourceType)
-    await mgr.set(info.path, data)
+    await mgr.set(content)
   },
   async list (uri) {
     const info = url.parse(uri)

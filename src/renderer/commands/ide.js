@@ -1,7 +1,7 @@
 export default {
   'ide.cut': {
     handler() {
-      document.exeCommand('Cut')
+      document.execCommand('Cut')
     }
   },
   'ide.copy': {
@@ -12,6 +12,14 @@ export default {
   'ide.parse': {
     handler() {
       document.execCommand('Parse')
+    }
+  },
+  'ide.save': {
+    title: '保存',
+    handler({ ide }) {
+      if (ide.activeTab) {
+        ide.save(ide.openeds, ide.activeContent)
+      }
     }
   }
 }

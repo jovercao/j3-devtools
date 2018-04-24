@@ -1,14 +1,19 @@
 <template>
   <div class="code-view" >
-    <div v-if="viewData" v-html="htmlCode">
+    <input type="text" />
+    <div v-if="value" v-html="htmlCode">
     </div>
   </div>
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapGetters } from 'vuex'
+import { namespace } from '../../../store/vue-editor'
 
 export default {
+  props: {
+    value: Object
+  },
   data() {
     return {
       sourceCode: '',
@@ -16,14 +21,14 @@ export default {
     }
   },
   computed: {
-    ...mapState('vue-editor', ['viewData'])
+    ...mapGetters(namespace, [ 'components' ])
   },
   activated() {
-    if (!this.viewData) {
+    if (!this.value) {
       this.sourceCode = ''
       this.htmlCode = '<h1>尚未打开组件</h1>'
     } else {
-      this.sourceCode = this.$service.generate.view(this.viewData)
+      this.sourceCode = this.$service.generate.view(this.value, this.components)
       this.htmlCode = this.$helper.markVue(this.sourceCode)
     }
   }

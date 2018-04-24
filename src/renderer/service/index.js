@@ -1,7 +1,16 @@
+import _ from 'lodash'
+
 const Services = {}
 
 function service(name, options) {
   if (!options) {
+    if (_.isObject(name)) {
+      const registes = name
+      for (const key in registes) {
+        const value = registes[key]
+        service(key, value)
+      }
+    }
     return Services[name]
   }
   if (Services[name] && Services[name] !== options) {

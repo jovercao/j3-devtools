@@ -90,8 +90,8 @@ export function mapStore(store, namespace, stateWritable = true, getterWritable 
   }
   if (namespace) {
     Object.assign(api,
-      mapMutations(namespace, Object.keys(options.mutations || {})),
-      mapActions(namespace, Object.keys(options.actions || {}))
+      mapMutations(namespace, Object.keys(options.mutations || {}).filter(name => !name.startsWith('_'))),
+      mapActions(namespace, Object.keys(options.actions || {}).filter(name => !name.startsWith('_')))
     )
   } else {
     Object.assign(api,
@@ -104,25 +104,27 @@ export function mapStore(store, namespace, stateWritable = true, getterWritable 
   if (!options.mutations && options.mutations[mapPropertiesConfig.setterMutation] && (stateWritable || getterWritable)) {
     throw new Error(`可写state或getter，必须定义setter mutation ${mapPropertiesConfig.setterMutation}`)
   }
-  mapProperties(api, stateWritable)
-  mapProperties(api, getterWritable, mapGetters, Object.keys(options.getters || {}))
+  // 映射state
+  mapProperties(api, stateWritable, mapState, Object.keys(options.state || {}).filter(name => !name.startsWith('_')))
+  // 映射getters
+  mapProperties(api, getterWritable, mapGetters, Object.keys(options.getters || {}).filter(name => !name.startsWith('_')))
 
   // 注册子模块
   for (const key in store._modules.root._children) {
     const paths = key.split('/')
-    const last = paths[paths.length - 1]
+    const moduleName = '$' + paths[paths.length - 1]
     let item = api
     if (paths.length >= 2) {
       const items = [item].concat(paths.slice(0, -1))
       item = items.reduce((item, key) => item[key] || (item[key] = {}))
     }
-    item[last] = mapStore(store, key, stateWritable, getterWritable)
+    item[moduleName] = mapStore(store, key, stateWritable, getterWritable)
     // 处理为api别名，便于使用.运算符访问
-    if (last.includes('-')) {
-      const list = last.split('-')
+    if (moduleName.includes('-')) {
+      const list = moduleName.split('-')
       const apiName = list.reduce((name, item) => name + item[0].toUpperCase() + item.substr(1))
       if (item[apiName]) throw new Error('命名冲突')
-      item[apiName] = item[last]
+      item[apiName] = item[moduleName]
     }
   }
 

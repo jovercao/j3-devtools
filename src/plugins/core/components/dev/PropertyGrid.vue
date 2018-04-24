@@ -87,14 +87,17 @@ export default {
         height: 50px;
         text-align: center;
         line-height: 50px;
-        overflow: hidden;
-        overflow: hidden;
+        white-space: nowrap; //强制文本在一行内输出
+        overflow: hidden; //隐藏溢出部分
+        text-overflow: ellipsis; //对溢出部分加上...
         .editor {
           width: 100%;
         }
       }
       .name {
-        overflow: hidden;
+        white-space: nowrap; //强制文本在一行内输出
+        overflow: hidden; //隐藏溢出部分
+        text-overflow: ellipsis; //对溢出部分加上...
         height: 50px;
         line-height: 50px;
         flex-basis: 85px;

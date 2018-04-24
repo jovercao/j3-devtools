@@ -1,4 +1,3 @@
-import { defaultTemplate } from './template'
 import { validate, checkResult } from '../../schemas/validate'
 import proper from './proper'
 import MuseUI from 'muse-ui'
@@ -20,11 +19,6 @@ function loadFiles(files) {
     if (filename === './index.js') return
     const comp = files(filename).default
     proper(comp)
-    if (!comp.templates) {
-      comp.templates = [
-        defaultTemplate(comp)
-      ]
-    }
     const validRes = validate(comp, compScheam)
     if (checkResult(validRes) !== true) {
       throw new Error(`文件 ${path.join(__dirname, filename)} 组件定义不正确，错误信息： ${checkResult(validRes)}`)

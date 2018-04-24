@@ -1,12 +1,8 @@
-import category from '../categroy'
-// import TextField from 'muse-ui/src/textField'
-// import mapProps from '../map-props'
-
 export default {
   name: 'MuTextField',
   icon: 'home',
   title: '文本框',
-  category: category.form,
+  category: 'form',
   tag: 'mu-text-field',
   description: '',
   // props: mapProps(TextField),

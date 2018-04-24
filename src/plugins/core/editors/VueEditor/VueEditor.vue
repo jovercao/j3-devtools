@@ -1,27 +1,51 @@
 <template>
   <div class="vue-editor">
     <div class="sheet">
-      <span><i class="el-icon-code"></i>设计视图</span>
-      <span><i class="el-icon-code"></i>代码视图</span>
+      <mu-flat-button icon="edit" label="设计视图" @click="currentView = 'design'" :primary="currentView == 'design'"></mu-flat-button>
+      <mu-flat-button icon="code" label="代码视图" @click="currentView = 'code'" :primary="currentView == 'code'"></mu-flat-button>
     </div>
-    <designer-view v-show="currentView === 'design'"></designer-view>
-    <code-view v-show="currentView === 'code'"></code-view>
+    <designer-view class="body" v-show="currentView === 'design'" :value="value"></designer-view>
+    <code-view class="body" v-show="currentView === 'code'" :value="value"></code-view>
   </div>
 </template>
 
 <script>
 import DesignerView from './views/DesignerView'
 import CodeView from './views/CodeView'
-import VueEditor from '../../mixins/vue-editor'
+import { namespace } from '../../store/vue-editor'
+import ide from '@'
+import { mapState, mapMutations } from 'vuex'
 
 export default {
-  name: 'vue-editor',
+  name: namespace,
   mixins: [
-    VueEditor
+    ide.mixin('editor')
   ],
   components: {
     DesignerView,
     CodeView
+  },
+  activated() {
+    this.beginEdit(this.value)
+  },
+  deactivated() {
+    this.endEdit()
+  },
+  data() {
+    return {
+      // 视图数据
+      currentView: 'design'
+    }
+  },
+  computed: {
+    ...mapState(namespace, [ 'selected', 'viewData' ])
+  },
+  methods: {
+    ...mapMutations(namespace, [
+      'beginEdit',
+      'endEdit' // ,
+      // ''
+    ])
   }
 }
 </script>
@@ -30,9 +54,11 @@ export default {
     display: flex;
     flex-direction: column;
     align-items: stretch;
+    overflow: hidden;
     .sheet {
       flex: 0 0 21px;
       text-align: right;
+      background: #efefef;
     }
 
     .body {

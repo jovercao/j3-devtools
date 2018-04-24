@@ -7,7 +7,7 @@ import MuseUI from 'muse-ui'
 import ElementUI from 'element-ui'
 import 'material-design-icons/iconfont/material-icons.css'
 import 'muse-ui/dist/muse-ui.css'
-import 'muse-ui/dist/theme-carbon.css'
+// import 'muse-ui/dist/theme-carbon.css'
 import 'element-ui/lib/theme-chalk/index.css'
 
 import './assets/proper.less'

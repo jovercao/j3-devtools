@@ -1,20 +1,20 @@
-import ExplorerBox from './ExplorerBox'
+import IconsBox from './IconsBox.vue'
 import Vue from 'vue'
 
 // 注册组件
-Vue.component(ExplorerBox.name, ExplorerBox)
+Vue.component(IconsBox.name, IconsBox)
 
 export default {
-  name: ExplorerBox.name,
-  component: ExplorerBox.name,
-  title: '资源管理器',
+  name: IconsBox.name,
+  component: IconsBox.name,
+  title: '图标预览',
   dock: 'sidebar', // 注册到侧边栏位置
-  icon: 'subject',
+  icon: 'el-icon-star-on',
   // 工具栏按钮，只允许添加按钮
   tools: [
     {
       icon: 'el-icon-plus',
-      title: '打开',
+      title: '无',
       // handler() {}
       command: 'ide.open-floder' // command 与 handler 二选一, 将优先执行command
     }

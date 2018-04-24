@@ -5,9 +5,12 @@ import toolbox from './toolbox'
 import defaultConfig from './default-config'
 import store from './store'
 import editors from './editors'
+import services from './service'
+import helper from './helper'
 
 function go(ide, config) {
-  console.log(ide)
+
+  ide.service(services)
   // 注册资源
   ide.resource('file', file(ide, config))
 
@@ -21,6 +24,8 @@ function go(ide, config) {
 
   // 注册命令
   ide.commands(commands(ide, config))
+
+  Object.assign(ide.helper, helper)
 }
 
 export default {

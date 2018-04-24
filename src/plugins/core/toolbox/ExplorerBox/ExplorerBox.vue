@@ -6,6 +6,7 @@
     </mu-popover> -->
     <div v-for="(box, index) in outlineBoxes" :key="index"
       :class="['outline-box', { 'collapsed': !box.expand }]">
+
       <div class="header" @click.stop="box.expand = !box.expand">
         <div class="left">
           <i :class="box.icon"/> 
@@ -23,7 +24,10 @@
           <ide-icon-button :icon="box.expand ? 'el-icon-arrow-down' : 'el-icon-arrow-right'"/>
         </div>
       </div>
-      <div class="body">
+      <div class="body"
+        @mouseenter="hover = true"
+        @mouseleave="hover = false"
+        :style="{ 'overflow-y': (hover && scrollable) ? 'auto' : 'hidden'}">
         <content-tree :type="box.name" :path="box.path"/>
       </div>
     </div>
@@ -36,6 +40,12 @@
 import ContentTree from './ContentTree.vue'
 
 export default {
+  props: {
+    scrollable: {
+      type: Boolean,
+      default: true
+    }
+  },
   name: 'ExplorerBox',
   components: {
     // BrowserView,
@@ -49,7 +59,8 @@ export default {
     // const outlineBoxes = resource.all().map(res => ({ title: res.title, icon: res.icon, name: res.name, expand: false, path: '/' }))
     return {
       outlineBoxes: [],
-      openeds: {}
+      openeds: {},
+      hover: false
     }
   },
   methods: {
@@ -125,6 +136,7 @@ export default {
       background: #e1e1e1;
       &:hover {
         color: #555;
+        transition: background-color .5s;
         background: #ccc;
       }
       .left {
@@ -148,9 +160,6 @@ export default {
     .body {
       flex: 1 1 0px;
       overflow: hidden;
-      &:hover {
-        overflow-y: auto;
-      }
       padding-top: 12px;
     }
   }

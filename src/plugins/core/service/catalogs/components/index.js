@@ -6,4 +6,3 @@ export default components
 export {
   checkAccepts
 }
-export { default as category } from './categroy'

@@ -46,7 +46,7 @@ function scroll(el, offset, direction = 'horizontal' || 'vertical') {
     el[scrollPos] += span
     distance -= span
     // 达到目标或者(允许误差范围5像素)，滚不动了，就停止
-    if ((Math.abs(distance) <= 5) || el[scrollPos] === lastScrollPos) {
+    if (Math.abs(distance) <= 5 || el[scrollPos] === lastScrollPos) {
       clearInterval(intervalId)
       intervalId = null
       scrollTo = null
@@ -101,13 +101,24 @@ function getClientSize(el) {
   }
 }
 
+function copyToClip(element) {
+  const selection = window.getSelection()
+  const range = document.createRange()
+  range.selectNodeContents(element)
+  selection.removeAllRanges()
+  selection.addRange(range)
+  document.execCommand('copy')
+  selection.removeAllRanges()
+}
+
 export {
   getMousePos,
   getOffsetLeft,
   getOffsetTop,
   getOffsetRect,
   getClientSize,
-  scroll
+  scroll,
+  copyToClip
 }
 
 export default {
@@ -116,5 +127,6 @@ export default {
   getOffsetTop,
   getOffsetRect,
   getClientSize,
-  scroll
+  scroll,
+  copyToClip
 }

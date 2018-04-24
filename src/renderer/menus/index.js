@@ -12,6 +12,11 @@ const Menus = [
         command: 'ide.open-file'
       },
       {
+        title: '保存',
+        icon: 'save',
+        command: 'ide.save'
+      },
+      {
         title: '打开项目',
         icon: 'folder_open',
         command: 'ide.open-project'
