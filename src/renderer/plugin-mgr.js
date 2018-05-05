@@ -151,22 +151,17 @@ async function getList() {
 /**
  * 初始化已安装插件
  */
-function initPlugins(ctx) {
+async function init(ctx) {
   for (const pluginName of installedPlugins) {
-    // const localPath = getLocalPath(pluginName)
-    // const entryPath = join(localPath, 'plugin.js')
-    // require.ensure([], function (require) {
-    // console.log(entryPath)
-    const plugin = require('#/' + pluginName + '/plugin.js')
+    const plugin = await import('#/' + pluginName + '/plugin.js')
     // 初始化默认参数
     const options = config.get('#' + pluginName)
-    plugin.go(ctx, options)
-    // })
+    plugin.init(ctx, options)
   }
 }
 
-const plugin = {
-  initPlugins,
+const plugins = {
+  init,
   view,
   getInstalleds,
   install,
@@ -178,6 +173,6 @@ const plugin = {
   getLocalPath
 }
 
-service('plugin', plugin)
+service('plugins', plugins)
 
-export default plugin
+export default plugins

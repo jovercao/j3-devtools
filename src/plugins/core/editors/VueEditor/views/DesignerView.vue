@@ -1,18 +1,20 @@
 <template>
-  <div class="designer-view">
-    <DesignerComponent v-if="value" :value="value" :selected="selected"
+  <div class="designer-view" tabindex="10" @keydown="_onKeydown">
+    <DesignerComponent v-if="value" :viewData="value" :activeItem="activeItem"
+      :selecteds="selecteds"
       :heightlight="hoverItem" @contextmenu="showFloatBar" 
        @select="_onComponentSelect"
        @mouseleave="_onComponentMouseleave"
        @dragover="_onComponentDragover"
        @dragleave="_onComponentDragleave"
        @mouseover="_onComponentMouseover"
-       @dragstart="beginDrag({ type: 'view-data', source: 'inner', data: arguments[0] })"
-       @dragend="endDrag()"
+       @dragstart="_onComponentDragstart"
+       @dragend="_onComponentDragend"
        @drop="_onComponentDrop"
+       @valuechange="_onValueChange"
        />
     <!-- 快速浮动操作栏 -->
-    <mu-popover v-if="selected" :trigger="floatbarTrigger" :open="floatbarOpened" @close="hideFloatBar">
+    <mu-popover v-if="activeItem" :trigger="floatbarTrigger" :open="floatbarOpened" @close="hideFloatBar">
       <div class="designer-quickbar">
         <div class="header">
           {{ propTitle }}
@@ -22,13 +24,13 @@
           <value-editor @change="changeProp({ prop, value: arguments[0] })" 
             :selections="selectedComponent.props[prop].selections"
             class="value-editor"
-            :value="selected.props[prop]"
+            :value="activeItem.props[prop]"
             :data-type="selectedComponent.props[prop].type">
           </value-editor>
         </div>
-        <div class="footer" v-show="selected !== value">
-          <mu-icon-button tooltip="删除" icon="clear" @click="remove(selected)"/>
-          <mu-icon-button v-show="selected.parent" tooltip="选择父级" icon="developer_board" @click="doSelectParent" />
+        <div class="footer" v-show="activeItem !== value">
+          <mu-icon-button tooltip="删除" icon="clear" @click="doRemove"/>
+          <mu-icon-button v-show="activeItem.parent" tooltip="选择父级" icon="developer_board" @click="doSelectParent" />
         </div>
       </div>
     </mu-popover>
@@ -90,7 +92,8 @@ export default {
   },
   computed: {
     ...mapState(namespace, [
-      'selected',
+      'activeItem',
+      'selecteds',
       'hoverItem'
     ]),
     ...mapGetters(namespace, [
@@ -109,8 +112,8 @@ export default {
       return this.selectedComponent.quickProps
     },
     propTitle() {
-      return this.selected
-        ? this.selected.title ||
+      return this.activeItem
+        ? this.activeItem.title ||
             this.selectedComponent.title ||
             this.selectedComponent.name
         : ''
@@ -121,8 +124,11 @@ export default {
       'hoverEnter',
       'hoverLeave',
       'select',
+      'deselect',
+      'deselectAll',
       'add',
       'remove',
+      'removeSelecteds',
       'changeProp',
       'selectParent'
     ]),
@@ -139,8 +145,46 @@ export default {
 
     //   return ''
     // },
+    _onComponentDragstart(item) {
+      // this.remove(item)
+      this.beginDrag({ type: 'view-data', source: 'inner', data: item })
+    },
+    _onComponentDragend(item) {
+      // if (this.dragData.prevent && !this.dragData.target) {
+      //   this.add({ container: item.parent, slot: item.slot, index: item.index })
+      // }
+      this.endDrag()
+    },
+    _onKeydown(event) {
+      switch (event.keyCode) {
+        // delete
+        case 46:
+          if (this.activeItem) {
+            this.remove(this.activeItem)
+          } else if (this.selecteds.length > 0) {
+            this.removeSelecteds()
+          }
+          this.hideFloatBar()
+          break
+        // esc
+        case 27:
+          if (this.activeItem) {
+            this.deselect(this.activeItem)
+          } else if (this.selecteds.length > 0) {
+            this.deselectAll()
+          }
+          break
+      }
+    },
+    doRemove() {
+      this.remove(this.activeItem)
+      this.hideFloatBar()
+    },
     _onComponentMouseover(item) {
       this.hoverEnter(item)
+    },
+    _onValueChange(item, value) {
+      this.changeProp({ item, prop: 'value', value })
     },
     hasSlotsDef(type) {
       return (
@@ -246,7 +290,7 @@ export default {
 
       // const slot = await this.chooseSlot(container)
 
-      // 外部来源，先进行复制，断开联系
+      // 外部来源，先进行复制，断开关联
       if (dragData.source !== 'inner') {
         item = _.cloneDeep(item)
         // 非外部来源，检测是否未移动位置
@@ -265,26 +309,40 @@ export default {
       this.hoverLeave()
     },
     _onComponentSelect(item, event) {
-      this.select(item)
-      this.showFloatbar(event.currentTarget)
+
+      if (!this.selecteds.includes(item) && !event.ctrlKey) {
+        this.deselectAll()
+        this.hideFloatBar()
+      }
+      if (!event.ctrlKey) {
+        this.select(item)
+      } else {
+        if (this.selecteds.includes(item)) {
+          this.deselect(item)
+        } else {
+          this.select(item)
+        }
+      }
+      // this.showFloatbar(event.currentTarget)
     },
     doSelectParent() {
       this.selectParent()
-      this.showFloatbar(null)
+      // this.showFloatbar(null)
     },
-    showFloatbar(trigger) {
-      if (trigger) {
-        this.floatbarTrigger = trigger
-      }
-      this.floatbarOpened = true
-    },
+    // showFloatbar(trigger) {
+    //   if (trigger) {
+    //     this.floatbarTrigger = trigger
+    //   }
+    //   this.floatbarOpened = true
+    // },
     hideFloatBar(e) {
       this.floatbarOpened = false
     },
     showFloatBar(item, event) {
-      console.log(event.currentTarget)
-      this.floatbarTrigger = event.currentTarget
+      // console.log(event.currentTarget)
+      this.deselectAll()
       this.select(item)
+      this.floatbarTrigger = event.currentTarget
       this.floatbarOpened = true
     }
   }
@@ -293,6 +351,7 @@ export default {
 
 <style lang="less" scoped>
 .designer-view {
+  outline: none;
 }
 .designer-quickbar {
   padding: 20px 32px 20px 32px;

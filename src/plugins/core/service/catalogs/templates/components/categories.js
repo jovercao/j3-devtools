@@ -14,8 +14,8 @@ export default {
     icon: 'el-icon-time',
     expand: false
   },
-  vision: {
-    title: '视觉设计',
+  others: {
+    title: '其他',
     icon: 'el-icon-edit',
     expand: false
   }

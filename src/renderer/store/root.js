@@ -6,7 +6,7 @@ import helper from '../helper'
 import commands from '../commands'
 import config from '../config'
 import _ from '../utils'
-
+import bus from '../bus'
 const hidedToolboxes = config.get('hide-toolboxes')
 
 export default {
@@ -73,6 +73,9 @@ export default {
       state.dragData = null
       state.dragging = false
     },
+    preventDrag(state) {
+      state.dragData.prevent = true
+    },
     // *************************Toolbox**************************
     showToolbox(state, name) {
       hidedToolboxes[name] = true
@@ -101,18 +104,11 @@ export default {
     closeActiveTab(state) {
       this.commit('closeTab', state.activeTab)
     },
-    itemChanged(state, item) {
-      const index = state.openedTabs.find(tab => tab.content === item)
-      if (index > 0) {
-        // 标记已修改，才便关闭前提示保存
-        item.changed = true
-      }
-    },
     openTab(state, tab) {
       const index = state.openedTabs.indexOf(tab)
       if (index < 0) {
         state.openedTabs.push(tab)
-        state.openeds[tab.uri] = tab.content
+        state.openeds[tab.uri] = tab.context
       }
       this.commit('setActiveTab', tab)
     },
@@ -176,8 +172,15 @@ export default {
     toggleBottombar(state) {
       state.bottombarVisible = !state.bottombarVisible
     },
-    dataChange(state, { tab, data }) {
-      tab.content.data = data
+    editorCreated(state, { context, getChangedValue }) {
+      context.getChangedValue = getChangedValue
+      context.changed = false
+    },
+    editorChanged(state, context) {
+      context.changed = true
+    },
+    editorSaved(state, context) {
+      context.changed = false
     }
   },
   actions: {
@@ -186,10 +189,6 @@ export default {
     },
     async exec(x, command) {
       commands.exec(command)
-    },
-    // 保存所有打开的项
-    async saveAll({ commit }) {
-
     },
     // 打开资源, arg可以是uri字符串，也可以是对象{ resourceType, uri }
     async open({ commit, dispatch, state }, arg) {
@@ -212,9 +211,9 @@ export default {
      */
     openContent({ state }, content) {
       // 如果已经打开，则激活显示
-      const openedTab = state.openedTabs.find(tab => tab.content === content)
-      if (openedTab) {
-        this.commit('setActiveTab', openedTab)
+      const tab = state.openedTabs.find(tab => tab.content === content)
+      if (tab) {
+        this.commit('setActiveTab', tab)
         return
       }
 
@@ -226,15 +225,25 @@ export default {
         // }
       }
 
-      const value = (editorOptions.convertFrom || _.toString)(content.data)
-
+      // const value = (editorOptions.convertFrom || _.toString)(content.data)
+      const context = {
+        changed: false,
+        // 通过函数解耦, 待组件创建成功后，会返回获取修改后的值函数。
+        getValue: () => (editorOptions.convertFrom || _.toString)(content.data),
+        getChangedValue: () => { throw new Error('需要由editor返回绑定函数！') },
+        getData: () => content.data,
+        getChangedData: () => {
+          const value = newTab.context.getChangedValue()
+          return (editorOptions.convertTo || _.toString)(value)
+        }
+      }
       const newTab = {
         uri: content.uri,
         path: content.path,
         title: content.name,
         icon: editorOptions.icon,
-        content: content,
-        value,
+        // content: content,
+        context,
         editor: editorOptions,
         openTime: new Date()
       }
@@ -243,24 +252,55 @@ export default {
     isOpened({ state }, uri) {
       return state.openeds.hasOwnProperty(uri)
     },
-    // 关闭打开的项
-    close({ commit, state }, arg) {
-      let uri = arg
-      if (_.isObject(arg)) {
-        uri = resource.parse(arg)
-      }
-      console.log(uri)
-      const index = state.openedTabs.findIndex(tab => tab.uri === uri)
-      if (index >= 0) {
-        commit('closeTab', index)
+    // 关闭所有打开项
+    async closeAll({ dispatch, state }) {
+      for (let i = state.openedTabs.length - 1; i >= 0; i--) {
+        const tab = state.openedTabs[i]
+        await dispatch('close', tab)
       }
     },
+    // 关闭打开的项
+    async close({ commit, state }, arg) {
+      let tab
+      if (arg === null || arg === undefined) {
+        tab = state.activeTab
+      } else if (_.isString(arg)) {
+        const uri = arg
+        tab = state.openedTabs.find(tab => tab.uri === uri)
+      } else if (_.isObject(arg)) {
+        tab = arg
+      } if (_.isNumber(arg)) {
+        const index = arg
+        tab = state.openedTabs[index]
+      }
+      if (!tab) {
+        throw new Error('未指定要关闭的项或者未打开项！')
+      }
+
+      if (tab.context.changed) {
+        const confirm = await helper.confirm(`${tab.title}尚未保存，您确定要关闭吗？`, { type: 'warning' })
+        if (!confirm) return false
+      }
+      commit('closeTab', tab)
+      return true
+    },
     // 保存内容
-    async save({ commit, state, dispatch }) {
-      const { editor, value } = state.activeTab
-      const data = (editor.convertTo || _.toString)(value)
-      commit('dataChange', { tab: state.activeTab, data })
-      await resource.set(state.activeTab.content)
+    async save({ commit, state }, tab) {
+      bus.emit('beforesave', tab)
+      tab = tab || state.activeTab
+      // 预处理
+      // commit('updateEditorData', tab)
+      const { uri, path } = tab
+      const data = tab.context.getChangedData()
+      const toSave = { uri, path, data }
+      await resource.set(toSave)
+      commit('editorSaved', tab.context)
+    },
+    // 保存所有
+    async saveAll({ state, dispatch }) {
+      for (const tab of state.openedTabs) {
+        await dispatch('save', tab)
+      }
     },
     // 创建内容
     async create({ commit, dispatch }, content) {

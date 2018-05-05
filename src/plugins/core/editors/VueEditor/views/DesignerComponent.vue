@@ -4,8 +4,9 @@ import { mapGetters } from 'vuex'
 
 export default {
   props: {
-    value: Object,
-    selected: Object,
+    viewData: Object,
+    activeItem: Object,
+    selecteds: Array,
     heightlight: Object
     // overitem: Object
   },
@@ -13,73 +14,89 @@ export default {
     ...mapGetters('vue-editor', [ 'components' ])
   },
   render (h) {
-    const create = (h, value, slot = 'default') => {
+    const create = (h, viewData, slot = 'default') => {
       const childs = []
-      for (const name in value.slots) {
-        const items = value.slots[name]
+      for (const name in viewData.slots) {
+        const items = viewData.slots[name]
         if (!items) continue
         for (const item of items) {
           childs.push(create(h, item, name))
         }
-
-        // items.forEach((item) => {
-        //   if (item.type === 'MuTextField') {
-        //     console.log(name, item)
-        //   }
-        //   childs.push(create(h, item, name))
-        // })
       }
+
       const vm = this
-      const tag = this.components[value.type].tag
+      const comp = this.components[viewData.type]
+      const tag = comp.tag
+      const hasValueProp = !!comp.props.value
+      // 动态on绑定
+      const dynamicOn = {}
+      // 如果有
+      if (hasValueProp) {
+        // // 将值变更
+        // dynamicOn.change = (value, oldValue) => {
+        //   console.log(value)
+        //   this.$emit('change', viewData, value, oldValue)
+        // }
+
+        dynamicOn.input = function (value) {
+          vm.$emit('valuechange', viewData, value)
+        }
+      }
       const item = h(tag, {
         slot,
         class: {
           'designer-component': true,
-          'designer-component-selected': value === this.selected,
-          'designer-component-heightlight': value === this.heightlight
-          // 'designer-component-dragover': value === this.overitem
+          'selected': this.selecteds.includes(viewData),
+          'actived': viewData === this.activeItem,
+          'heightlight': viewData === this.heightlight
+          // 'designer-component-dragover': viewData === this.overitem
         },
-        props: value.props,
+        props: viewData.props,
         directives: [
           { name: 'designer-mode' }
         ],
         on: {
           '$designer-contextmenu' (event) {
-            vm.$emit('contextmenu', value, event)
+            vm.$emit('contextmenu', viewData, event)
           },
           '$designer-select' (event) {
-            vm.$emit('select', value, event)
+            vm.$emit('select', viewData, event)
           },
           '$designer-mouseover' (event) {
-            vm.$emit('mouseover', value, event)
+            vm.$emit('mouseover', viewData, event)
           },
           '$designer-mouseleave' (event) {
-            vm.$emit('mouseleave', value, event)
+            vm.$emit('mouseleave', viewData, event)
           },
           '$designer-dragstart' (data) {
-            vm.$emit('dragstart', value, event)
+            vm.$emit('dragstart', viewData, event)
           },
           '$designer-dragover' (event) {
-            // vm.$emit('mouseover', value, event)
-            vm.$emit('dragover', value, event)
+            // vm.$emit('mouseover', viewData, event)
+            vm.$emit('dragover', viewData, event)
           },
           '$designer-drop' (event) {
-            vm.$emit('drop', value, event)
+            vm.$emit('drop', viewData, event)
           },
           '$designer-dragleave' (evnet) {
-            // vm.$emit('mouseleave', value, event)
-            vm.$emit('dragleave', value, evnet)
+            // vm.$emit('mouseleave', viewData, event)
+            vm.$emit('dragleave', viewData, evnet)
           },
           '$designer-dragend' (evnet) {
-            // vm.$emit('mouseleave', value, event)
-            vm.$emit('dragend', value, evnet)
-          }
+            // vm.$emit('mouseleave', viewData, event)
+            vm.$emit('dragend', viewData, evnet)
+          },
+          ...dynamicOn
+          // input (value) {
+          //   console.log(value)
+          //   this.$emit('input', viewData, value)
+          // }
         }
       }, childs)
       return item
     }
 
-    return create(h, this.value)
+    return create(h, this.viewData)
   }
 }
 </script>
@@ -87,18 +104,23 @@ export default {
 <style lang="less">
 .designer-component {
   cursor: default;
+  outline: silver 1px dotted;
+  // transition: background-color .2s;
+
   input {
     cursor: default;
   }
-}
 
-.designer-component-selected {
-  background: rgba(235, 216, 250, 0.45);
-  border: rgb(218, 192, 248) 1px solid;
-}
+  &.selected {
+    background: rgba(235, 216, 250, 0.35);
+    &.actived {
+      background: rgba(235, 216, 250, 0.55);
+    }
+  }
 
-.designer-component-heightlight {
-  background: rgba(242, 231, 255, 0.5);
+  &.heightlight {
+    background: rgba(235, 216, 250, 0.45)
+  }
 }
 
 // .designer-component-dragover {

@@ -55,13 +55,15 @@ Object.assign(resource, {
   /**
   * 转换为获取Uri字符串
   */
-  toUriString({ resourceType, auth, path, host }) {
+  toUriString({ resourceType, username, password, path, host }) {
     // assert(!_.isString(path), 'path 必须为string类型')
     // assert(!_.isString(resourceType), 'resourceType 必须为string类型')
     if (!path.startsWith('/')) {
       path = '/' + path
     }
-    return `${resourceType}://${auth ? auth + '@' : ''}${host || ''}${path}`
+    path = path.replace(/\\/g, '/')
+    const uri = `${resourceType}://${username && `${username}:${password}@`}${host || ''}${path}`
+    return uri
   },
   /**
    *  获取父级path

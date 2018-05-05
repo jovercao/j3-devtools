@@ -32,6 +32,7 @@ export default {
     // ]
   },
   render() {
+    const resource = this.$service('resource')
     let deep = 0
     const r = (items) => {
       deep++
@@ -45,17 +46,18 @@ export default {
               }
               if (!item.isPath) {
                 try {
-                  await this.$ide.open({
+
+                  await this.$ide.open(resource.toUriString({
                     resourceType: this.type,
                     path: item.path
-                  })
+                  }))
                 } catch (err) {
                   this.$alert(err.message, '错误！')
                 }
               }
             }}>
               <i class={ this.contentIcon(item) } style={{ 'margin-left': deep * 12 + 'px' }}/>
-              { item.name }
+              <span style="margin-left: 5px">{ item.name }</span>
             </div>
             { item.expand && item.children && item.children.length > 0 && r(item.children) }
           </li>

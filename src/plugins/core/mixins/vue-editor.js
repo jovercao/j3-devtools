@@ -35,7 +35,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(namespace, [ 'selected', 'viewData' ])
+    ...mapState(namespace, [ 'activeItem', 'viewData' ])
   },
   methods: {
     ...mapMutations(namespace, [

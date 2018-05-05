@@ -7,6 +7,7 @@ import Components from '../../../components'
 import Vue from 'vue'
 import compScheam from '../../schemas/component'
 import path from 'path'
+import museComponents from './muse-ui'
 
 Vue.use(MuseUI)
 Vue.use(ElementUI)
@@ -30,7 +31,6 @@ function loadFiles(files) {
 const j3Files = require.context('./j3', false, /\.js$/)
 loadFiles(j3Files)
 
-const museFiles = require.context('./muse-ui', false, /\.js$/)
-loadFiles(museFiles)
+Object.assign(components, museComponents)
 
 export default components

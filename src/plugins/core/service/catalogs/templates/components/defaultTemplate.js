@@ -10,7 +10,7 @@ export function defaultTemplate (component) {
   const defTpl = {
     title,
     icon,
-    category,
+    category: category || 'others',
     type: name,
     description,
     props: {}

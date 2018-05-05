@@ -55,8 +55,11 @@ export default {
   color: #666;
   text-align: center;
   vertical-align: middle;
-  &:hover {
+  &:hover, &:focus {
+    border: 0px;
     color: rgb(77, 0, 107);
+    font-weight: 600;
+    outline: none;
   }
   &.down {
     background: #ccc;

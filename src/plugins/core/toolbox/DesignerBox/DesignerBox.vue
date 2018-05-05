@@ -5,14 +5,12 @@
         <div class="left">
           <i class="el-icon-share"/>
         </div>
-        <div class="center">组件大纲</div>
+        <div class="center">大纲</div>
         <div class="right"> 
           <i :class="{ 'el-icon-arrow-down': outlineExpaned, 'el-icon-arrow-right': !outlineExpaned }"/>
         </div>
       </div>
-      <div class="body">
-        <OutlineBox/>
-      </div>
+      <OutlineBox class="body"/>
     </div>
     <div  :class="['property-box', { 'collapsed': !propertyExpand }]">
       <div slot="title" class="header" @click="propertyExpand = !propertyExpand">
@@ -25,9 +23,7 @@
         </div>
         
       </div>
-      <div class="body">
-        <PropertyBox/>
-      </div>
+      <PropertyBox class="body"/>
     </div>
   </div>
 </template>

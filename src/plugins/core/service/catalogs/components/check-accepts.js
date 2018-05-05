@@ -2,6 +2,7 @@ import components from './components'
 
 // 双向检查
 export default function(container, slot, item) {
+  if (container === item) return false
 
   const accepts = components[container.type].slots[slot].accepts
   if (accepts && accepts !== '*') {

@@ -1,0 +1,12 @@
+@font-face {
+  font-family: '定位语字体';
+  src:  url('http://120.77.1.192:8055/assert/HYZhuZiMuTouRenW-2.ttf') format('truetype'),
+        url('http://120.77.1.192:8055/assert/HYZhuZiMuTouRenW-2.woff2') format('truetype'),
+        url('http://120.77.1.192:8055/assert/HYZhuZiMuTouRenW-2.eot') format('embedded-opentype');
+}
+
+.dwy {
+  font-family: '定位语字体';
+  color: rgb(148, 211, 0);
+  font-size: 22pt;
+}

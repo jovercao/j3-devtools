@@ -12,7 +12,7 @@ import router from './router'
 import store from './store'
 import menus from './menus'
 import commands from './commands'
-import plugin from './plugin'
+import plugins from './plugin-mgr'
 import editor from './editor'
 
 Vue.prototype.$helper = helper
@@ -46,5 +46,5 @@ export default {
   // 菜单
   menus,
   // 插件管理器
-  plugin
+  plugins
 }

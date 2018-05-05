@@ -7,10 +7,14 @@
       @mouseenter="hover = true"
       @mouseleave="hover = false"
       :style="{ 'overflow-y': (hover && scrollable) ? 'auto' : 'hidden'}">
-      <div draggable="true"
+      <div
+        v-for="(icon, name) in filteredIcons" :key="name"
+        draggable="true"
+        @dragstart="handlerDrag(icon)"
+        @dragend="endDrag()"
         @click="$helper.copyToClip($event.currentTarget.querySelector('p'))"
-        class="item" v-for="(content, name) in filteredIcons" :key="name">
-        <i class="material-icons">{{name}}</i>
+        class="item">
+        <icon :type="icon.type" :value="name" :size="28"/>
         <br>
         <p class="label">{{name}}</p>
       </div>
@@ -19,7 +23,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters, mapMutations } from 'vuex'
 import { namespace } from '../../store/vue-editor'
 
 export default {
@@ -28,6 +32,22 @@ export default {
     scrollable: {
       type: Boolean,
       default: true
+    }
+  },
+  methods: {
+    ...mapMutations([ 'beginDrag', 'endDrag' ]),
+    handlerDrag(icon) {
+      this.beginDrag({
+        source: 'components-sidebar',
+        type: 'view-data',
+        data: {
+          type: 'J3Icon',
+          props: {
+            type: icon.type,
+            value: icon.name
+          }
+        }
+      })
     }
   },
   data() {

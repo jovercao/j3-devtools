@@ -1,5 +1,5 @@
 <template>
-  <i></i>
+  <i :class="{ 'material-icons': type === 'material' }" :style="{ 'font-size': size + 'px' }">{{value}}</i>
 </template>
 
 <script>
@@ -11,9 +11,25 @@ export default {
     },
     size: {
       type: Number,
-      default: 12
+      default: 16
+    },
+    type: {
+      type: String,
+      default: 'material',
+      selections: [
+        'material',
+        'other'
+      ]
     },
     hoverValue: String
+  },
+  computed: {
+    content() {
+      if (this.type === 'material') {
+        return this.value
+      }
+      return ''
+    }
   }
 }
 </script>

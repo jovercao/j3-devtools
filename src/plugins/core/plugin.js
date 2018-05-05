@@ -8,7 +8,7 @@ import editors from './editors'
 import services from './service'
 import helper from './helper'
 
-function go(ide, config) {
+function init(ide, config) {
 
   ide.service(services)
   // 注册资源
@@ -29,11 +29,11 @@ function go(ide, config) {
 }
 
 export default {
-  go,
+  init,
   defaultConfig
 }
 
 export {
-  go,
+  init,
   defaultConfig
 }

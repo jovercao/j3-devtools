@@ -8,20 +8,14 @@ const Menus = [
     children: [
       {
         title: '打开文件',
-        icon: 'open_with',
+        icon: 'insert_drive_file',
         command: 'ide.open-file'
-      },
-      {
-        title: '保存',
-        icon: 'save',
-        command: 'ide.save'
       },
       {
         title: '打开项目',
         icon: 'folder_open',
         command: 'ide.open-project'
       },
-      '-',
       {
         title: '最近...',
         icon: 'view_list',
@@ -37,6 +31,27 @@ const Menus = [
             command: 'ide.open-project'
           }
         ]
+      },
+      '-',
+      {
+        title: '保存',
+        icon: 'save',
+        command: 'ide.save'
+      },
+      {
+        title: '全部保存',
+        icon: 'account_balance_wallet',
+        command: 'ide.save-all'
+      },
+      {
+        title: '关闭',
+        icon: 'close',
+        command: 'ide.close'
+      },
+      {
+        title: '全部关闭',
+        icon: 'close',
+        command: 'ide.close-all'
       }
     ]
   }, {

@@ -15,6 +15,20 @@ export function properViewData(item) {
   }
 }
 
+export function isPaternity(item1, item2) {
+  return hasChild(item1, item2) || hasChild(item2, item1)
+}
+
+export function hasChild(container, item) {
+  for (const slot in container.slots) {
+    const items = item.slots[slot]
+    if (items.find(child => child === item || hasChild(child, item))) {
+      return true
+    }
+  }
+  return false
+}
+
 export function readValue(item) {
   const { slots, props, type, bindings, events, styles, classes } = item
   const newItem = {

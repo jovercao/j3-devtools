@@ -94,8 +94,11 @@ export default function (ide, options) {
     async list(path) {
       if (isWin32 && path === '/') {
         const disks = await readLogicalDisks()
-        return disks.map(disk => ({ path: disk + '/', name: disk + '/', isPath: true }))
+        return disks.map(disk => ({ path: '/' + disk + '/', name: disk + '/', isPath: true }))
       }
+      console.log(path)
+      path = properPath(path)
+      console.log(path)
       const files = await readdir(path)
       const result = []
       for (const filename of files) {
@@ -108,6 +111,7 @@ export default function (ide, options) {
           isFile = st.isFile()
           isDir = st.isDirectory()
         } catch (err) {}
+        // filePath = (isWin32 ? '/' : '') + filePath
         if (isDir) {
           result.push({
             path: filePath,

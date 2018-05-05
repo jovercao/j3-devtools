@@ -31,7 +31,6 @@
             :trigger="trigger"
             :open="tabMenuVisibe"
             @close="tabMenuVisibe = false"
-  
             >
             <mu-menu>
               <mu-menu-item title="关闭当前" />
@@ -47,6 +46,7 @@
             <mu-flat-button
               v-for="(tab, index) in openedTabs" :key="index"
               @click="setActiveTab(tab)"
+              @mousedown.native="handlerTabMouseDown(tab, $event)"
               @dragover.native.stop.prevent="setActiveTab(tab)"
               @mouseenter.native="hoverTab = tab"
               @mouseleave.native="hoverTab = null"
@@ -54,7 +54,7 @@
               :icon="tab.icon | muIcon"
               :label="tab.title"
             >
-              <i @click.stop="closeTab(index)" class="el-icon-close close-btn"/>
+              <i @click.stop="close(tab)" class="el-icon-close close-btn"/>
             </mu-flat-button>
           </div>
           <div class="tools">
@@ -76,7 +76,7 @@
               class="dock"
               v-if="activeTab === tab"
               :uri="tab.uri"
-              :value="tab.value"
+              :context="tab.context"
               :contentType="tab.contentType"
               :resourceType="tab.resourceType"
               :is="tab.editor.component"
@@ -142,6 +142,11 @@ export default {
     }
   },
   methods: {
+    handlerTabMouseDown(tab, event) {
+      if (event.button === 1) {
+        this.close(tab)
+      }
+    },
     showTabMenu(event) {
       console.log(event)
       this.trigger = event.target

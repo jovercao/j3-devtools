@@ -2,7 +2,7 @@
   <div class="outline-box-item">
     <div
       :style="{ 'padding-left': 6 + deeps * 18 + 'px' }"
-      :class="['outline-box-item-head', { 'outline-box-item-selected': isSelected, 'outline-box-item-heightlight': ishoverItem }]"
+      :class="['item', { 'selected': isSelected, actived: isActived, 'heightlight': ishoverItem }]"
       draggable="true"
       @dragstart.stop="beginDrag({ source: 'inner', type: 'view-data', data: viewData })"
       @dragend.stop="endDrag(null)"
@@ -10,27 +10,25 @@
       @drop.stop="addDropItem(viewData.parent, viewData.slot, viewData.index, $event)"
       @mouseover.stop="hoverEnter(viewData)"
       @mouseleave.stop="hoverLeave()"
-      @click="select(viewData)"
+      @click="handlerItemClick"
       >
-
       <mu-icon v-if="hasSlotsDef(viewData.type)"
-          class="outline-box-item-icon" :value="expandIcon" @click="toggleExpand" />
+          class="icon" :value="expandIcon" @click="toggleExpand" />
       <span>{{title}}</span>
       <div class="right">
-        <mu-icon class='outline-box-clear-icon' :size="14" value="clear" @click="remove(viewData)" />
+        <mu-icon class='icon' :size="14" value="clear" @click="remove(viewData)" />
       </div>
     </div>
-    <div class="outline-box-item-body" v-show="expaned" v-if="components[viewData.type].slots">
-      <div class="outline-box-item" v-for="(slotDef, slotName, index) in components[viewData.type].slots" :key="index">
-        <div :class="['outline-box-item-head', { 'outline-box-item-heightlight': slotName === hlslot }]"
+    <div class="children" v-show="expaned" v-if="components[viewData.type].slots">
+      <div class="slot" v-for="(slotDef, slotName, index) in components[viewData.type].slots" :key="index">
+        <div :class="['item', { 'heightlight': slotName === hlslot }]"
           :style="{ 'padding-left':  12 + deeps * 18 + 'px' }"
           @dragover.stop="_onSlotDragover(slotName, $event)"
           @dragleave.stop="hlslot = null"
-          @drop.stop="addDropItem(viewData, slotName, null, $event)"
-        >
+          @drop.stop="addDropItem(viewData, slotName, null, $event)">
           <span>{{`[${slotDef.title || slotName}]`}}</span>
         </div>
-        <div v-if="hasSlotItem(slotName)" class="outline-box-item-body">
+        <div v-if="hasSlotItem(slotName)" class="children">
           <OutlineBoxItem :deeps="deeps + 1" slot="nested" :key="index" v-for="(item, index) in viewData.slots[slotName]" :viewData="item">
           </OutlineBoxItem>
         </div>
@@ -64,10 +62,13 @@ export default {
   },
   computed: {
     ...mapGetters(namespace, ['components', 'selectedComponent']),
-    ...mapState(namespace, ['selected', 'hoverItem']),
+    ...mapState(namespace, ['activeItem', 'hoverItem', 'selecteds']),
     ...mapState([ 'dragData' ]),
+    isActived() {
+      return this.viewData === this.activeItem
+    },
     isSelected() {
-      return this.viewData === this.selected
+      return this.selecteds.includes(this.viewData)
     },
     ishoverItem() {
       return this.hoverItem === this.viewData
@@ -85,6 +86,8 @@ export default {
   methods: {
     ...mapMutations(namespace, [
       'select',
+      'deselect',
+      'deselectAll',
       'hoverEnter',
       'hoverLeave',
       'add',
@@ -94,6 +97,22 @@ export default {
       'beginDrag',
       'endDrag'
     ]),
+    handlerItemClick() {
+      const item = this.viewData
+      if (!this.selecteds.includes(item) && !event.ctrlKey) {
+        this.deselectAll()
+      }
+      if (!event.ctrlKey) {
+        this.select(item)
+      } else {
+        if (this.selecteds.includes(item)) {
+          this.deselect(item)
+          this.hideFloatBar()
+        } else {
+          this.select(item)
+        }
+      }
+    },
     component(type) {
       return this.components[type]
     },
@@ -167,47 +186,45 @@ export default {
 <style lang="less" scoped>
 .outline-box-item {
 
-}
-.outline-box-item-selected {
-  .outline-box-item-heightlight;
-  color: rebeccapurple;
-}
-.outline-box-item-heightlight {
-  background-color: #ddd;
-}
-
-.outline-box-item-head {
-  padding-right: 13px;
-  font-size: 9pt;
-  height: 28px;
-  line-height: 28px;
-  white-space: nowrap; //强制文本在一行内输出
-  overflow: hidden; //隐藏溢出部分
-  text-overflow: ellipsis; //对溢出部分加上...
-  cursor: pointer;
-  .right {
-    float: right;
+  .item {
+    padding-right: 13px;
+    font-size: 9pt;
     height: 28px;
     line-height: 28px;
+    white-space: nowrap; //强制文本在一行内输出
+    overflow: hidden; //隐藏溢出部分
+    text-overflow: ellipsis; //对溢出部分加上...
+    // transition: background-color .2s;
+    cursor: pointer;
+    .icon {
+      vertical-align: middle;
+      &:hover {
+        color: blueviolet;
+      }
+    }
+    .right {
+      float: right;
+      height: 28px;
+      line-height: 28px;
+    }
+    &.selected {
+      background: rgba(116, 0, 173, 0.15);
+      &.actived {
+        font-weight: 600;
+      }
+    }
+    &.heightlight {
+      background: rgba(116, 0, 173, 0.13);
+    }
   }
-}
-.outline-box-item-icon {
-  vertical-align: middle;
-}
 
-.outline-box-item-body {
+  .children {
+
+  }
 
 }
 
-.outline-box-item-body {
-
-}
-
-.outline-box-clear-icon {
-  vertical-align: middle;
-}
-.outline-box-clear-icon:hover {
-  color: blueviolet;
-  background: #aaa;
+.slot {
+  .outline-box-item
 }
 </style>

@@ -3,8 +3,6 @@ import ctx from '@'
 import _ from 'lodash'
 
 ctx.Vue.component(TextEditor.name, TextEditor)
-// 注入
-ctx.mixin.joinTo('editor', TextEditor)
 
 export default {
   icon: 'el-icon-document',
@@ -25,9 +23,9 @@ export default {
   ],
   // 从源数据进行转换
   convertFrom(value) {
-    return _.toString(value)
+    return _.toString(value) // .split('\n')
   },
   convertTo(value) {
-    return value
+    return value // .join('\n')
   }
 }

@@ -88,15 +88,17 @@ export function mapStore(store, namespace, stateWritable = true, getterWritable 
   const api = {
     $store: store
   }
+  const publicMutations = Object.keys(options.mutations || {}).filter(name => !name.startsWith('_'))
+  const publicActions = Object.keys(options.actions || {}).filter(name => !name.startsWith('_'))
   if (namespace) {
     Object.assign(api,
-      mapMutations(namespace, Object.keys(options.mutations || {}).filter(name => !name.startsWith('_'))),
-      mapActions(namespace, Object.keys(options.actions || {}).filter(name => !name.startsWith('_')))
+      mapMutations(namespace, publicMutations),
+      mapActions(namespace, publicActions)
     )
   } else {
     Object.assign(api,
-      mapMutations(Object.keys(options.mutations)),
-      mapActions(Object.keys(options.actions || {}))
+      mapMutations(publicMutations),
+      mapActions(publicActions)
     )
   }
 

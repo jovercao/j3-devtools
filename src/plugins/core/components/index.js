@@ -16,6 +16,9 @@ loadComponents(files)
 files = require.context('./dev', false, /\.vue$/)
 loadComponents(files)
 
+files = require.context('./forms', false, /\.vue$/)
+loadComponents(files)
+
 export default {
   install(Vue, options) {
     for (const key in components) {

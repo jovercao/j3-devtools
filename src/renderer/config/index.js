@@ -1,3 +1,6 @@
+
+import shortcuts from './shortcuts'
+
 const defaultConfig = {
   // 插件安装路径
   'plugins-path': './src/plugins',
@@ -10,6 +13,8 @@ const defaultConfig = {
     '*': 'text-editor',
     'txt': 'text-editor'
   },
+  // 快捷键
+  shortcuts,
   // 已安装的插件，不可修改
   'installed-plugins': [
     'core'

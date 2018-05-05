@@ -2,6 +2,7 @@ import { checkAccepts, load as loadCatalogs } from '../service/catalogs'
 import _ from 'lodash'
 import { properViewData } from '../helper/viewData'
 import ctx from '@'
+import Vue from 'vue'
 
 export const namespace = 'vue-editor'
 
@@ -12,7 +13,9 @@ const state = {
   // 当前视图数据
   viewData: null,
   // 选中的视图项
-  selected: null,
+  activeItem: null,
+  // 选中的项，多选
+  selecteds: [],
   // 高亮的视图项
   hoverItem: null,
   // 设计摘要信息
@@ -22,7 +25,7 @@ const state = {
 const getters = {
   // 当前选择组件信息
   selectedComponent(state) {
-    return state.selected ? state.catalogs.components[state.selected.type] : {}
+    return state.activeItem && state.catalogs.components[state.activeItem.type]
   },
   components(state) {
     return state.catalogs ? state.catalogs.components : {}
@@ -40,11 +43,27 @@ const getters = {
 
 const mutations = {
   select(state, item) {
-    state.selected = item
+    if (!item) throw new Error('被选择的项不能为空')
+    if (!state.selecteds.find(i => i === item)) {
+      state.selecteds.push(item)
+    }
+    state.activeItem = item
+  },
+  deselect(state, item) {
+    const index = state.selecteds.findIndex(i => i === item)
+    if (index >= 0) {
+      state.selecteds.splice(index, 1)
+    }
+  },
+  deselectAll(state) {
+    state.activeItem = null
+    state.selecteds.splice(0, state.selecteds.length)
   },
   selectParent(state) {
-    if (state.selected && state.selected.parent) {
-      state.selected = state.selected.parent
+    const current = state.activeItem
+    this.commit(`${namespace}/deselectAll`)
+    if (current && current.parent) {
+      this.commit(`${namespace}/select`, current.parent)
     }
   },
   hoverEnter(state, item) {
@@ -53,8 +72,13 @@ const mutations = {
   hoverLeave(state) {
     state.hoverItem = null
   },
-  changeProp(state, { prop, value, oldValue }) {
-    state.selected.props[prop] = value
+  changeProp(state, { prop, value, oldValue, item }) {
+    Vue.set((item || state.activeItem).props, prop, value)
+  },
+  changeSelectedsProp(state, { prop, value, oldValue, item }) {
+    for (const item of state.selecteds) {
+      Vue.set(item.props, prop, value)
+    }
   },
   beginEdit(state, viewData) {
     if (state.viewData) {
@@ -68,7 +92,7 @@ const mutations = {
   },
   endEdit(state) {
     state.viewData = null
-    this.commit(`${namespace}/select`, null)
+    this.commit(`${namespace}/deselectAll`)
     this.commit(`${namespace}/hoverLeave`)
   },
   _loadCatalogs(state, catalogs) {
@@ -77,6 +101,7 @@ const mutations = {
   remove(state, item) {
     // 从原有插糟移除
     if (item.parent) {
+      this.commit(`${namespace}/deselect`, item)
       const slot = item.parent.slots[item.slot]
       const index = slot.indexOf(item)
       if (index >= 0) {
@@ -86,7 +111,9 @@ const mutations = {
         }
       }
     }
-    state.selected = null
+  },
+  removeSelecteds(state) {
+    state.selecteds.forEach(item => this.commit('remove', item))
   },
   add(state, { container, slot, item, index }) {
     if (!checkAccepts(container, slot, item)) {
@@ -118,7 +145,7 @@ const mutations = {
       item.index = container.slots[slot].length
       container.slots[slot].push(item)
     }
-    state.selected = item
+    this.commit(`${namespace}/select`, item)
   }
 }
 

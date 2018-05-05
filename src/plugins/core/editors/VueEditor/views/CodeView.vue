@@ -1,6 +1,5 @@
 <template>
   <div class="code-view" >
-    <input type="text" />
     <div v-if="value" v-html="htmlCode">
     </div>
   </div>

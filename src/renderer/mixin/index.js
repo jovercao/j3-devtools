@@ -1,6 +1,7 @@
 import ide from './ide'
 import editor from './editor'
 import service from '../service'
+import _ from 'lodash'
 
 const Mixins = {}
 
@@ -25,8 +26,12 @@ export default function mixin(name, mixin) {
 mixin.joinTo = function(name, ...components) {
   const item = mixin(name)
   for (const component of components) {
-    const mixins = component.mixins = component.mixins || []
-    mixins.push(item)
+    if (_.isFunction(component)) {
+      component.mixin(item)
+    } else {
+      const mixins = component.mixins = component.mixins || []
+      mixins.push(item)
+    }
   }
 }
 
