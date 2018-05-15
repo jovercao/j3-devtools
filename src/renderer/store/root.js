@@ -6,18 +6,37 @@ import helper from '../helper'
 import commands from '../commands'
 import config from '../config'
 import _ from '../utils'
-import bus from '../bus'
+import OpenDialog from '../views/dialogs/OpenDialog'
+import Vue from 'vue'
+// import bus from '../bus'
 const hidedToolboxes = config.get('hide-toolboxes')
 
 export default {
   state: {
+    // 测试
+    test: {
+      string: 'abc',
+      array: [
+        'a',
+        'b',
+        {
+          name: 'innerObject',
+          value: 'ab'
+        }
+      ]
+    },
+    // 版本号
     version: '0.1.0',
+    // 激活的底栏
     activeBottombareTab: null,
     // 打开的内容
     openeds: {},
     // 打开的标签页
     openedTabs: [],
+    // 激活的当前页面
     activeTab: null,
+    // 打开的项目对象
+    project: null,
     // 打开的工具栏
     toolboxes: {
       'j3-components-box': true
@@ -34,8 +53,12 @@ export default {
     hidedToolboxes
   },
   getters: {
-    sidebars() { return toolbox.sidebars() },
-    bottombars() { return toolbox.bottombars() },
+    sidebars() {
+      return toolbox.sidebars()
+    },
+    bottombars() {
+      return toolbox.bottombars()
+    },
     activeContent(state) {
       return state.activeTab ? state.activeTab.content : null
     },
@@ -47,72 +70,85 @@ export default {
       return state.openedTabs.map(tab => tab.content)
     },
     visibleBottombars(state) {
-      return toolbox.bottombars().filter(item => !state.hidedToolboxes(item.name))
+      return toolbox
+        .bottombars()
+        .filter(item => !state.hidedToolboxes(item.name))
     },
     visibleSidebars(state) {
-      return toolbox.sidebars().filter(item => !state.hidedToolboxes.includes(item.name))
+      return toolbox
+        .sidebars()
+        .filter(item => !state.hidedToolboxes.includes(item.name))
     }
   },
-  mutations: {
-    // setter接口
-    ...helper.setterMutation(function(state, key, value, setter) {
-      // 自定义处理函数，调用setter(value)可以修属性值。
-      // switch (key) {
-      //   case 'sidebars':
-      //     break
-      //   default:
-      //     break
-      // }
-      setter(value)
-    }),
-    beginDrag(state, data) {
+  syncMethods: {
+    openPath({ resourceType, path }) {
+
+    },
+    // // setter接口
+    // ...helper.setterMutation(function(state, key, value, setter) {
+    //   // 自定义处理函数，调用setter(value)可以修属性值。
+    //   // switch (key) {
+    //   //   case 'sidebars':
+    //   //     break
+    //   //   default:
+    //   //     break
+    //   // }
+    //   setter(value)
+    // }),
+    beginDrag(data) {
+      const { state } = this
       state.dragData = data
       state.dragging = true
     },
-    endDrag(state, data) {
+    endDrag(data) {
+      const { state } = this
       state.dragData = null
       state.dragging = false
     },
-    preventDrag(state) {
+    preventDrag() {
+      const { state } = this
       state.dragData.prevent = true
     },
     // *************************Toolbox**************************
     showToolbox(state, name) {
       hidedToolboxes[name] = true
     },
-    hideToolbox(state, name) {
+    hideToolbox(name) {
       hidedToolboxes[name] = true
     },
-    toggleToolbox(state, name) {
+    toggleToolbox(name) {
       hidedToolboxes[name] = !hidedToolboxes[name]
     },
     // *************************Menus*****************************
-    addMenu(state, { menu, indexes }) {
+    addMenu({ menu, indexes }) {
       menus.add(menu, indexes)
     },
-    removeMenu(state, menu) {
+    removeMenu(menu) {
       menus.removeItem(menu)
     },
     // *********************tab and items*************************
-    setActiveTab(state, tab) {
+    setActiveTab(tab) {
+      const { state } = this
       if (_.isNumber(tab)) {
         tab = state.openedTabs[tab]
       }
 
       state.activeTab = tab
     },
-    closeActiveTab(state) {
-      this.commit('closeTab', state.activeTab)
+    closeActiveTab() {
+      this.closeTab(this.state.activeTab)
     },
-    openTab(state, tab) {
+    openTab(tab) {
+      const { state } = this
       const index = state.openedTabs.indexOf(tab)
       if (index < 0) {
         state.openedTabs.push(tab)
         state.openeds[tab.uri] = tab.context
       }
-      this.commit('setActiveTab', tab)
+      this.setActiveTab(tab)
     },
-    closeTab(state, tab) {
+    closeTab(tab) {
+      const { state } = this
       const index = _.isNumber(tab) ? tab : state.openedTabs.indexOf(tab)
       tab = _.isNumber(tab) ? state.openedTabs[index] : tab
       if (index >= 0) {
@@ -120,100 +156,92 @@ export default {
         state.openedTabs.splice(index, 1)
       }
       if (state.openedTabs.length > 0) {
-        const activeIndex = (state.openedTabs.length > index ? index : state.openedTabs.length - 1)
-        this.commit('setActiveTab', activeIndex)
+        const activeIndex =
+          state.openedTabs.length > index ? index : state.openedTabs.length - 1
+        this.setActiveTab(activeIndex)
       } else {
-        this.commit('setActiveTab', null)
-      }
-    },
-    setActiveTabByUri(state, uri) {
-      const index = state.openedTabs.findIndex(tab => tab.uri === uri)
-      if (index >= 0) {
-        this.commit('setActiveTab', index)
+        this.setActiveTab(null)
       }
     },
     /**
      *  关闭指定标签页
      */
-    closeItem(state, item) {
+    closeItem(item) {
+      const { state } = this
       const index = state.openedTabs.findIndex(tab => tab.content === item)
       if (index >= 0) {
-        this.commit('closeTab', index)
+        this.closeTab(index)
       }
     },
-
+    setActiveTabByUri(uri) {
+      const { state } = this
+      const index = state.openedTabs.findIndex(tab => tab.uri === uri)
+      if (index >= 0) {
+        this.setActiveTab(index)
+      }
+    },
     // ********************Sidebar************************
-    setActiveSidebar(state, item) {
+    setActiveSidebar(item) {
+      const { state } = this
       state.activeSidebar = item
     },
-    showSidebar(state, sidebar) {
+    showSidebar(sidebar) {
+      const { state } = this
       if (sidebar) {
         state.activeSidebar = sidebar
       }
       state.sidebarVisible = true
     },
-    hideSidebar(state) {
+    hideSidebar() {
+      const { state } = this
       state.sidebarVisible = false
       state.activeSidebar = null
     },
-    toggleSidebar(state) {
+    toggleSidebar() {
+      const { state } = this
       state.sidebarVisible = !state.sidebarVisible
     },
     // ********************Bottombar************************
-    setActiveBottombar(state, item) {
-      state.activeBottombar = item
+    setActiveBottombar(item) {
+      this.state.activeBottombar = item
     },
-    showBottombar(state) {
-      state.bottombarVisible = true
+    showBottombar() {
+      this.state.bottombarVisible = true
     },
-    hideBottombar(state) {
-      state.bottombarVisible = false
+    hideBottombar() {
+      this.state.bottombarVisible = false
     },
-    toggleBottombar(state) {
-      state.bottombarVisible = !state.bottombarVisible
+    toggleBottombar() {
+      this.state.bottombarVisible = !this.state.bottombarVisible
     },
-    editorCreated(state, { context, getChangedValue }) {
+    editorCreated({ context, getChangedValue }) {
       context.getChangedValue = getChangedValue
       context.changed = false
     },
-    editorChanged(state, context) {
+    editorChanged(context) {
       context.changed = true
     },
-    editorSaved(state, context) {
+    editorSaved(context) {
       context.changed = false
     }
   },
-  actions: {
-    async executeCommand(x, command) {
+  methods: {
+    async executeCommand(command) {
       commands.exec(command)
     },
-    async exec(x, command) {
+    async exec(command) {
       commands.exec(command)
     },
-    // 打开资源, arg可以是uri字符串，也可以是对象{ resourceType, uri }
-    async open({ commit, dispatch, state }, arg) {
-      let data
-      let uri = arg
-      if (_.isObject(arg)) {
-        uri = resource.toUriString(arg)
-      }
-      if (state.openeds[uri]) {
-        commit('setActiveTabByUri', uri)
-        return
-      }
-      data = await resource.get(uri)
-      return dispatch('openContent', data)
-    },
-
     /**
      * 打开内容，内容将在标签页中打开
      * item = { editor, content, title, icon }
      */
-    openContent({ state }, content) {
+    _openContent(content) {
+      const { state } = this
       // 如果已经打开，则激活显示
       const tab = state.openedTabs.find(tab => tab.content === content)
       if (tab) {
-        this.commit('setActiveTab', tab)
+        this.setActiveTab(tab)
         return
       }
 
@@ -230,7 +258,9 @@ export default {
         changed: false,
         // 通过函数解耦, 待组件创建成功后，会返回获取修改后的值函数。
         getValue: () => (editorOptions.convertFrom || _.toString)(content.data),
-        getChangedValue: () => { throw new Error('需要由editor返回绑定函数！') },
+        getChangedValue: () => {
+          throw new Error('需要由editor返回绑定函数！')
+        },
         getData: () => content.data,
         getChangedData: () => {
           const value = newTab.context.getChangedValue()
@@ -247,20 +277,38 @@ export default {
         editor: editorOptions,
         openTime: new Date()
       }
-      this.commit('openTab', newTab)
+      this.openTab(newTab)
     },
-    isOpened({ state }, uri) {
+    // 打开资源, arg可以是uri字符串，也可以是对象{ resourceType, uri }
+    async open(arg) {
+      const { state } = this
+      let data
+      let uri = arg
+      if (_.isObject(arg)) {
+        uri = resource.toUriString(arg)
+      }
+      if (state.openeds[uri]) {
+        this.setActiveTabByUri(uri)
+        return
+      }
+      data = await resource.get(uri)
+      return this._openContent(data)
+    },
+    isOpened(uri) {
+      const { state } = this
       return state.openeds.hasOwnProperty(uri)
     },
     // 关闭所有打开项
-    async closeAll({ dispatch, state }) {
+    async closeAll() {
+      const { state } = this
       for (let i = state.openedTabs.length - 1; i >= 0; i--) {
         const tab = state.openedTabs[i]
-        await dispatch('close', tab)
+        await this.close(tab)
       }
     },
     // 关闭打开的项
-    async close({ commit, state }, arg) {
+    async close(arg) {
+      const { state } = this
       let tab
       if (arg === null || arg === undefined) {
         tab = state.activeTab
@@ -269,7 +317,8 @@ export default {
         tab = state.openedTabs.find(tab => tab.uri === uri)
       } else if (_.isObject(arg)) {
         tab = arg
-      } if (_.isNumber(arg)) {
+      }
+      if (_.isNumber(arg)) {
         const index = arg
         tab = state.openedTabs[index]
       }
@@ -278,44 +327,97 @@ export default {
       }
 
       if (tab.context.changed) {
-        const confirm = await helper.confirm(`${tab.title}尚未保存，您确定要关闭吗？`, { type: 'warning' })
+        const confirm = await helper.confirm(
+          `${tab.title}尚未保存，您确定要关闭吗？`,
+          { type: 'warning' }
+        )
         if (!confirm) return false
       }
-      commit('closeTab', tab)
+      this.closeTab(tab)
       return true
     },
     // 保存内容
-    async save({ commit, state }, tab) {
-      bus.emit('beforesave', tab)
+    async save(tab) {
+      const { state } = this
+      if (!state.activeTab) return
       tab = tab || state.activeTab
       // 预处理
-      // commit('updateEditorData', tab)
+      // this.updateEditorData(tab)
       const { uri, path } = tab
       const data = tab.context.getChangedData()
       const toSave = { uri, path, data }
-      await resource.set(toSave)
-      commit('editorSaved', tab.context)
+      try {
+        await resource.set(toSave)
+        helper.message({
+          type: 'success',
+          showClose: true,
+          message: '保存成功!'
+        })
+      } catch (err) {
+        helper.message({
+          type: 'error',
+          showClose: true,
+          message: '保存失败!' + err
+        })
+      }
+      this.editorSaved(tab.context)
     },
     // 保存所有
-    async saveAll({ state, dispatch }) {
-      for (const tab of state.openedTabs) {
-        await dispatch('save', tab)
+    async saveAll() {
+      const { state } = this
+      try {
+        for (const tab of state.openedTabs) {
+          await this.save(tab)
+        }
+      } catch (err) {
+        helper.message({
+          type: 'error',
+          showClose: true,
+          message: '保存失败!' + err
+        })
       }
     },
     // 创建内容
-    async create({ commit, dispatch }, content) {
+    async create(content) {
       const { uri, data } = content
       await resource.create(uri, data)
     },
-    activeDefaultBottombar({ commit, getters }) {
+    activeDefaultBottombar() {
+      const { getters } = this
       if (getters.bottombars.length > 0) {
-        commit('setActiveBottombar', getters.bottombars[0])
+        this.setActiveBottombar(getters.bottombars[0])
       }
     },
-    activeDefaultSidebar({ commit, getters }) {
+    activeDefaultSidebar() {
+      const { getters } = this
       if (getters.sidebars.length > 0) {
-        commit('setActiveSidebar', getters.sidebars[0])
+        this.setActiveSidebar(getters.sidebars[0])
       }
+    },
+    async openProject() {
+      const result = await OpenDialog.show()
+      if (result.ok) {
+        this.openPath({
+          resourceType: result.resourceType,
+          path: result.selected.path
+        })
+      }
+    },
+    doTest() {
+      const test = this.$state.test
+      this.$set(test, 'string', '哈哈哈')
+      this.$set(test.array, 1, '修改后的值')
+      this.$set(test.array[2], 'value', '修改后的值')
+      this.$delete(test, 'string')
+      this.$push(test.array, '一串串', '一串串', '一串串', '一串串')
+
+      this.$commit()
+    },
+    doTest2() {
+      this.$commit(state => {
+        state.test.string = '哈哈哈2'
+        Vue.$set(state.test.array, 1, '修改后的值2')
+      })
     }
   },
   modules: {},

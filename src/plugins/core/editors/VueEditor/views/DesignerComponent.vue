@@ -107,7 +107,7 @@ export default {
   outline: silver 1px dotted;
   // transition: background-color .2s;
 
-  input {
+  * {
     cursor: default;
   }
 

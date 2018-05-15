@@ -23,7 +23,7 @@
         :style="{ 'width': sidebarWidth + 'px', cursor: sidebarResizeable ? 'e-resize' : 'auto' }"
         :scrollable="!sidebarResizeable"
         @mousemove.native="handlerSidebarMousemove"
-        @mousedown.native.stop="beginResize($event, 'sidebar')">
+        @mousedown.native.stop="handlerBeginResize($event, 'sidebar')">
       </sidebar>
       <div class="content">
         <div class="header">
@@ -88,9 +88,10 @@
           class="footer"
           :style="{ 'flex-basis': bottombarHeight + 'px', cursor: bottombarCursor }"
           @mousemove.native="handlerBottombarMousemove"
-          @mousedown.native.stop.prevent="beginResize($event, 'bottombar')"
+          @mousedown.native.stop.prevent="handlerBeginResize($event, 'bottombar')"
           />
       </div>
+      <!-- <dialogs/> -->
     </div>
   </div>  
 </template>
@@ -98,8 +99,9 @@
 <script>
 import Menubar from './parts/Menubar'
 import Bottombar from './parts/Bottombar'
-import ideApi from '../mixin/ide'
 import Sidebar from './parts/Sidebar'
+import { mapState, mapGetters, mapActions } from 'vuex'
+// import Dialogs from './parts/Dialogs'
 
 export default {
 
@@ -107,6 +109,7 @@ export default {
     Menubar,
     Bottombar,
     Sidebar
+    // Dialogs
   },
   filters: {
     muIcon(value) {
@@ -119,9 +122,6 @@ export default {
       return ''
     }
   },
-  mixins: [
-    ideApi
-  ],
   created() {
     this.activeDefaultSidebar()
     this.activeDefaultBottombar()
@@ -141,14 +141,58 @@ export default {
       bottombarCursor: 'auto'
     }
   },
+  computed: {
+    ...mapState([
+      'activeTab',
+      'openedTabs',
+      'activeSidebar',
+      'activeBottombar',
+      'bottombarVisible',
+      'hidedToolboxes',
+      'sidebarVisible'
+    ]),
+    ...mapGetters([
+      'openedItems',
+      'activeItem',
+      'sidebars',
+      'bottombars',
+      'visibleSidebars',
+      'visibleBottombars'
+    ])
+  },
   methods: {
+    ...mapActions([
+      'open',
+      'close',
+      'openFromUri',
+      'activeDefaultBottombar',
+      'activeDefaultSidebar',
+      // openeds
+      'setActiveTab',
+      'setActiveItem',
+      'closeActiveTab',
+      'openItem',
+      'openTab',
+      'closeTab',
+      'closeItem',
+      // sidebar
+      'setActiveSidebar',
+      'showSidebar',
+      'hideSidebar',
+      'toggleSidebar',
+
+      // bottombar
+      'setActiveBottombar',
+      'showBottombar',
+      'hideBottombar',
+      'toggleBottombar'
+    ]),
     handlerTabMouseDown(tab, event) {
       if (event.button === 1) {
         this.close(tab)
       }
     },
     showTabMenu(event) {
-      console.log(event)
       this.trigger = event.target
       this.tabMenuVisibe = true
     },
@@ -196,7 +240,7 @@ export default {
         this.endResize()
       }
     },
-    beginResize(event, bar) {
+    handlerBeginResize(event, bar) {
       if (bar === 'sidebar' && this.sidebarResizeable) {
         this.sidebarResizing = true
         this.resizeStartThickness = this.sidebarWidth

@@ -1,5 +1,5 @@
 <template>
-  <property-grid class="property-box"
+  <property-grid tabindex="0" class="property-box"
     @propchange="changeProp"
     @pubpropchange="changeSelectedsProp"
     :props="props"
@@ -10,7 +10,7 @@
 </template>
 
 <script>
-import { mapState, mapMutations, mapGetters } from 'vuex'
+import { mapState, mapActions, mapGetters } from 'vuex'
 import { namespace } from '../../store/vue-editor'
 import _ from 'lodash'
 
@@ -47,16 +47,17 @@ export default {
               isPublic = false
               break
             }
-            if (_.isEqual(value(0, name), value(i, name))) {
-              isSameValue = false
-            }
+
+            isSameValue &= _.isEqual(value(0, name), value(i, name))
           }
           if (isPublic) {
             props[name] = {
               title: one.title,
-              type: _.clone(one.type), // 复制，以免出错
-              selections: _.clone(one.selections), // 复制，以免出错
-              value: isSameValue ? one.value : undefined
+              type: one.type, // 复制，以免出错
+              selections: _.clone(one.selections)
+            }
+            if (isSameValue) {
+              props[name].value = value(0, name)
             }
           }
         }
@@ -65,7 +66,7 @@ export default {
     })
   },
   methods: {
-    ...mapMutations(namespace, [ 'changeProp', 'changeSelectedsProp' ])
+    ...mapActions(namespace, [ 'changeProp', 'changeSelectedsProp' ])
   }
 }
 </script>
@@ -73,5 +74,9 @@ export default {
 <style lang="less" scoped>
 .property-box {
   height: 100%;
+  &:focus {
+    outline: none;
+    // background: #f8f8f8;
+  }
 }
 </style>

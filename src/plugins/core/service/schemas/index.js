@@ -1,10 +1,10 @@
 /**
  * 属性定义
- */
-class PropsDefine {
+//  */
+// class PropsDefine {
 
-}
+// }
 
-class ComponentDefine {
+// class ComponentDefine {
 
-}
+// }

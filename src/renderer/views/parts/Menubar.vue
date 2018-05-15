@@ -1,6 +1,6 @@
 <template>
   <div class="menubar">
-    <mu-flat-button v-for="(mu, index) in menus" :key="index" :label="mu.title" @click="showMenu($event, mu)"
+    <mu-flat-button v-for="(mu, index) in $ide.menus" :key="index" :label="mu.title" @click="showMenu($event, mu)"
       :class="[ 'menubar-btn', { 'actived-btn': actived === mu}]"
       @mouseover.native="handlerMouseover($event, mu)" />
     <mu-popover :trigger="trigger" :open="!!actived" @close="closeMenu">
@@ -10,7 +10,6 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
 import PopMenu from './PopMenu'
 
 export default {
@@ -24,17 +23,16 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['menus']),
     propedMenu() {
       if (!this.actived) return {}
       return this.actived
     }
   },
   methods: {
-    ...mapActions(['executeCommand']),
     handlerCommand(command) {
       this.closeMenu()
-      this.executeCommand(command)
+      console.log(command)
+      this.$ide.executeCommand(command)
     },
     showMenu(event, mu) {
       this.trigger = event.target

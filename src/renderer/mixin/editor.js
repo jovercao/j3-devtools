@@ -1,4 +1,4 @@
-import { mapActions, mapMutations } from 'vuex'
+import { mapActions } from 'vuex'
 
 export default {
   // 必须实现changed事件
@@ -27,8 +27,7 @@ export default {
   //   }
   // },
   methods: {
-    ...mapActions([ 'isOpened' ]),
-    ...mapMutations([ 'editorCreated', 'editorChanged' ])
+    ...mapActions([ 'isOpened', 'editorCreated', 'editorChanged' ])
     // convertFrom(data) {
     //   throw new Error('未实现的方法 `convertFrom`！')
     // },

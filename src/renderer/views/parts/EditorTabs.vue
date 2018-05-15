@@ -1,14 +1,16 @@
 <script>
-import { mapState } from 'vuex';
+import { mapState } from 'vuex'
+
 export default {
   computed: {
-    ...mapState([ 'openedTabs' ])
+    ...mapState(['openedTabs'])
   },
   render() {
-    return (<div>
-      this.openedTabs.map(tab => <tab.editor.component>
-      </tab.editor.component>)
-    </div>)
+    return (
+      <div>
+        this.openedTabs.map(tab => <tab.editor.component />)
+      </div>
+    )
   }
 }
 </script>

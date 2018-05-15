@@ -32,7 +32,7 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations, mapActions } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
 export default {
   name: 'component-box',
   data() {
@@ -51,7 +51,7 @@ export default {
     ...mapGetters('vue-editor', ['componentTemplates'])
   },
   methods: {
-    ...mapMutations(['beginDrag', 'endDrag']),
+    ...mapActions(['beginDrag', 'endDrag']),
     ...mapActions('vue-editor', ['loadCatalogs'])
   }
 }

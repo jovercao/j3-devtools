@@ -1,4 +1,14 @@
 export default {
+  'test': {
+    handler({ ide }) {
+      ide.doTest()
+    }
+  },
+  'ide.open-project': {
+    handler({ ide }) {
+      ide.openProject()
+    }
+  },
   'ide.cut': {
     handler() {
       document.execCommand('Cut')
@@ -17,36 +27,13 @@ export default {
   'ide.save': {
     title: '保存',
     async handler({ ide, helper }) {
-      if (ide.activeTab) {
-        try {
-          await ide.save()
-          helper.message({
-            type: 'success',
-            showClose: true,
-            message: '保存成功!'
-          })
-        } catch (err) {
-          helper.message({
-            type: 'error',
-            showClose: true,
-            message: '保存失败!' + err
-          })
-        }
-      }
+      await ide.save()
     }
   },
   'ide.save-all': {
     title: '保存全部',
-    handler({ ide, helper }) {
-      try {
-        ide.saveAll()
-      } catch (err) {
-        helper.message({
-          type: 'error',
-          showClose: true,
-          message: '保存失败!' + err
-        })
-      }
+    async handler({ ide }) {
+      await ide.saveAll()
     }
   },
   'ide.close': {

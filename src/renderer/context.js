@@ -7,26 +7,22 @@ import service from './service'
 import resource from './resource'
 import toolbox from './toolbox'
 import mixin from './mixin'
-import ide from './apis'
 import router from './router'
 import store from './store'
 import menus from './menus'
 import commands from './commands'
-import plugins from './plugin-mgr'
 import editor from './editor'
 
 Vue.prototype.$helper = helper
 Vue.prototype.$service = service
 // Vue.prototype.$resource = resource
-Vue.ide = Vue.prototype.$ide = ide
+// Vue.ide = Vue.prototype.$ide = ide // 改至main.js中调用保存，initPlugins完成后调用
 
 export default {
   // vue对象
   Vue,
   // 路由对象
   router,
-  // ide api
-  ide,
   // 编辑器
   editor,
   // 混入器
@@ -44,7 +40,5 @@ export default {
   // 助手
   helper,
   // 菜单
-  menus,
-  // 插件管理器
-  plugins
+  menus
 }

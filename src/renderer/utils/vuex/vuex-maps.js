@@ -75,21 +75,38 @@ export function setterMutation(custom) {
   }
 }
 
+const publicRegex = /^[a-zA-Z][$_a-zA-Z0-9]*$/.compile(/^[a-zA-Z][$_a-zA-Z0-9]*$/)
+
+const defaultMemberFilter = name => publicRegex.test(name)
+
 /**
  *  * 将整个store 映射为
  * @param {object} store - store 实例
  * @param {string} namespace - 要映射的模块, module路径
  * @param {boolean} stateWritable - state是否可写
  * @param {boolean} getterWritable - getter是否可写
+ * @param {function} memberFilter - 成员过滤器，默认为只保留公共成员方式命名的成员
  */
-export function mapStore(store, namespace, stateWritable = true, getterWritable = false) {
-  // 使用了内部成员，可能会进行更改
-  const options = store._modules.root._rawModule
+export function mapStore(store, namespace, stateWritable = false, getterWritable = false, memberFilter = defaultMemberFilter) {
+  if ((namespace || '').endsWith('/')) namespace = namespace.substr(0, namespace.length - 2)
+  const path = namespace ? namespace.split('/') : []
+  return _mapStore(store, path, stateWritable, getterWritable, memberFilter)
+}
+
+function _mapStore(store, path, stateWritable, getterWritable, memberFilter) {
+  const namespace = path.reduce((name, key) => name + '/', '')
+  // 使用了内部成员，可能会导致vuex升级时出现错误
+  const module = store._modules.get(path)
+  const options = module._rawModule
   const api = {
     $store: store
   }
-  const publicMutations = Object.keys(options.mutations || {}).filter(name => !name.startsWith('_'))
-  const publicActions = Object.keys(options.actions || {}).filter(name => !name.startsWith('_'))
+
+  // 只保留以符合命名规则的公共成员
+  const publicMutations = Object.keys(options.mutations || {}).filter(memberFilter)
+  const publicActions = Object.keys(options.actions || {}).filter(memberFilter)
+  const publicState = Object.keys(options.state || {}).filter(memberFilter)
+  const publicGetters = Object.keys(options.getters || {}).filter(memberFilter)
   if (namespace) {
     Object.assign(api,
       mapMutations(namespace, publicMutations),
@@ -103,32 +120,59 @@ export function mapStore(store, namespace, stateWritable = true, getterWritable 
   }
 
   // 如果有定义属性修改mutation
-  if (!options.mutations && options.mutations[mapPropertiesConfig.setterMutation] && (stateWritable || getterWritable)) {
+  if (!options.mutations &&
+    options.mutations[mapPropertiesConfig.setterMutation] &&
+    (stateWritable || getterWritable)
+  ) {
     throw new Error(`可写state或getter，必须定义setter mutation ${mapPropertiesConfig.setterMutation}`)
   }
+
+  // *************************** hack 自动注册 setterMutation ************************
+  // const type = namespace + mapPropertiesConfig.setterMutation
+  // const entry = store._actions[type] || (store._actions[type] = [])
+  // entry.push(function wrappedActionHandler (payload, cb) {
+  //   let res = handler.call(store, {
+  //     dispatch: local.dispatch,
+  //     commit: local.commit,
+  //     getters: local.getters,
+  //     state: local.state,
+  //     rootGetters: store.getters,
+  //     rootState: store.state
+  //   }, payload, cb)
+  //   if (!isPromise(res)) {
+  //     res = Promise.resolve(res)
+  //   }
+  //   if (store._devtoolHook) {
+  //     return res.catch(err => {
+  //       store._devtoolHook.emit('vuex:error', err)
+  //       throw err
+  //     })
+  //   } else {
+  //     return res
+  //   }
+  // })
+
   // 映射state
-  mapProperties(api, stateWritable, mapState, Object.keys(options.state || {}).filter(name => !name.startsWith('_')))
+  mapProperties(api, stateWritable, mapState, publicState)
   // 映射getters
-  mapProperties(api, getterWritable, mapGetters, Object.keys(options.getters || {}).filter(name => !name.startsWith('_')))
+  mapProperties(api, getterWritable, mapGetters, publicGetters)
 
   // 注册子模块
-  for (const key in store._modules.root._children) {
-    const paths = key.split('/')
-    const moduleName = '$' + paths[paths.length - 1]
+  for (const key in module._children) {
+    let child = key
     let item = api
-    if (paths.length >= 2) {
-      const items = [item].concat(paths.slice(0, -1))
-      item = items.reduce((item, key) => item[key] || (item[key] = {}))
+    // 处理为api别名，将'foo-bar' 转换为驼峰式命名 'fooBar', 便于使用.运算符访问
+    if (child.includes('-')) {
+      const list = child.split('-')
+      child = list.reduce((name, item) => name + item[0].toUpperCase() + item.substr(1).toLowerCase())
     }
-    item[moduleName] = mapStore(store, key, stateWritable, getterWritable)
-    // 处理为api别名，便于使用.运算符访问
-    if (moduleName.includes('-')) {
-      const list = moduleName.split('-')
-      const apiName = list.reduce((name, item) => name + item[0].toUpperCase() + item.substr(1))
-      if (item[apiName]) throw new Error('命名冲突')
-      item[apiName] = item[moduleName]
-    }
+    child = '$' + child
+    if (item[child]) throw new Error(`命名冲突${child}`)
+    const childPath = path.concat(key)
+    item[child] = _mapStore(store, childPath, stateWritable, getterWritable, memberFilter)
   }
 
   return api
 }
+
+export const mapMethods = mapActions

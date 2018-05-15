@@ -9,18 +9,18 @@
           <hr>
         </div>
         <template v-if="pubPropExpand">
-          <div v-for="(prop, name) in pubProps" :key="name"
+          <div v-for="(name) in sortedPubProps" :key="name"
             @mouseenter="hoverProp = name"
             @mouseleave="hoverProp = ''"
             class="row" >
-            <div class="name">{{ prop.title || name }}</div>
+            <div class="name">{{ pubProps[name].title || name }}</div>
             <div class="value">
                 <value-editor
-                  :selections="prop.selections"
+                  :selections="pubProps[name].selections"
                   class="editor"
-                  :data-type="prop.type"
-                  :value="propsData[name]"
-                  :hintText="prop.description || prop.title"
+                  :data-type="pubProps[name].type"
+                  :value="pubProps[name].value"
+                  :hintText="pubProps[name].description || pubProps[name].title"
                   @change="handlerPubChange(name, ...arguments)"
                 />
             </div>
@@ -34,18 +34,18 @@
       </div>
       <template v-if="curPropExpand">
         <!-- 当前对像属性 -->
-        <div v-for="(prop, name, index) in props" :key="index"
+        <div v-for="(name, index) in sortedProps" :key="index"
           @mouseenter="hoverProp = name"
           @mouseleave="hoverProp = ''"
           class="row" >
-          <div class="name">{{ prop.title || name }}</div>
+          <div class="name">{{ props[name].title || name }}</div>
           <div class="value">
               <value-editor
-                :selections="prop.selections"
+                :selections="props[name].selections"
                 class="editor"
-                :data-type="prop.type"
+                :data-type="props[name].type"
                 :value="propsData[name]"
-                :hintText="prop.description || prop.title"
+                :hintText="props[name].description || props[name].title"
                 @change="handlerChange(name, ...arguments)"
               />
           </div>
@@ -60,6 +60,7 @@
 
 <script>
 import ValueEditor from './ValueEditor'
+import _ from 'lodash'
 
 export default {
   components: {
@@ -85,8 +86,24 @@ export default {
     propDescription() {
       if (this.hoverProp) {
         const prop = this.props[this.hoverProp]
-        return this.hoverProp + ' - ' + prop.descripion || prop.title || '略'
+        return prop.description || prop.title || '略'
       }
+    },
+    sortedProps() {
+      const hasValues = []
+      const props = []
+      for (const key in this.props) {
+        // 有变更过的非默认值，优先显示
+        if (this.propsData[key] !== undefined && this.props[key].default !== this.propsData[key]) {
+          hasValues.push(key)
+        } else {
+          props.push(key)
+        }
+      }
+      return hasValues.sort().concat(props.sort())
+    },
+    sortedPubProps() {
+      return _.sortBy(Object.keys(this.pubProps), (name) => this.pubProps[name].value + name)
     }
   },
   methods: {

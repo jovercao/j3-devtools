@@ -10,10 +10,10 @@ import 'material-design-icons/iconfont/material-icons.css'
 import 'muse-ui/dist/muse-ui.css'
 // import 'muse-ui/dist/theme-carbon.css'
 import 'element-ui/lib/theme-chalk/index.css'
-
 import './assets/proper.less'
-
+import plugins from './plugin-mgr'
 import App from './App.vue'
+import { mapStore } from './utils/vuex'
 
 Vue.use(components)
 Vue.use(MuseUI)
@@ -31,9 +31,10 @@ async function run(params) {
   // 设置默认context
   ctx.commands.defaultContext = ctx
   // 初始化插件
-  await ctx.plugins.init(ctx)
-  // // 初始化查看菜单中的工具栏。
-  // ctx.toolbox.menus()
+  await plugins.init(ctx)
+
+  // 映射整个初始化完之后的store到ide中
+  ctx.ide = Vue.ide = Vue.prototype.$ide = mapStore(ctx.store())
 
   // Vue.prototype.$ctx = ctx
   // *** 加载 UI ***

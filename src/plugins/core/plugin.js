@@ -7,25 +7,34 @@ import store from './store'
 import editors from './editors'
 import services from './service'
 import helper from './helper'
+import components from './components'
+import directives from './directives'
+// import dialogs from './dialogs'
 
-function init(ide, config) {
+function init(ctx, config) {
 
-  ide.service(services)
+  ctx.service(services)
   // 注册资源
-  ide.resource('file', file(ide, config))
+  ctx.resource('file', file(ctx, config))
 
   // 注册store
-  ide.store(store(ide, config))
+  ctx.store(store(ctx, config))
 
   // 注册工具栏
-  ide.toolbox(toolbox(ide, config))
+  ctx.toolbox(toolbox(ctx, config))
 
-  ide.editor(editors)
+  ctx.editor(editors)
+  // 注册组件
+  ctx.Vue.use(components)
+  // 注册指令
+  ctx.Vue.use(directives)
+  // 注册对话框
+  // ide.Vue.use(dialogs)
 
   // 注册命令
-  ide.commands(commands(ide, config))
+  ctx.commands(commands(ctx, config))
 
-  Object.assign(ide.helper, helper)
+  Object.assign(ctx.helper, helper)
 }
 
 export default {

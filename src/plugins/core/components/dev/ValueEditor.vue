@@ -7,6 +7,7 @@
     <mu-text-field underlineClass="text-field-underline" type="number" v-else-if="isType(Number)" 
       class="text-field" :value="value" :hintText="hintText" 
       @change="emitChange(parseFloat(arguments[1]))"/>
+
     <mu-date-picker v-if="isType(Date)" container="inline" :value="value" :hintText="hintText" @change="emitChange(arguments[1])"/>
     <mu-switch v-if="isType(Boolean)" :value="value" @change="emitChange(arguments[1])" :hintText="hintText"/>
     <object-editor v-else-if="isType(Object)" class="text-field" :label="label" :props="subProps" :propsData="value" :hintText="hintText" @change="emitChange"/>
@@ -46,6 +47,9 @@ export default {
     'label',
     'subProps'
   ],
+  render() {
+
+  },
   methods: {
     emitChange(...args) {
       this.$emit('change', ...args)

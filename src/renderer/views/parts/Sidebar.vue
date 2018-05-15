@@ -19,7 +19,7 @@
 </template>
 
 <script>
-import { mapState, mapMutations } from 'vuex'
+import { mapState, mapActions } from 'vuex'
 
 export default {
   props: {
@@ -32,7 +32,7 @@ export default {
     ...mapState(['activeSidebar'])
   },
   methods: {
-    ...mapMutations(['hideSidebar'])
+    ...mapActions(['hideSidebar'])
   }
 }
 </script>

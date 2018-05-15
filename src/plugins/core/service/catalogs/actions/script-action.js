@@ -11,6 +11,6 @@ export default {
   },
   // 执行
   invoke(define) {
-    
+
   }
 }

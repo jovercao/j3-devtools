@@ -1,4 +1,4 @@
-import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
+import { mapState, mapGetters, mapActions } from 'vuex'
 
 // 将常用api置于此处
 export default {
@@ -27,9 +27,7 @@ export default {
       'close',
       'openFromUri',
       'activeDefaultBottombar',
-      'activeDefaultSidebar'
-    ]),
-    ...mapMutations([
+      'activeDefaultSidebar',
       // openeds
       'setActiveTab',
       'setActiveItem',

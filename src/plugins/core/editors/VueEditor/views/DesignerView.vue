@@ -64,7 +64,7 @@
 
 <script>
 import DesignerComponent from './DesignerComponent'
-import { mapState, mapMutations, mapGetters } from 'vuex'
+import { mapState, mapActions, mapGetters } from 'vuex'
 import _ from 'lodash'
 import { checkAccepts } from '../../../service/catalogs'
 import { namespace } from '../../../store/vue-editor'
@@ -120,7 +120,7 @@ export default {
     }
   },
   methods: {
-    ...mapMutations(namespace, [
+    ...mapActions(namespace, [
       'hoverEnter',
       'hoverLeave',
       'select',
@@ -131,10 +131,6 @@ export default {
       'removeSelecteds',
       'changeProp',
       'selectParent'
-    ]),
-    ...mapMutations([
-      'beginDrag',
-      'endDrag'
     ]),
     // // 选择插糟
     // async chooseSlot(value) {
@@ -147,13 +143,13 @@ export default {
     // },
     _onComponentDragstart(item) {
       // this.remove(item)
-      this.beginDrag({ type: 'view-data', source: 'inner', data: item })
+      this.$ide.beginDrag({ type: 'view-data', source: 'inner', data: item })
     },
     _onComponentDragend(item) {
       // if (this.dragData.prevent && !this.dragData.target) {
       //   this.add({ container: item.parent, slot: item.slot, index: item.index })
       // }
-      this.endDrag()
+      this.$ide.endDrag()
     },
     _onKeydown(event) {
       switch (event.keyCode) {

@@ -13,18 +13,6 @@ export default {
     size: {
       type: Number,
       default: 12
-    },
-    type: {
-      type: String,
-      default: 'material',
-      selections: [
-        {
-          value: 'material'
-        },
-        {
-          value: 'other'
-        }
-      ]
     }
   }
 }

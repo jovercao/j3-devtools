@@ -12,12 +12,12 @@ export default {
   component: 'designer-box',
   // 工具栏按钮，只允许添加按钮
   tools: [
-    {
-      icon: 'el-icon-plus',
-      title: '打开',
-      // handler() {}
-      command: 'ide.open-floder' // command 与 handler 二选一, 将优先执行command
-    }
+    // {
+    //   icon: 'el-icon-plus',
+    //   title: '打开',
+    //   // handler() {}
+    //   command: 'ide.open-floder' // command 与 handler 二选一, 将优先执行command
+    // }
   ],
   // 右键弹出菜单
   propMenus: [

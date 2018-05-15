@@ -1,4 +1,4 @@
-import { mapState, mapMutations } from 'vuex'
+import { mapState, mapActions } from 'vuex'
 const namespace = 'vue-editor'
 
 export default {
@@ -38,7 +38,7 @@ export default {
     ...mapState(namespace, [ 'activeItem', 'viewData' ])
   },
   methods: {
-    ...mapMutations(namespace, [
+    ...mapActions(namespace, [
       'beginEdit',
       'endEdit' // ,
       // 'isOpened'

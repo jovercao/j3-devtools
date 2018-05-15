@@ -21,7 +21,7 @@
 import DesignerView from './views/DesignerView'
 import CodeView from './views/CodeView'
 import { namespace } from '../../store/vue-editor'
-import { mapState, mapMutations } from 'vuex'
+import { mapState, mapActions } from 'vuex'
 
 export default {
   name: namespace,
@@ -45,7 +45,7 @@ export default {
     ...mapState(namespace, [ 'activeItem', 'viewData' ])
   },
   methods: {
-    ...mapMutations(namespace, [
+    ...mapActions(namespace, [
       'beginEdit',
       'endEdit',
       'selectParent'

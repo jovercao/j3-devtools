@@ -36,7 +36,6 @@ function editor(name, options) {
   options.name = name
   Editors[name] = options
   const component = Vue.component(options.component)
-  console.log(component)
   // 将editor注入到component中
   mixin.joinTo('editor', component)
 }

@@ -1,34 +1,30 @@
 <template>
   <div class="explorer-box">
     <!-- <mu-popover :open="browsing" @close="browsing = false">
-      <browser-view>
-      </browser-view>
-    </mu-popover> -->
-    <div v-for="(box, index) in outlineBoxes" :key="index"
-      :class="['outline-box', { 'collapsed': !box.expand }]">
+<browser-view>
+</browser-view>
+</mu-popover> -->
+    <div v-for="(box, index) in outlineBoxes" :key="index" :class="['outline-box', { 'collapsed': !box.expand }]">
 
       <div class="header" @click.stop="box.expand = !box.expand">
         <div class="left">
-          <i :class="box.icon"/> 
+          <i :class="box.icon" />
         </div>
         <div class="center">
           {{box.title}}
         </div>
         <div class="tools">
-          <ide-icon-button icon="el-icon-plus" :size="12" @click.stop="$ide.executeCommand('ide.open-resource')"/>
+          <ide-icon-button icon="el-icon-plus" :size="12" @click.stop="$ide.executeCommand('ide.open-resource')" />
           <!-- <button class="icon-btn" @click.stop="$ide.executeCommand('ide.open-resource')">
-            <i class="el-icon-plus"/>
-          </button> -->
+  <i class="el-icon-plus"/>
+</button> -->
         </div>
         <div class="right">
-          <ide-icon-button :icon="box.expand ? 'el-icon-arrow-down' : 'el-icon-arrow-right'"/>
+          <ide-icon-button :icon="box.expand ? 'el-icon-arrow-down' : 'el-icon-arrow-right'" />
         </div>
       </div>
-      <div class="body"
-        @mouseenter="hover = true"
-        @mouseleave="hover = false"
-        :style="{ 'overflow-y': (hover && scrollable) ? 'auto' : 'hidden'}">
-        <content-tree :type="box.name" :path="box.path"/>
+      <div class="body" @mouseenter="hover = true" @mouseleave="hover = false" :style="{ 'overflow-y': (hover && scrollable) ? 'auto' : 'hidden'}">
+        <content-tree :type="box.name" :path="box.path" />
       </div>
     </div>
   </div>
@@ -76,14 +72,15 @@ export default {
         expand: true,
         path: '/'
       }))
-      this.$nextTick(() => { this.outlineBoxes = items })
+      this.$nextTick(() => {
+        this.outlineBoxes = items
+      })
     }
   }
 }
 </script>
 
 <style lang="less" scoped>
-
 @import url('../../../../renderer/assets/define.less');
 
 .explorer-box {
@@ -91,7 +88,7 @@ export default {
   flex-direction: column;
   align-items: stretch;
   .icon-btn {
-    transition: background-color .5s;
+    transition: background-color 0.5s;
     cursor: pointer;
     border-radius: 11px;
     margin-top: -2px;
@@ -107,7 +104,7 @@ export default {
     line-height: 23px;
     &:hover {
       background: #ccc;
-      transition: background-color .5s;
+      transition: background-color 0.5s;
     }
   }
   .outline-box {
@@ -136,7 +133,7 @@ export default {
       background: #e1e1e1;
       &:hover {
         color: #555;
-        transition: background-color .5s;
+        transition: background-color 0.5s;
         background: #ccc;
       }
       .left {
@@ -164,5 +161,4 @@ export default {
     }
   }
 }
-
 </style>

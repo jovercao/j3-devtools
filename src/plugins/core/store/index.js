@@ -1,9 +1,10 @@
 import resource from './resource'
 import vueEditor from './vue-editor'
+import namespaces from './namespaces'
 
 export default (ctx) => {
   return {
-    resource: resource(ctx),
-    'vue-editor': vueEditor(ctx)
+    [namespaces.resource]: resource(ctx),
+    [namespaces.vueEditor]: vueEditor(ctx)
   }
 }

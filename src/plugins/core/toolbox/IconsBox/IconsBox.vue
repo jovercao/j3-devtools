@@ -14,7 +14,7 @@
         @dragend="endDrag()"
         @click="$helper.copyToClip($event.currentTarget.querySelector('p'))"
         class="item">
-        <icon :type="icon.type" :value="name" :size="28"/>
+        <icon :value="name" :size="28"/>
         <br>
         <p class="label">{{name}}</p>
       </div>
@@ -23,7 +23,7 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
 import { namespace } from '../../store/vue-editor'
 
 export default {
@@ -35,7 +35,7 @@ export default {
     }
   },
   methods: {
-    ...mapMutations([ 'beginDrag', 'endDrag' ]),
+    ...mapActions([ 'beginDrag', 'endDrag' ]),
     handlerDrag(icon) {
       this.beginDrag({
         source: 'components-sidebar',

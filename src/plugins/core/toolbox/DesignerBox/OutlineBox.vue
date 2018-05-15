@@ -1,5 +1,5 @@
 <template>
-  <div class="outline-box" tabindex="10" @keydown="_handlerKeydown">
+  <div class="outline-box" tabindex="0" @keydown="_handlerKeydown">
     <OutlineBoxItem :deeps="0" v-if="viewData" @select="select" :viewData="viewData"/>
   </div>
   <!-- <el-tree :data="[root]" :props="{ label: 'component.name', children: 'children' }" @current-change="select">
@@ -8,7 +8,7 @@
 
 <script>
 import { namespace } from '../../store/vue-editor'
-import { mapState, mapMutations, mapGetters } from 'vuex'
+import { mapState, mapActions, mapGetters } from 'vuex'
 import OutlineBoxItem from './OutlineBoxItem'
 
 export default {
@@ -20,7 +20,7 @@ export default {
     ...mapGetters(namespace, [ 'components' ])
   },
   methods: {
-    ...mapMutations(namespace, [ 'select', 'remove', 'removeSelecteds', 'deselect', 'deselectAll' ]),
+    ...mapActions(namespace, [ 'select', 'remove', 'removeSelecteds', 'deselect', 'deselectAll' ]),
     _handlerKeydown(event) {
       switch (event.keyCode) {
         case 46:
@@ -46,6 +46,9 @@ export default {
 
 <style lang="less" scoped>
 .outline-box {
-
+  &:focus {
+    outline: none;
+    // background: #f8f8f8;
+  }
 }
 </style>

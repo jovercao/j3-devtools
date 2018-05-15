@@ -4,8 +4,8 @@
       :style="{ 'padding-left': 6 + deeps * 18 + 'px' }"
       :class="['item', { 'selected': isSelected, actived: isActived, 'heightlight': ishoverItem }]"
       draggable="true"
-      @dragstart.stop="beginDrag({ source: 'inner', type: 'view-data', data: viewData })"
-      @dragend.stop="endDrag(null)"
+      @dragstart.stop="$ide.beginDrag({ source: 'inner', type: 'view-data', data: viewData })"
+      @dragend.stop="$ide.endDrag(null)"
       @dragover.stop="_onTitleDragover"
       @drop.stop="addDropItem(viewData.parent, viewData.slot, viewData.index, $event)"
       @mouseover.stop="hoverEnter(viewData)"
@@ -39,7 +39,7 @@
 
 <script>
 import { namespace } from '../../store/vue-editor'
-import { mapGetters, mapState, mapMutations } from 'vuex'
+import { mapGetters, mapState, mapActions } from 'vuex'
 import { checkAccepts } from '../../service/catalogs'
 import _ from 'lodash'
 
@@ -84,7 +84,7 @@ export default {
     }
   },
   methods: {
-    ...mapMutations(namespace, [
+    ...mapActions(namespace, [
       'select',
       'deselect',
       'deselectAll',
@@ -92,10 +92,6 @@ export default {
       'hoverLeave',
       'add',
       'remove'
-    ]),
-    ...mapMutations([
-      'beginDrag',
-      'endDrag'
     ]),
     handlerItemClick() {
       const item = this.viewData

@@ -41,46 +41,51 @@ const getters = {
   }
 }
 
-const mutations = {
-  select(state, item) {
+const syncMethods = {
+  select(item) {
+    const { state } = this
     if (!item) throw new Error('被选择的项不能为空')
     if (!state.selecteds.find(i => i === item)) {
       state.selecteds.push(item)
     }
     state.activeItem = item
   },
-  deselect(state, item) {
+  deselect(item) {
+    const { state } = this
     const index = state.selecteds.findIndex(i => i === item)
     if (index >= 0) {
       state.selecteds.splice(index, 1)
     }
   },
-  deselectAll(state) {
+  deselectAll() {
+    const { state } = this
     state.activeItem = null
     state.selecteds.splice(0, state.selecteds.length)
   },
-  selectParent(state) {
+  selectParent() {
+    const { state } = this
     const current = state.activeItem
-    this.commit(`${namespace}/deselectAll`)
+    this.deselectAll()
     if (current && current.parent) {
-      this.commit(`${namespace}/select`, current.parent)
+      this.select(current.parent)
     }
   },
-  hoverEnter(state, item) {
-    state.hoverItem = item
+  hoverEnter(item) {
+    this.state.hoverItem = item
   },
-  hoverLeave(state) {
-    state.hoverItem = null
+  hoverLeave() {
+    this.state.hoverItem = null
   },
-  changeProp(state, { prop, value, oldValue, item }) {
-    Vue.set((item || state.activeItem).props, prop, value)
+  changeProp({ prop, value, oldValue, item }) {
+    Vue.set((item || this.state.activeItem).props, prop, value)
   },
-  changeSelectedsProp(state, { prop, value, oldValue, item }) {
-    for (const item of state.selecteds) {
+  changeSelectedsProp({ prop, value, oldValue, item }) {
+    for (const item of this.state.selecteds) {
       Vue.set(item.props, prop, value)
     }
   },
-  beginEdit(state, viewData) {
+  beginEdit(viewData) {
+    const { state } = this
     if (state.viewData) {
       throw new Error('在调用beginEdit之前必须调用 endEdit以清除上一次的编辑状态！')
     }
@@ -90,18 +95,15 @@ const mutations = {
     }
     state.viewData = viewData
   },
-  endEdit(state) {
-    state.viewData = null
-    this.commit(`${namespace}/deselectAll`)
-    this.commit(`${namespace}/hoverLeave`)
+  endEdit() {
+    this.state.viewData = null
+    this.deselectAll()
+    this.hoverLeave()
   },
-  _loadCatalogs(state, catalogs) {
-    state.catalogs = catalogs
-  },
-  remove(state, item) {
+  remove(item) {
     // 从原有插糟移除
     if (item.parent) {
-      this.commit(`${namespace}/deselect`, item)
+      this.deselect(item)
       const slot = item.parent.slots[item.slot]
       const index = slot.indexOf(item)
       if (index >= 0) {
@@ -112,10 +114,10 @@ const mutations = {
       }
     }
   },
-  removeSelecteds(state) {
-    state.selecteds.forEach(item => this.commit('remove', item))
+  removeSelecteds() {
+    this.state.selecteds.forEach(item => this.remove(item))
   },
-  add(state, { container, slot, item, index }) {
+  add({ container, slot, item, index }) {
     if (!checkAccepts(container, slot, item)) {
       throw Error('不支持的子组件！')
     }
@@ -130,7 +132,7 @@ const mutations = {
     // 如果是从别处移动过来的
     if (item.parent) {
       // 从原有插糟移除
-      this.commit(`${namespace}/remove`, item)
+      this.remove(item)
       properViewData(item)
     }
     item.parent = container
@@ -145,14 +147,14 @@ const mutations = {
       item.index = container.slots[slot].length
       container.slots[slot].push(item)
     }
-    this.commit(`${namespace}/select`, item)
+    this.select(item)
   }
 }
 
-const actions = {
-  async loadCatalogs({ commit }) {
+const methods = {
+  async loadCatalogs() {
     const catalogs = await ctx.service('catalogs').load()
-    commit(`${namespace}/_loadCatalogs`, catalogs)
+    this.$commit((state) => { state.catalogs = catalogs })
   }
 }
 
@@ -160,6 +162,6 @@ export default () => ({
   namespaced: true,
   getters,
   state,
-  mutations,
-  actions
+  methods,
+  syncMethods
 })

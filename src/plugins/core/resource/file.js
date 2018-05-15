@@ -21,20 +21,11 @@ export default function (ide, options) {
     return path
   }
 
-  async function exists(path) {
-    let exists = false
-    try {
-      await stat(path)
-      exists = true
-    } catch (error) {
-    }
-    return exists
-  }
-
   const file = {
     title: '本地文件',
     icon: 'el-icon-document',
     description: '从本地文件打开',
+    protocol: 'file',
     // // 工具栏按钮，只允许添加按钮
     // tools: [
     //   {
@@ -48,7 +39,20 @@ export default function (ide, options) {
     // ],
     // // 右键弹出菜单
     // propMenus: [
-
+    async connect({ host, username, password }) {
+      return Object.assign({ host, username, password }, file)
+    },
+    async exists(path) {
+      path = properPath(path)
+      let result
+      try {
+        await stat(path)
+        result = true
+      } catch (error) {
+        result = false
+      }
+      return result
+    },
     // ],
     // * 描述内容如何获取
     // * id 一般为完整路径
@@ -72,7 +76,7 @@ export default function (ide, options) {
       const { data, encoding } = content
       let { path } = content
       path = properPath(path)
-      const isExists = await exists(path)
+      const isExists = await file.exists(path)
       if (!isExists) {
         throw new Error('文件不存在！')
       }
@@ -82,7 +86,7 @@ export default function (ide, options) {
     async create(path, content) {
       const { data, encoding } = content
       path = properPath(path)
-      const isExists = await exists(path)
+      const isExists = await file.exists(path)
       if (isExists) {
         throw new Error('文件已经存在！')
       }
@@ -96,9 +100,7 @@ export default function (ide, options) {
         const disks = await readLogicalDisks()
         return disks.map(disk => ({ path: '/' + disk + '/', name: disk + '/', isPath: true }))
       }
-      console.log(path)
       path = properPath(path)
-      console.log(path)
       const files = await readdir(path)
       const result = []
       for (const filename of files) {
