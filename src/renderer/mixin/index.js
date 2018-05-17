@@ -1,7 +1,8 @@
-import ide from './ide'
 import editor from './editor'
 import service from '../service'
 import _ from 'lodash'
+import Vue from 'vue'
+import base from './base'
 
 const Mixins = {}
 
@@ -35,7 +36,8 @@ mixin.joinTo = function(name, ...components) {
   }
 }
 
-mixin('ide', ide)
 mixin('editor', editor)
+// base
+Vue.mixin(base)
 
 service('mixin', mixin)

@@ -9,6 +9,8 @@ export default class StateHelper {
   constructor(state) {
     this._state = state
     this._changes = []
+    this._returnValues = []
+    this._submited = false
   }
 
   set(object, key, value) {
@@ -105,6 +107,12 @@ export default class StateHelper {
   get changes() {
     return this._changes
   }
+  get result() {
+    if (!this._submited) {
+      throw new Error('StateHelper尚未提交。')
+    }
+    return this._returnValues
+  }
 
   submit() {
     this.changes.forEach(({
@@ -116,7 +124,10 @@ export default class StateHelper {
       args,
       handler
     }) => {
-      if (action === 'invoke') return handler()
+      if (action === 'invoke') {
+        this._returnValues.push(handler())
+        return
+      }
       try {
         switch (action) {
           case 'set':
@@ -136,5 +147,7 @@ export default class StateHelper {
         throw new Error('StateHelper 提交错误！' + err)
       }
     })
+    this._submited = true
+    return this.result
   }
 }

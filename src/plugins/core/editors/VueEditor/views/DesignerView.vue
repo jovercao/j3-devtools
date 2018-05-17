@@ -1,18 +1,18 @@
 <template>
-  <div class="designer-view" tabindex="10" @keydown="_onKeydown">
+  <div class="designer-view" tabindex="0">
     <DesignerComponent v-if="value" :viewData="value" :activeItem="activeItem"
       :selecteds="selecteds"
-      :heightlight="hoverItem" @contextmenu="showFloatBar" 
-       @select="_onComponentSelect"
-       @mouseleave="_onComponentMouseleave"
-       @dragover="_onComponentDragover"
-       @dragleave="_onComponentDragleave"
-       @mouseover="_onComponentMouseover"
-       @dragstart="_onComponentDragstart"
-       @dragend="_onComponentDragend"
-       @drop="_onComponentDrop"
-       @valuechange="_onValueChange"
-       />
+      :heightlight="hoveringItem"
+      @contextmenu="showFloatBar"
+      @select="_onComponentSelect"
+      @mouseleave="_onComponentMouseleave"
+      @dragover="_onComponentDragover"
+      @dragleave="_onComponentDragleave"
+      @mouseover="_onComponentMouseover"
+      @dragstart="_onComponentDragstart"
+      @dragend="_onComponentDragend"
+      @drop="_onComponentDrop"
+      @valuechange="_onValueChange" />
     <!-- 快速浮动操作栏 -->
     <mu-popover v-if="activeItem" :trigger="floatbarTrigger" :open="floatbarOpened" @close="hideFloatBar">
       <div class="designer-quickbar">
@@ -21,7 +21,7 @@
         </div>
         <div class="row" v-for="prop in quickProps" :key="prop">
           <span class="value-label">{{selectedComponent.props[prop].title || prop}}</span>
-          <value-editor @change="changeProp({ prop, value: arguments[0] })" 
+          <value-editor @change="changeProp({ prop, value: arguments[0] })"
             :selections="selectedComponent.props[prop].selections"
             class="value-editor"
             :value="activeItem.props[prop]"
@@ -29,33 +29,37 @@
           </value-editor>
         </div>
         <div class="footer" v-show="activeItem !== value">
-          <mu-icon-button tooltip="删除" icon="clear" @click="doRemove"/>
-          <mu-icon-button v-show="activeItem.parent" tooltip="选择父级" icon="developer_board" @click="doSelectParent" />
+          <mu-icon-button tooltip="删除" icon="clear" @click="doRemove" />
+          <mu-icon-button
+            v-show="activeItem.parent"
+            tooltip="选择父级"
+            icon="developer_board"
+            @click="selectParent" />
         </div>
       </div>
     </mu-popover>
     <!-- Slots选择框 -->
     <!-- <div style="background: balck;position: absolute; left:0px; right: 0px; bottom:0px; opacity: .3" v-show="slotChoosebarOpened" @click="hideChoosebar"> -->
-    
+
     <!-- v-show="slotChoosebarOpened"  -->
-    <div v-show="dragging && slotChoosebarOpened" ref="choosebar" class="designer-choosebar" 
+    <div v-show="dragging && slotChoosebarOpened"
+      ref="choosebar"
+      class="designer-choosebar"
       :style="{ left: choosebarPos.x + 'px', top: choosebarPos.y + 'px' } ">
       <div class="header">请将组件拖动到以下插糟中</div>
       <div v-if="dropContainer && dropContainer.parent"
         class="item"
         @dragenter.stop="hoverEnter(dropContainer = dropContainer.parent)"
-        @dragleave.stop="hoverLeave()"
-        >
+        @dragleave.stop="hoverLeave()">
         <!-- @dragover.stop="parentHeightlight = true" -->
         [父级] - {{ getComponetTitle(dropContainer.parent) }}
       </div>
-      <div
-        v-for="(slot, name, index) in dropContainerSorts"
+      <div v-for="(slot, name, index) in dropContainerSorts"
         :class="['item', { 'item-hover': catcheSlot === name }]"
         :key="index"
         @dragover.stop="_onChoosebarDragover(name, $event)"
         @dragleave.stop="catcheSlot = ''"
-        @drop.stop="addDropItem(dropContainer, name)">
+        @drop.stop="addDropItem({ container: dropContainer, slot: name, isCopy: $event.ctrlKey })">
         {{slot.title || name}}
       </div>
     </div>
@@ -78,6 +82,42 @@ export default {
   props: {
     value: Object
   },
+  created() {
+    this.$subscribe({
+      copy: () => {
+        if (this.isFocused()) {
+          this.copy()
+        }
+      },
+      parse: () => {
+        if (this.isFocused()) {
+          // 复制选定的项
+          if (this.activeItem) {
+            this.parse()
+          }
+        }
+      },
+      delete: () => {
+        if (this.isFocused()) {
+          if (this.activeItem) {
+            this.remove(this.activeItem)
+          } else if (this.selecteds.length > 0) {
+            this.removeSelecteds()
+          }
+          this.hideFloatBar()
+        }
+      },
+      cancel: () => {
+        if (this.isFocused()) {
+          if (this.activeItem) {
+            this.deselect(this.activeItem)
+          } else if (this.selecteds.length > 0) {
+            this.deselectAll()
+          }
+        }
+      }
+    })
+  },
   data() {
     return {
       floatbarTrigger: null,
@@ -91,19 +131,9 @@ export default {
     }
   },
   computed: {
-    ...mapState(namespace, [
-      'activeItem',
-      'selecteds',
-      'hoverItem'
-    ]),
-    ...mapGetters(namespace, [
-      'selectedComponent',
-      'components'
-    ]),
-    ...mapState([
-      'dragging',
-      'dragData'
-    ]),
+    ...mapState(namespace, ['activeItem', 'selecteds', 'hoveringItem']),
+    ...mapGetters(namespace, ['selectedComponent', 'components']),
+    ...mapState(['dragging', 'dragData']),
     dropContainerSorts() {
       if (!this.dropContainer) return null
       return this.components[this.dropContainer.type].slots
@@ -130,7 +160,11 @@ export default {
       'remove',
       'removeSelecteds',
       'changeProp',
-      'selectParent'
+      'selectParent',
+      'copy',
+      'parse',
+      'cut',
+      'delete'
     ]),
     // // 选择插糟
     // async chooseSlot(value) {
@@ -150,27 +184,6 @@ export default {
       //   this.add({ container: item.parent, slot: item.slot, index: item.index })
       // }
       this.$ide.endDrag()
-    },
-    _onKeydown(event) {
-      switch (event.keyCode) {
-        // delete
-        case 46:
-          if (this.activeItem) {
-            this.remove(this.activeItem)
-          } else if (this.selecteds.length > 0) {
-            this.removeSelecteds()
-          }
-          this.hideFloatBar()
-          break
-        // esc
-        case 27:
-          if (this.activeItem) {
-            this.deselect(this.activeItem)
-          } else if (this.selecteds.length > 0) {
-            this.deselectAll()
-          }
-          break
-      }
     },
     doRemove() {
       this.remove(this.activeItem)
@@ -240,12 +253,18 @@ export default {
       // 允许拖放
       event.preventDefault()
     },
-    _onComponentDrop(item) {
+    _onComponentDrop(item, event) {
+      const isCopy = event.ctrlKey
       // 如果是不支持子元素的元素,则作为兄弟元素放入父级
       if (!this.hasSlotsDef(item.type)) {
-        this.addDropItem(item.parent, item.slot, item.index)
+        this.addDropItem({
+          container: item.parent,
+          slot: item.slot,
+          index: item.index,
+          isCopy
+        })
       } else {
-        this.addDropItem(item, 'default')
+        this.addDropItem({ container: item, slot: 'default', isCopy })
       }
     },
     _onComponentDragleave() {
@@ -272,11 +291,18 @@ export default {
 
       this.slotChoosebarOpened = true
     },
+    isFocused() {
+      return (
+        this.$el &&
+        document.activeElement &&
+        this.$el === document.activeElement
+      )
+    },
     hideChoosebar() {
       this.slotChoosebarOpened = false
       this.dropContainer = null
     },
-    addDropItem(container, slotName, index) {
+    addDropItem({ container, slot, index, isCopy }) {
       const dragData = this.dragData
 
       if (dragData.type !== 'view-data') {
@@ -284,20 +310,26 @@ export default {
       }
       let item = dragData.data
 
-      // const slot = await this.chooseSlot(container)
-
       // 外部来源，先进行复制，断开关联
-      if (dragData.source !== 'inner') {
-        item = _.cloneDeep(item)
+      if (dragData.source !== 'inner' || isCopy) {
+        const parent = item.parent
+        const old = item
+        old.parent = null
+        item = _.cloneDeep(old)
+        // 复制完成后恢复
+        old.parent = parent
         // 非外部来源，检测是否未移动位置
-      } else if (
-        container === item.parent &&
-        slotName === item.slot &&
-        item.index === index
-      ) {
-        return
+      } else {
+        if (
+          container === item.parent &&
+          slot === item.slot &&
+          item.index === index
+        ) {
+          return
+        }
+        this.remove(item)
       }
-      this.add({ container, item, slot: slotName, index })
+      this.add({ container, items: item, slot, index })
 
       this.hideChoosebar()
     },
@@ -305,7 +337,6 @@ export default {
       this.hoverLeave()
     },
     _onComponentSelect(item, event) {
-
       if (!this.selecteds.includes(item) && !event.ctrlKey) {
         this.deselectAll()
         this.hideFloatBar()
@@ -320,10 +351,6 @@ export default {
         }
       }
       // this.showFloatbar(event.currentTarget)
-    },
-    doSelectParent() {
-      this.selectParent()
-      // this.showFloatbar(null)
     },
     // showFloatbar(trigger) {
     //   if (trigger) {
@@ -347,7 +374,10 @@ export default {
 
 <style lang="less" scoped>
 .designer-view {
-  outline: none;
+  width: 100%;
+  &:focus {
+    outline: solid rgb(152, 108, 255) 1px;
+  }
 }
 .designer-quickbar {
   padding: 20px 32px 20px 32px;

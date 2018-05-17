@@ -10,7 +10,7 @@
       <div class="tools">
         <mu-icon v-for="(item, index) in $ide.activeBottombar.tools" :key="index"
         :value="item.icon"
-        @click.native="$ide.executeCommand(item.command)" />
+        @click.native="$exec(item.command)" />
       </div>
       <div class="close">
         <mu-icon class="icon-btn" :size="16" value="clear" @click.native="$ide.hideBottombar()"/>

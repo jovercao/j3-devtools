@@ -31,8 +31,7 @@ export default {
   methods: {
     handlerCommand(command) {
       this.closeMenu()
-      console.log(command)
-      this.$ide.executeCommand(command)
+      this.$exec(command)
     },
     showMenu(event, mu) {
       this.trigger = event.target

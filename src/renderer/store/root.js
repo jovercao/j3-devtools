@@ -3,12 +3,10 @@ import editor from '../editor'
 import menus from '../menus'
 import toolbox from '../toolbox'
 import helper from '../helper'
-import commands from '../commands'
 import config from '../config'
 import _ from '../utils'
 import OpenDialog from '../views/dialogs/OpenDialog'
-import Vue from 'vue'
-// import bus from '../bus'
+import commands from '../commands'
 const hidedToolboxes = config.get('hide-toolboxes')
 
 export default {
@@ -25,6 +23,13 @@ export default {
         }
       ]
     },
+    // 剪切板
+    clipboard: null,
+    // {
+    //   type: '',
+    //   data: null,
+    //   source: ''
+    // },
     // 版本号
     version: '0.1.0',
     // 激活的底栏
@@ -84,6 +89,12 @@ export default {
     openPath({ resourceType, path }) {
 
     },
+    copyToClipboard({ type, source, data }) {
+      this.state.clipboard = { type, source, data }
+    },
+    clearClipboard() {
+      this.state.clipboard = null
+    },
     // // setter接口
     // ...helper.setterMutation(function(state, key, value, setter) {
     //   // 自定义处理函数，调用setter(value)可以修属性值。
@@ -132,7 +143,6 @@ export default {
       if (_.isNumber(tab)) {
         tab = state.openedTabs[tab]
       }
-
       state.activeTab = tab
     },
     closeActiveTab() {
@@ -223,14 +233,6 @@ export default {
     },
     editorSaved(context) {
       context.changed = false
-    }
-  },
-  methods: {
-    async executeCommand(command) {
-      commands.exec(command)
-    },
-    async exec(command) {
-      commands.exec(command)
     },
     /**
      * 打开内容，内容将在标签页中打开
@@ -279,6 +281,27 @@ export default {
       }
       this.openTab(newTab)
     },
+    isOpened(uri) {
+      const { state } = this
+      return state.openeds.hasOwnProperty(uri)
+    },
+    activeDefaultBottombar() {
+      const { getters } = this
+      if (getters.bottombars.length > 0) {
+        this.setActiveBottombar(getters.bottombars[0])
+      }
+    },
+    activeDefaultSidebar() {
+      const { getters } = this
+      if (getters.sidebars.length > 0) {
+        this.setActiveSidebar(getters.sidebars[0])
+      }
+    },
+    exec(command) {
+      commands.exec(command)
+    }
+  },
+  methods: {
     // 打开资源, arg可以是uri字符串，也可以是对象{ resourceType, uri }
     async open(arg) {
       const { state } = this
@@ -293,10 +316,6 @@ export default {
       }
       data = await resource.get(uri)
       return this._openContent(data)
-    },
-    isOpened(uri) {
-      const { state } = this
-      return state.openeds.hasOwnProperty(uri)
     },
     // 关闭所有打开项
     async closeAll() {
@@ -382,18 +401,6 @@ export default {
       const { uri, data } = content
       await resource.create(uri, data)
     },
-    activeDefaultBottombar() {
-      const { getters } = this
-      if (getters.bottombars.length > 0) {
-        this.setActiveBottombar(getters.bottombars[0])
-      }
-    },
-    activeDefaultSidebar() {
-      const { getters } = this
-      if (getters.sidebars.length > 0) {
-        this.setActiveSidebar(getters.sidebars[0])
-      }
-    },
     async openProject() {
       const result = await OpenDialog.show()
       if (result.ok) {
@@ -402,22 +409,6 @@ export default {
           path: result.selected.path
         })
       }
-    },
-    doTest() {
-      const test = this.$state.test
-      this.$set(test, 'string', '哈哈哈')
-      this.$set(test.array, 1, '修改后的值')
-      this.$set(test.array[2], 'value', '修改后的值')
-      this.$delete(test, 'string')
-      this.$push(test.array, '一串串', '一串串', '一串串', '一串串')
-
-      this.$commit()
-    },
-    doTest2() {
-      this.$commit(state => {
-        state.test.string = '哈哈哈2'
-        Vue.$set(state.test.array, 1, '修改后的值2')
-      })
     }
   },
   modules: {},

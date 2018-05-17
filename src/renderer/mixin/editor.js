@@ -46,6 +46,7 @@ export default {
       getChangedValue: () => this.value
     })
     this.$watch('value', (value) => this.editorChanged(this.context), { deep: true })
+    this.$handler = {}
   },
   // this.value = this.convertFrom(this.data)
   // this.changed = false
@@ -55,12 +56,8 @@ export default {
   //     value: this.value
   //   })
   // }
-  // this.$bus.on('beforesave', this.$updateHandler)
+  // this.$messages.on('beforesave', this.$updateHandler)
   // this.$emit('created', this)
-  // },
-  // destroyed() {
-  //   // 解绑事件，避免内存泄漏，以及出错。
-  //   // this.$bus.un('beforesave', this.$updateHandler)
   // },
   // watch: {
   //   // data() {
@@ -72,7 +69,13 @@ export default {
   //   // }
 
   // },
-  // 确保文件被正确关闭
+  destroyed() {
+    for (const [event, handler] of Object.entries(this.$handler)) {
+      // 解绑事件，避免内存泄漏，以及出错。
+      this.$messages.un(event, handler)
+    }
+  },
+  // 确保组件被释放，以免造成内存泄漏
   async deactivated() {
     const opened = await this.isOpened(this.uri)
     if (!opened) {

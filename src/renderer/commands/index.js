@@ -1,6 +1,6 @@
 import service from '../service'
-import ide from './ide'
 import _ from 'lodash'
+import defaultCommands from './commands'
 
 const Commands = {}
 
@@ -58,6 +58,7 @@ commands.exec = commands.execute = function(name, context) {
 
 commands.defaultContext = {}
 
-commands(ide)
+// 注册默认命令
+commands(defaultCommands)
 
 service('commands', commands)

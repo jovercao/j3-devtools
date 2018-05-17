@@ -69,6 +69,10 @@ export default {
     padding: 8px;
     overflow: auto;
     white-space: nowrap;
+    border: 0px;
+    &:focus {
+      outline: #c3a3f7 1px solid;
+    }
   }
 
   .line {

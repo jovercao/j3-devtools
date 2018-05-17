@@ -1,17 +1,17 @@
 import StateHelper from './vuex-state-helper'
 
-// const stateMethods = [
-//   '$push',
-//   '$pop',
-//   '$shift',
-//   '$unshift',
-//   '$splice',
-//   '$sort',
-//   '$reverse',
-//   '$set',
-//   '$delete',
-//   '$invoke'
-// ]
+const stateHelperMethods = [
+  '$push',
+  '$pop',
+  '$shift',
+  '$unshift',
+  '$splice',
+  '$sort',
+  '$reverse',
+  '$set',
+  '$delete',
+  '$invoke'
+]
 
 /**
  * methods下的每一个成员都会自动生成一组action及mutation
@@ -56,66 +56,96 @@ export function normalizeModule(module) {
         commit,
         dispatch,
         state,
-        getters
+        getters,
+        rootState,
+        rootGetters
       } = local
       let stateHelper
-      const context = new Proxy({}, {
-        has(target, key) {
-          return actionKeys.includes(key)
-        },
-        ownKeys(target) {
-          return actionKeys
-        },
-        get(target, key, receiver) {
-
-          if (key === 'state') {
-            return state
-          }
-
-          if (key === 'getters') {
-            return getters
-          }
-
-          if (!isSync && key === '$commit') {
-            return function (handler) {
-              if (handler) {
-                if (!stateHelper) stateHelper = new StateHelper(state)
-                stateHelper.invoke(handler)
+      const getStateHelper = () => stateHelper || (stateHelper = new StateHelper())
+      const createContext = (root, namespace) => {
+        return new Proxy({}, {
+          has(target, key) {
+            return actionKeys.includes(key)
+          },
+          ownKeys(target) {
+            return actionKeys
+          },
+          get(target, key, receiver) {
+            if (key === 'state') {
+              let $state = root ? rootState : state
+              // 获取命名空间下的state
+              if (namespace) {
+                return namespace.split('/').reduce((state, key) => state[key], $state)
               }
-              // 未修改，不提交
-              if (!stateHelper || stateHelper.changes.length === 0) {
-                return
+              return $state
+            }
+
+            if (key === 'getters') {
+              let $getters = root ? rootGetters : getters
+              // 获取命名空间下的state
+              if (namespace) {
+                return namespace.split('/').reduce((getter, key) => getter[key], $getters)
               }
-              commit(methodType, stateHelper)
+              return $getters
             }
-          }
 
-          if (!isSync && key.startsWith('$')) {
-            if (!stateHelper) stateHelper = new StateHelper(state)
-            return function(...args) {
-              stateHelper[key.substr(1)](...args)
+            // state
+            if (!isSync && stateHelperMethods.includes(key)) {
+              return function(...args) {
+                getStateHelper()[key.substr(1)](...args)
+              }
             }
-          }
 
-          if (!actionKeys.includes(key)) {
-            throw new Error(`没有找到指定的method 或 action '${key}'。`)
-          }
+            if (!isSync && key === '$commit') {
+              return function (handler) {
+                if (handler) {
+                  getStateHelper().invoke(handler)
+                }
+                // 未修改，不提交
+                if (!stateHelper || stateHelper.changes.length === 0) {
+                  return
+                }
+                commit(methodType, stateHelper)
+              }
+            }
 
-          return function (...args) {
-            return dispatch(key, ...args)
+            // 访问要模块
+            if (key === '$root') {
+              return createContext(true)
+            }
+            // 访问子模块
+            if (key.startsWith('$')) {
+              const subModule = key.substr(1)
+              namespace = namespace ? `${namespace}/${subModule}` : subModule
+              return createContext(root, namespace)
+            }
+
+            // 如果是访问当前模块，则加入检测，否则无法检测
+            if (!root && !namespace && !actionKeys.includes(key)) {
+              throw new Error(`没有找到指定的method 或 action '${key}'。`)
+            }
+
+            return function (...args) {
+              let type = namespace ? `${namespace}/${key}` : key
+              return dispatch(type, ...args, { root })
+            }
+          },
+          set() {
+            throw new Error('method context 不允许set操作！')
           }
-        },
-        set() {
-          throw new Error('method context 不允许set操作！')
-        }
-      })
+        })
+      }
+      const context = createContext(false)
+
       if (isSync) {
-        const helper = new StateHelper()
+        const helper = getStateHelper()
         helper.invoke(() => method.call(context, playload))
         commit(methodType, helper)
+        return helper.result[0]
       } else {
-        method.call(context, playload)
+        return method.call(context, playload)
       }
+
     }
   }
   methods && Object.keys(methods).forEach((key) => normalizeMethod(key, methods[key], false))

@@ -62,7 +62,7 @@ export default {
       })
 
       el.addEventListener('drop', event => {
-        vm.$emit('$designer-drop', () => {
+        vm.$emit('$designer-drop', event, () => {
           const json = event.dataTransfer.getData('text')
           const data = JSON.parse(json)
           event.dataTransfer.clear()

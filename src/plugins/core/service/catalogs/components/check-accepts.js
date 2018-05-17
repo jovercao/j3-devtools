@@ -1,24 +1,27 @@
 import components from './components'
-
+import _ from 'lodash'
 // 双向检查
-export default function(container, slot, item) {
-  if (container === item) return false
+export default function checkAccepts(container, slot, items) {
+  if (_.isArray(items)) {
+    return !items.find(p => !checkAccepts(container, slot, p))
+  }
+  if (container === items) return false
 
   const accepts = components[container.type].slots[slot].accepts
   if (accepts && accepts !== '*') {
-    if (!accepts.includes(item.type)) {
+    if (!accepts.includes(items.type)) {
       return false
     }
   }
 
-  const acceptsParent = components[item.type].acceptsParent
+  const acceptsParent = components[items.type].acceptsParent
   if (acceptsParent && acceptsParent !== '*') {
     if (!acceptsParent.includes(container.type)) {
       return false
     }
   }
 
-  if (!checkCircle(container, item)) {
+  if (!checkCircle(container, items)) {
     return false
   }
 

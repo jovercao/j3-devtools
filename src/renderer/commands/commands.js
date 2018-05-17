@@ -1,32 +1,48 @@
+import messages from '../messages'
+
 export default {
-  'test': {
-    handler({ ide }) {
-      ide.doTest()
-    }
-  },
   'ide.open-project': {
     handler({ ide }) {
       ide.openProject()
     }
   },
+  'ide.cancel': {
+    title: '取消',
+    description: '取消执行/撤消，由当前进行响应',
+    handler() {
+      messages.dispatch('cancel')
+    }
+  },
   'ide.cut': {
     handler() {
-      document.execCommand('Cut')
+      messages.dispatch('cut')
     }
   },
   'ide.copy': {
     handler() {
-      document.execCommand('Copy')
+      messages.dispatch('copy')
     }
   },
   'ide.parse': {
     handler() {
-      document.execCommand('Parse')
+      messages.dispatch('parse')
+    }
+  },
+  'ide.delete': {
+    handler() {
+      messages.dispatch('delete')
+    }
+  },
+  'ide.open': {
+    title: '打开项',
+    description: '打开单个项',
+    handler({ ide }) {
+      ide.open()
     }
   },
   'ide.save': {
     title: '保存',
-    async handler({ ide, helper }) {
+    async handler({ ide }) {
       await ide.save()
     }
   },

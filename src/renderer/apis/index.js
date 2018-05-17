@@ -13,9 +13,6 @@ import service from '../service'
 //     'activeDefaultBottombar',
 //     'activeDefaultSidebar',
 
-//     // commands
-//     'executeCommand',
-//     'exec'
 //   ]),
 //   ...mapMutations([
 //     // menus

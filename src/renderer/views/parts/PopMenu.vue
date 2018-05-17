@@ -22,9 +22,6 @@ export default {
     'items'
   ],
   methods: {
-    execCmd(cmd) {
-      window.alert(cmd)
-    },
     createItem(item) {
       const hasChild = item.children && item.children.length > 0
       return item === '-' ? <mu-divider/> : <mu-menu-item

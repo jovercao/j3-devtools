@@ -78,15 +78,6 @@ const Menus = [
     title: '查看',
     children: [
     ]
-  },
-  {
-    title: '测试',
-    children: [
-      {
-        title: 'Vuex测试',
-        command: 'test'
-      }
-    ]
   }
 ]
 

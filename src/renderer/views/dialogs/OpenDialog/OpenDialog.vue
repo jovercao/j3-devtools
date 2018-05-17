@@ -1,5 +1,5 @@
 <template>
-  <el-dialog :visible="visible" class="open-dialog" @close="handlerClose" title="请选择要打开的路径">
+  <el-dialog :visible="visible" width="680px" class="open-dialog" @close="handlerClose" title="请选择要打开的路径">
     <!-- <div class="header" slot="title">
       <span class="left title">请选择要打开的路径</span>
       <mu-select-field underlineClass="text-field-underline" class="text-field" :value="currentResourceType" @change="resourceTypeChange">
@@ -9,20 +9,16 @@
 
     <div slot="default" class="body">
       <div class="header">
-        <input type="text" class="path-input"
-          v-if="pathInput" :value="uri"
-          @blur="endInputPath" v-focus
-          @change="changeUri($event.currentTarget.value)"/>
+        <input type="text" class="path-input" v-if="pathInput" :value="uri" @blur="endInputPath" v-focus @change="changeUri($event.currentTarget.value)" />
         <div v-else @click="beginInputPath">
           <select class="protocol" v-model="uriInfo.resourceType" @click.stop>
-            <option v-for="(item, index) in $service('resource').all()" :key="index"
-              :value="item.name">{{item.name}}://</option>
+            <option v-for="(item, index) in $service('resource').all()" :key="index" :value="item.name">{{item.name}}://</option>
           </select>
           <span class="node" @click.stop="changePath('/')">/</span>
-          <template v-for="(node, index) in paths">
-            <icon :key="index" value="chevron_right" :size="12" />
-            <span class="node" :key="index" @click.stop="changeToNode">{{node.name}}</span>
-          </template>
+          <span v-for="(node, index) in paths" :key="index">
+            <icon value="chevron_right" :size="12" />
+            <span class="node"  @click.stop="changeToNode">{{node.name}}</span>
+          </span>
         </div>
       </div>
       <div class="box">
@@ -72,7 +68,10 @@ export default {
   },
   computed: {
     paths() {
-      return this.uriInfo.path.split(/\/|\\/).filter(node => node.trim() !== '').map((node, index) => ({ name: node, index }))
+      return this.uriInfo.path
+        .split(/\/|\\/)
+        .filter(node => node.trim() !== '')
+        .map((node, index) => ({ name: node, index }))
     },
     uri() {
       return this.$service('resource').toUriString(this.uriInfo)
@@ -113,7 +112,7 @@ export default {
       let newPath = ''
       for (let i = 0; i <= index; i++) {
         const node = this.paths[i]
-        newPath += ('/' + node.name)
+        newPath += '/' + node.name
       }
       console.log(newPath)
       this.changePath(newPath)

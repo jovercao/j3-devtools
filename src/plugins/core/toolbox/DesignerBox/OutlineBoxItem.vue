@@ -62,7 +62,7 @@ export default {
   },
   computed: {
     ...mapGetters(namespace, ['components', 'selectedComponent']),
-    ...mapState(namespace, ['activeItem', 'hoverItem', 'selecteds']),
+    ...mapState(namespace, ['activeItem', 'hoveringItem', 'selecteds']),
     ...mapState([ 'dragData' ]),
     isActived() {
       return this.viewData === this.activeItem
@@ -71,7 +71,7 @@ export default {
       return this.selecteds.includes(this.viewData)
     },
     ishoverItem() {
-      return this.hoverItem === this.viewData
+      return this.hoveringItem === this.viewData
     },
     title() {
       if (!this.viewData) return ''

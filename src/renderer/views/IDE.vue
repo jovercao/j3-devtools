@@ -70,8 +70,8 @@
         </div>
         <div class="body">
           <keep-alive
-            v-for="(tab, index) in openedTabs"
-            :key="index">
+              v-for="(tab, index) in openedTabs"
+              :key="index">
             <component
               class="dock"
               v-if="activeTab === tab"

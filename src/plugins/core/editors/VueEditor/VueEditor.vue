@@ -30,10 +30,16 @@ export default {
     CodeView
   },
   activated() {
+    if (this.viewData) {
+      this.endEdit()
+    }
     this.beginEdit(this.value)
   },
   deactivated() {
-    this.endEdit()
+    // 由于切换时 actived 要早于 deactivated 原因
+    if (this.viewData === this.value) {
+      this.endEdit()
+    }
   },
   data() {
     return {

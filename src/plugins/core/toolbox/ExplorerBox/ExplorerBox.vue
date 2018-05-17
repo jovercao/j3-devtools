@@ -14,10 +14,7 @@
           {{box.title}}
         </div>
         <div class="tools">
-          <ide-icon-button icon="el-icon-plus" :size="12" @click.stop="$ide.executeCommand('ide.open-resource')" />
-          <!-- <button class="icon-btn" @click.stop="$ide.executeCommand('ide.open-resource')">
-  <i class="el-icon-plus"/>
-</button> -->
+          <ide-icon-button icon="el-icon-plus" :size="12" @click.stop="$exec('ide.open-resource')" />
         </div>
         <div class="right">
           <ide-icon-button :icon="box.expand ? 'el-icon-arrow-down' : 'el-icon-arrow-right'" />
