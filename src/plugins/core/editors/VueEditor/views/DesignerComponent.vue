@@ -1,17 +1,24 @@
 <script>
 
 import { mapGetters } from 'vuex'
+import { namespace } from '../../../store/vue-editor'
 
 export default {
   props: {
+    // 预览模式
+    preview: {
+      type: Boolean,
+      default: false
+    },
     viewData: Object,
     activeItem: Object,
     selecteds: Array,
-    heightlight: Object
+    heightlightItme: Object,
+    outlineItem: Object
     // overitem: Object
   },
   computed: {
-    ...mapGetters('vue-editor', [ 'components' ])
+    ...mapGetters(namespace, [ 'components' ])
   },
   render (h) {
     const create = (h, viewData, slot = 'default') => {
@@ -29,7 +36,7 @@ export default {
       const tag = comp.tag
       const hasValueProp = !!comp.props.value
       // 动态on绑定
-      const dynamicOn = {}
+      const eventHandlers = {}
       // 如果有
       if (hasValueProp) {
         // // 将值变更
@@ -38,24 +45,12 @@ export default {
         //   this.$emit('change', viewData, value, oldValue)
         // }
 
-        dynamicOn.input = function (value) {
+        eventHandlers.input = function (value) {
           vm.$emit('valuechange', viewData, value)
         }
       }
-      const item = h(tag, {
-        slot,
-        class: {
-          'designer-component': true,
-          'selected': this.selecteds.includes(viewData),
-          'actived': viewData === this.activeItem,
-          'heightlight': viewData === this.heightlight
-          // 'designer-component-dragover': viewData === this.overitem
-        },
-        props: viewData.props,
-        directives: [
-          { name: 'designer-mode' }
-        ],
-        on: {
+      if (!this.preview) {
+        Object.assign(eventHandlers, {
           '$designer-contextmenu' (event) {
             vm.$emit('contextmenu', viewData, event)
           },
@@ -68,15 +63,25 @@ export default {
           '$designer-mouseleave' (event) {
             vm.$emit('mouseleave', viewData, event)
           },
+          '$designer-mouseenter' (event) {
+            vm.$emit('mouseenter', viewData, event)
+          },
+          '$designer-mouseout' (event) {
+            vm.$emit('mouseout', viewData, event)
+          },
           '$designer-dragstart' (data) {
             vm.$emit('dragstart', viewData, event)
+          },
+          '$designer-drop' (event) {
+            vm.$emit('drop', viewData, event)
+          },
+          '$designer-dragenter' (evnet) {
+            // vm.$emit('mouseleave', viewData, event)
+            vm.$emit('dragenter', viewData, evnet)
           },
           '$designer-dragover' (event) {
             // vm.$emit('mouseover', viewData, event)
             vm.$emit('dragover', viewData, event)
-          },
-          '$designer-drop' (event) {
-            vm.$emit('drop', viewData, event)
           },
           '$designer-dragleave' (evnet) {
             // vm.$emit('mouseleave', viewData, event)
@@ -85,13 +90,26 @@ export default {
           '$designer-dragend' (evnet) {
             // vm.$emit('mouseleave', viewData, event)
             vm.$emit('dragend', viewData, evnet)
-          },
-          ...dynamicOn
-          // input (value) {
-          //   console.log(value)
-          //   this.$emit('input', viewData, value)
-          // }
-        }
+          }
+        })
+      }
+
+      const item = h(tag, {
+        slot,
+        class: {
+          'designer-component': true,
+          'selected': this.selecteds.includes(viewData),
+          'actived': viewData === this.activeItem,
+          'heightlight': viewData === this.heightlightItme,
+          'outlineItem': viewData === this.outlineItem,
+          'editable': !this.preview
+          // 'designer-component-dragover': viewData === this.overitem
+        },
+        props: viewData.props,
+        directives: [
+          { name: 'designer-mode', value: !this.preview }
+        ],
+        on: eventHandlers
       }, childs)
       return item
     }
@@ -104,9 +122,10 @@ export default {
 <style lang="less">
 .designer-component {
   cursor: default;
-  outline: silver 1px dotted;
-  // transition: background-color .2s;
-
+  .editable {
+    outline: silver 1px dotted;
+    // transition: background-color .2s;
+  }
   * {
     cursor: default;
   }
@@ -120,6 +139,10 @@ export default {
 
   &.heightlight {
     background: rgba(235, 216, 250, 0.45)
+  }
+
+  &.outline {
+    outline: solid #555 solid;
   }
 }
 

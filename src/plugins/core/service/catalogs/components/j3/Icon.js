@@ -14,5 +14,7 @@ export default {
       type: Number,
       default: 12
     }
+  },
+  slots: {
   }
 }

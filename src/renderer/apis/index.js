@@ -1,7 +1,6 @@
 // import { mapActions, mapMutations, mapState, mapGetters } from 'vuex'
-import helper from '../helper'
 import store from '../store'
-import service from '../service'
+import { mapStore } from '../utils/vuex'
 
 // // **************api只有store正确加载后方可生效*****************
 // // 将常用api置于此处
@@ -70,9 +69,6 @@ import service from '../service'
 //   'openedItems'
 // ])
 
-const api = helper.mapStore(store(), undefined, false, false)
-
-// 注册服务
-service('ide', api)
+const api = mapStore(store(), undefined, false, false)
 
 export default api

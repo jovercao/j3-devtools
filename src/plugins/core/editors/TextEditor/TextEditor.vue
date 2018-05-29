@@ -12,9 +12,14 @@
 </template>
 
 <script>
+import ctx from '@'
+
 // mixin 将被注入
 export default {
-  name: 'text-editor'
+  name: 'text-editor',
+  mixins: [
+    ctx.mixin('editor')
+  ]
   // created() {
   //   console.log(this.value)
   //   this.lines = this.value.split('\n')

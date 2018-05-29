@@ -16,15 +16,19 @@ import App from './App.vue'
 import { mapStore } from './utils/vuex'
 import shortcuts from './utils/shortcuts'
 import config from './config'
+import service from './service'
 import commands from './commands'
+import helper from './helper'
 
 Vue.use(components)
 Vue.use(MuseUI)
 Vue.use(ElementUI)
 Vue.use(directives)
 Vue.use(filters)
-// 事件总线
+
 Vue.prototype.$messages = messages
+Vue.prototype.$service = service
+Vue.prototype.$helper = helper
 
 const ctx = global.ctx = context
 
@@ -39,13 +43,13 @@ async function run(params) {
   // 映射整个初始化完之后的store到ide中
   ctx.ide = Vue.ide = Vue.prototype.$ide = mapStore(ctx.store())
 
-  Vue.prototype.$exec = name => commands.exec(name)
+  Vue.prototype.$exec = (name, ...args) => commands.exec(name, ...args)
 
   // 绑定快捷键
   const shortcutCfg = config.get('shortcuts')
   const shortcutsForReg = {}
   Object.entries(shortcutCfg).forEach(([keys, command]) => {
-    shortcutsForReg[keys] = () => commands.exec(command)
+    shortcutsForReg[keys] = event => commands.exec(command, event)
   })
   shortcuts.on(shortcutsForReg)
 
@@ -57,7 +61,8 @@ async function run(params) {
     components: { App },
     template: '<App/>'
   }).$mount('#app')
-
+  // 通知程序初始化
+  messages.dispatch('init', ctx)
 }
 
 run()

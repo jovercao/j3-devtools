@@ -6,8 +6,11 @@ export default function checkAccepts(container, slot, items) {
     return !items.find(p => !checkAccepts(container, slot, p))
   }
   if (container === items) return false
+  const component = components[container.type]
 
-  const accepts = components[container.type].slots[slot].accepts
+  if (!component.slots[slot]) return false
+
+  const accepts = component.slots[slot].accepts
   if (accepts && accepts !== '*') {
     if (!accepts.includes(items.type)) {
       return false

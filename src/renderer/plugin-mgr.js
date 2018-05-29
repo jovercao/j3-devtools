@@ -3,7 +3,6 @@ import config from './config'
 import fs from 'fs'
 import { join } from 'path'
 import axios from 'axios'
-import service from './service'
 // import unzip from 'unzip'
 
 // 独立出来，不与vm.$http共享配置
@@ -151,12 +150,12 @@ async function getList() {
 /**
  * 初始化已安装插件
  */
-async function init(ctx) {
+async function init(ctx, load) {
   for (const pluginName of installedPlugins) {
     const plugin = await import('#/' + pluginName + '/plugin.js')
     // 初始化默认参数
     const options = config.get('#' + pluginName)
-    plugin.init(ctx, options)
+    plugin.init(ctx, options, load)
   }
 }
 
@@ -172,7 +171,5 @@ const plugins = {
   nameToUrl,
   getLocalPath
 }
-
-service('plugins', plugins)
 
 export default plugins

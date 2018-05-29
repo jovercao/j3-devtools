@@ -1,4 +1,3 @@
-import service from '../service'
 import _ from 'lodash'
 
 const Toolboxes = {}
@@ -63,14 +62,10 @@ toolbox.sidebars = function() {
 toolbox.bottombars = function() {
   return toolbox.filter(tb => tb.dock === 'bottombar')
 }
-// 注册工具栏
-service('toolbox', toolbox)
 
 // 获取查看菜单下的菜单项
-toolbox.refreshViewMenus = function() {
+toolbox.refreshViewMenus = function(menus, commands) {
   if (!changed) return
-  const menus = service('menus')
-  const commands = service('commands')
 
   const items = toolbox.all().map(item => {
     const command = 'ide.toggle-' + item.name

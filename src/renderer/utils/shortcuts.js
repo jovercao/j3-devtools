@@ -169,8 +169,8 @@ function initEvents() {
       const hashedKey = hashEvent(event)
       const handlers = mappings[hashedKey]
       if (handlers) {
-        event.preventDefault()
-        handlers.forEach(handler => handler(event))
+        // 如果返回false，则不向后执行，并阻止响应
+        handlers.find(handler => handler(event) === false) && event.preventDefault()
       }
     })
     inited = true
@@ -240,7 +240,7 @@ export function on(keys, handler) {
   const hashedKeys = hashKeys(keys)
   const handlers = mappings[hashedKeys] || (mappings[hashedKeys] = [])
   if (handlers.includes(handler)) {
-    console.warn('handler 已被绑定一次，确定需要再次绑定？')
+    console.warn('handler 已被绑定一次，请确定是否要再次绑定？')
   }
   handlers.push(handler)
 }

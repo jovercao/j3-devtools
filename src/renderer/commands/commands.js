@@ -9,28 +9,28 @@ export default {
   'ide.cancel': {
     title: '取消',
     description: '取消执行/撤消，由当前进行响应',
-    handler() {
-      messages.dispatch('cancel')
+    handler(ctx, ...args) {
+      messages.dispatch('cancel', ...args)
     }
   },
   'ide.cut': {
-    handler() {
-      messages.dispatch('cut')
+    handler(ctx, ...args) {
+      messages.dispatch('cut', ...args)
     }
   },
   'ide.copy': {
-    handler() {
-      messages.dispatch('copy')
+    handler(ctx, ...args) {
+      messages.dispatch('copy', ...args)
     }
   },
   'ide.parse': {
-    handler() {
-      messages.dispatch('parse')
+    handler(ctx, ...args) {
+      messages.dispatch('parse', ...args)
     }
   },
   'ide.delete': {
-    handler() {
-      messages.dispatch('delete')
+    handler(ctx, ...args) {
+      messages.dispatch('delete', ...args)
     }
   },
   'ide.open': {

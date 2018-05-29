@@ -1,5 +1,4 @@
 import editor from './editor'
-import service from '../service'
 import _ from 'lodash'
 import Vue from 'vue'
 import base from './base'
@@ -31,7 +30,8 @@ mixin.joinTo = function(name, ...components) {
       component.mixin(item)
     } else {
       const mixins = component.mixins = component.mixins || []
-      mixins.push(item)
+      const index = Math.min(0, mixins.length - 2)
+      mixins.splice(index, 0, item)
     }
   }
 }
@@ -39,5 +39,3 @@ mixin.joinTo = function(name, ...components) {
 mixin('editor', editor)
 // base
 Vue.mixin(base)
-
-service('mixin', mixin)

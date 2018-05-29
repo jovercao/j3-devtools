@@ -3,71 +3,78 @@ import _ from 'lodash'
 // import binding from '../binding'
 import schema from '../schema'
 
-const propSchema = Object.assign({}, schema, {
+const propSchema = _.merge({}, schema, {
   $id: 'prop',
-  title: {
-    type: String,
-    required: false
-  },
-  selections: {
-    type: Array,
-    required: false,
-    validator(selections, prop) {
-      if (!selections) {
+  props: {
+    title: {
+      type: String,
+      required: false
+    },
+    selections: {
+      type: Array,
+      required: false,
+      validator(selections, prop) {
+        if (!selections) {
+          return valid()
+        }
+
+        for (const el of selections) {
+          if (!_.isObject(el)) {
+            return invalid(`选项${el}格式不正确，必须为 { title, value, description } 格式`)
+          }
+          if (prop.type && !isTypeOf(el.value, prop.type)) {
+            return invalid(`selections中的项${el}必须要与定义的类型${prop.type}匹配。`)
+          }
+        }
         return valid()
       }
-
-      for (const el of selections) {
-        if (!_.isObject(el)) {
-          return invalid(`选项${el}格式不正确，必须为 { title, value, description } 格式`)
-        }
-        if (prop.type && !isTypeOf(el.value, prop.type)) {
-          return invalid(`selections中的项${el}必须要与定义的类型${prop.type}匹配。`)
-        }
-      }
-      return valid()
-    }
+    },
+    // 删除props验证
+    props: undefined
   }
 })
 
 export default {
   $id: 'component',
-  name: {
-    type: String,
-    required: true
-  },
-  title: {
-    type: String,
-    required: true
-  },
-  tag: {
-    type: String,
-    required: false,
-    validator(val, obj) {
-      if (!obj.tag && !obj.component) {
-        return invalid(`组件${obj.name}定义不正确，tag 与 component 不能同时为空！`)
-      }
-      return valid()
+  validator(define) {
+    if (!define.tag && !define.component) {
+      return invalid(`组件${define.name}定义不正确，tag 与 component 不能同时为空！`)
     }
-  },
-  component: {
-    type: Function,
-    required: false
+    return valid()
   },
   props: {
-    type: Object,
-    required: false,
-    validator(props, comp) {
-      for (const name in props) {
-        const value = props[name]
-        if (value === undefined) continue
+    name: {
+      type: String,
+      required: true
+    },
+    title: {
+      type: String,
+      required: true
+    },
+    tag: {
+      type: String,
+      required: false
+    },
+    component: {
+      type: Function,
+      required: false
+    },
+    props: {
+      type: Object,
+      required: false,
+      validator(props, comp) {
+        for (const name in props) {
+          const value = props[name]
+          if (value === undefined) continue
 
-        const res = validate(value, propSchema)
-        if (checkResult(res) !== true) {
-          return invalid(`组件${comp.name}属性${name}的定义不正确，错误信息：${checkResult(res)}`)
+          let res = validate(value, propSchema)
+          res = checkResult(res)
+          if (res !== true) {
+            return invalid(`组件${comp.name}属性${name}的定义不正确，错误信息：${checkResult(res)}`)
+          }
         }
+        return valid()
       }
-      return valid()
     }
   }
 }

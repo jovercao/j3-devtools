@@ -1,7 +1,6 @@
 import IDE from '../views/IDE'
 import VueRouter from 'vue-router'
 import Vue from 'vue'
-import service from '../service'
 
 Vue.use(VueRouter)
 
@@ -18,7 +17,5 @@ const router = new VueRouter({
     }
   ]
 })
-
-service('router', router)
 
 export default router

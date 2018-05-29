@@ -69,19 +69,17 @@
           </div>
         </div>
         <div class="body">
-          <keep-alive
-              v-for="(tab, index) in openedTabs"
-              :key="index">
             <component
+              v-for="(tab) in openedTabs"
+              :key="tab.uri"
               class="dock"
-              v-if="activeTab === tab"
+              v-show="activeTab === tab"
               :uri="tab.uri"
               :context="tab.context"
               :contentType="tab.contentType"
               :resourceType="tab.resourceType"
               :is="tab.editor.component"
             />
-          </keep-alive>
         </div>
         <!-- <div class="bottombar-resizer" ></div> -->
         <bottombar v-show="bottombarVisible" v-if="activeBottombar !== null"
@@ -190,6 +188,7 @@ export default {
     handlerTabMouseDown(tab, event) {
       if (event.button === 1) {
         this.close(tab)
+        event.preventDefault()
       }
     },
     showTabMenu(event) {

@@ -1,4 +1,3 @@
-import service from '../service'
 import _ from 'lodash'
 import defaultCommands from './commands'
 
@@ -50,15 +49,12 @@ commands.exists = function(name) {
 /**
  * 执行命令
  */
-commands.exec = commands.execute = function(name, context) {
-  context = context || commands.defaultContext
+commands.exec = commands.execute = function(name, ...args) {
   const handler = commands(name).handler
-  handler(context)
+  handler(commands.defaultContext, ...args)
 }
 
 commands.defaultContext = {}
 
 // 注册默认命令
 commands(defaultCommands)
-
-service('commands', commands)

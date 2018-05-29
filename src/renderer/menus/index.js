@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import service from '../service'
 
 const Menus = [
   {
@@ -190,7 +189,5 @@ menus.remove = function(item) {
     children.splice(indexes[indexes.length - 1], 1)
   }
 }
-
-service('menus', menus)
 
 export default menus

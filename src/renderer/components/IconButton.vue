@@ -1,8 +1,9 @@
 <template>
-  <button :class="[ 'ide-icon-btn', { down } ]" type="button"  @click="handlerClick"
+  <button :class="[ 'ide-icon-btn', { down, disabled } ]" type="button"  @click="handlerClick"
     @mousedown="down = true"
     @mouseup="down = false"
     @mouseout="down = false"
+    :disabled="disabled"
     :style="{
       'height': diameter + 'px',
       'width': diameter + 'px',
@@ -17,6 +18,10 @@
 export default {
   name: 'IdeIconButton',
   props: {
+    disabled: {
+      type: Boolean,
+      default: false
+    },
     icon: String,
     size: {
       type: Number,
@@ -39,7 +44,9 @@ export default {
   },
   methods: {
     handlerClick(event) {
-      this.$emit('click', event)
+      if (!this.disabled) {
+        this.$emit('click', event)
+      }
     }
   }
 }
@@ -66,6 +73,9 @@ export default {
     transition: background-color .3s;
   }
 
+  &.disabled {
+    color: #ccc;
+  }
   .icon {
     
   }

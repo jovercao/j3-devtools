@@ -97,7 +97,7 @@ function getOffsetRect(cmpOrEl) {
 function getClientSize(el) {
   return {
     width: el.clientWidth,
-    height: el.clientWHeight
+    height: el.clientHeight
   }
 }
 

@@ -1,7 +1,11 @@
-import { checkAccepts } from '../service/catalogs'
+import {
+  checkAccepts,
+  load as loadCatalogs
+} from '../service/catalogs'
 import _ from 'lodash'
-import { properViewData } from '../helper/viewData'
-import ctx from '@'
+import {
+  properViewData
+} from '../helper/viewData'
 import Vue from 'vue'
 
 export const namespace = 'vue-editor'
@@ -9,6 +13,22 @@ export const viewDataType = 'view-data'
 
 // editor 需要共享的状态，使用store模块声明
 // vue-eidtor
+
+const util = {
+  cloneItems(items) {
+    return (_.isArray(items) ? items : [items]).map(item => {
+      // 断开关联再进行复制
+      const parent = item.parent
+      const old = item
+      old.parent = null
+      const cloned = _.cloneDeep(old)
+      // 复制完成后恢复
+      old.parent = parent
+      // 非外部来源，检测是否未移动位置
+      return cloned
+    })
+  }
+}
 
 const state = {
   // 当前视图数据
@@ -20,11 +40,9 @@ const state = {
   // 高亮的视图项
   hoveringItem: null,
   // 拖过的项
-  dropContainer: null,
-  // 拖放的插糟
-  dropSlot: 'default',
+  dropTarget: null,
   // 设计摘要信息
-  catalogs: null
+  catalogs: loadCatalogs()
 }
 
 const getters = {
@@ -41,41 +59,77 @@ const getters = {
   templates(state) {
     return state.catalogs ? state.catalogs.templates : []
   },
+  dropContainer(state) {
+    return state.dropTarget && state.dropTarget.container
+  },
+  dropSlot(state) {
+    return state.dropTarget && state.dropTarget.slot
+  },
+  dropContainerSlots(state, getters) {
+    const dropContainer = getters.dropContainer
+    if (dropContainer) {
+      return getters.components[dropContainer.type].slots
+    }
+    return {}
+  },
   componentTemplates(state) {
     return state.catalogs && state.catalogs.templates && state.catalogs.templates.components
+  },
+  dropable(state, getters, rootState) {
+    const dragdata = rootState.dragData
+    if (!dragdata || dragdata.type !== viewDataType) return false
+    if (!state.dropTarget) return false
+    const {
+      container,
+      slot
+    } = state.dropTarget
+    const result = checkAccepts(container, slot, dragdata.data)
+    return result
   }
-  // ,dropable(state, getters, rootState) {
-  //   const dragdata = rootState.dragData
-  //   if (!dragdata || dragdata.type !== viewDataType) return false
-  //   if (!state.dropContainer) return false
-  //   const { container, slot } = state.dropContainer
-  //   return checkAccepts(container, slot, dragdata.data)
-  // }
 }
 
 const syncMethods = {
   select(item) {
-    const { state } = this
+    const items = _.isArray(item) ? item : [item]
+    const {
+      state
+    } = this
     if (!item) throw new Error('被选择的项不能为空')
-    if (!state.selecteds.find(i => i === item)) {
-      state.selecteds.push(item)
-    }
-    state.activeItem = item
+    items.forEach(item => {
+      if (!state.selecteds.includes(item)) {
+        state.selecteds.push(item)
+      }
+    })
+    state.activeItem = items[items.length - 1]
   },
-  deselect(item) {
-    const { state } = this
-    const index = state.selecteds.findIndex(i => i === item)
-    if (index >= 0) {
-      state.selecteds.splice(index, 1)
+  deselect(items) {
+    const {
+      state
+    } = this
+    if (!_.isArray(items)) {
+      items = [ items ]
     }
+    items.forEach(item => {
+      const index = state.selecteds.findIndex(i => i === items)
+      if (index >= 0) {
+        state.selecteds.splice(index, 1)
+      }
+      if (item === state.activeItem) {
+        state.activeItem = null
+      }
+    })
   },
   deselectAll() {
-    const { state } = this
+    const {
+      state
+    } = this
     state.activeItem = null
     state.selecteds.splice(0, state.selecteds.length)
   },
   selectParent() {
-    const { state } = this
+    const {
+      state
+    } = this
     const current = state.activeItem
     this.deselectAll()
     if (current && current.parent) {
@@ -88,19 +142,31 @@ const syncMethods = {
   hoverLeave() {
     this.state.hoveringItem = null
   },
-  changeProp({ prop, value, oldValue, item }) {
+  changeProp({
+    prop,
+    value,
+    oldValue,
+    item
+  }) {
     Vue.set((item || this.state.activeItem).props, prop, value)
   },
-  changeSelectedsProp({ prop, value, oldValue, item }) {
+  changeSelectedsProp({
+    prop,
+    value,
+    oldValue,
+    item
+  }) {
     for (const item of this.state.selecteds) {
       Vue.set(item.props, prop, value)
     }
   },
   beginEdit(viewData) {
-    const { state } = this
-    if (state.viewData) {
-      throw new Error('在调用beginEdit之前必须调用 endEdit以清除上一次的编辑状态！')
-    }
+    const {
+      state
+    } = this
+    // if (state.viewData) {
+    //   throw new Error('在调用beginEdit之前必须调用 endEdit以清除上一次的编辑状态！')
+    // }
     if (!viewData.propered) {
       properViewData(viewData)
       viewData.propered = true
@@ -108,154 +174,179 @@ const syncMethods = {
     state.viewData = viewData
   },
   endEdit() {
-    this.state.viewData = null
+    Vue.set(this.state, 'viewData', null)
     this.deselectAll()
     this.hoverLeave()
   },
-  dragover({ item, slot }) {
-    const { state } = this
-    const dragdata = this.$root.state.drogData
-    if (!dragdata || dragdata.type !== viewDataType) return false
-    if (!state.dropContainer) return false
-    if (checkAccepts(item, slot, dragdata.data)) {
-      state.dropContainer = {
-        container: item,
+  dragenter({
+    container,
+    slot = 'default'
+  }) {
+    const {
+      state,
+      getters
+    } = this
+    const dragdata = this.$root.state.dragData
+    if (!dragdata || dragdata.type !== viewDataType) return
+    if (!container) return
+
+    const containerHasSlots = getters.components[container.type].slots && Object.keys(getters.components[container.type].slots).length > 0
+    // 如果当前元素没有插糟，则将目标定为父级容器
+    if (!containerHasSlots && container.parent) {
+      state.dropTarget = {
+        container: container.parent,
+        slot: container.slot,
+        index: container.index
+      }
+    } else {
+      state.dropTarget = {
+        container: container,
         slot
       }
-      return true
-    } else if (item.parent && !slot) {
-      // 放入父级容器
-      if (checkAccepts(item.parent, item.slot, dragdata.data)) {
-        state.dropContainer = {
-          container: item.parent,
-          slot: item.slot
-        }
-        return true
-      }
     }
-    return false
+    this.hoverEnter(state.dropTarget.container)
   },
-  dragstop() {
-    this.state.dropContainer = null
+  dragleave() {
+    this.hoverLeave()
+    this.state.dropTarget = null
   },
-  drag(items, source) {
-    source = source || 'view-editor'
+  dragend() {
+    this.state.dropTarget = null
+    this.hoverLeave()
+    this.$root.endDrag()
+  },
+  dragstart(items, source) {
+    source = source || this.state.viewData
     items = items || _.clone(this.state.selecteds)
-    this.$root.beginDrag({ type: viewDataType, source, data: items })
-  },
-  cloneItems(items) {
-    return (_.isArray(items) ? items : [items]).map(item => {
-      // 断开关联再进行复制
-      const parent = item.parent
-      const old = item
-      old.parent = null
-      const cloned = _.cloneDeep(old)
-      // 复制完成后恢复
-      old.parent = parent
-      // 非外部来源，检测是否未移动位置
-      return cloned
+    this.$root.beginDrag({
+      type: viewDataType,
+      source,
+      data: items
     })
   },
-  drop() {
-    let index
-    const { state } = this
-    const container = state.dropContainer
-    const slot = state.dropSlot
+  drop(isCopy) {
+    const {
+      state
+    } = this
+    const {
+      container,
+      slot,
+      index
+    } = state.dropTarget
     const dragdata = this.$root.state.dragData
     let items = dragdata.data
     if (!this.getters.dropable) {
-      if (this.checkAccepts()) {
-        return
-      }
-      index = 11
-    }
-    if (dragdata.type !== viewDataType) {
       return
     }
 
     // 外部来源，先进行复制
-    if (dragdata.source !== this.state.viewData) {
-      items = this.cloneItems(items)
+    if (dragdata.source !== state.viewData || isCopy) {
+      items = util.cloneItems(items)
     } else {
-      // 未移动，不作操作
-      if (
-        container === items.parent &&
-        slot === items.slot &&
-        items.index === index
-      ) {
-        return
-      }
-      // 同源，先在原处移除
       this.remove(items)
     }
-    this.add({ container, items, slot, index })
-
-    this.hideChoosebar()
+    // 记录原容器
+    // const sourceContainer = dragdata.source === this.state.viewData && state.activeItem.parent
+    this.add({
+      container,
+      items,
+      slot,
+      index
+    })
+    //! 当元素被拖放移动到其他容器后，原有元素被移除，将导致dragend事件无法触发，因此手动触发。
+    // if (dragdata.source === this.state.viewData && sourceContainer !== container) {
+    this.dragend()
+    // }
   },
   copy() {
-    const { state } = this
+    const {
+      state
+    } = this
     // 复制选定的项
     if (state.selecteds.length === 0) return
 
     const cloned = _.clone(state.selecteds)
 
     // 复制到剪切板
-    this.$root.copyToClipboard({ type: viewDataType, source: 'vue-editor', data: cloned })
-    console.log('copy')
-  },
-  cut(items) {
-    // 切断联系
-    items.forEach(item => {
-      this.remove(item)
+    this.$root.copyToClipboard({
+      action: 'copy',
+      type: viewDataType,
+      source: 'vue-editor',
+      data: cloned
     })
-    this.$root.copyToClipboard({ type: viewDataType, source: 'vue-editor', data: items })
+  },
+  cut() {
+    const {
+      state
+    } = this
+    // 复制选定的项
+    if (state.selecteds.length === 0) return
+
+    const cloned = _.clone(state.selecteds)
+
+    this.$root.copyToClipboard({
+      action: 'cut',
+      type: viewDataType,
+      source: state.viewData,
+      data: cloned
+    })
   },
   parse() {
+    const { state } = this
     const clipboard = this.$root.state.clipboard
     if (!clipboard || clipboard.type !== viewDataType) return
-    if (this.state.activeItem) {
-      // 切断联系后复制
-      // state.selecteds.forEach(item => {
-      //   const parent = item.parent
-      //   item.parent = null
-      //   cloned.push(_.cloneDeep(item))
-      //   // 复制完成后恢复
-      //   item.parent = parent
-      // })
-      clipboard.data.forEach(item => {
-        item.parent = null
-        this.add({
-          container: this.state.activeItem,
-          slot: 'default',
-          item: _.cloneDeep(item)
-        })
-        //   // 复制完成后恢复
-        item.parent = parent
+    if (state.activeItem) {
+
+      let items = clipboard.data
+      // 不兼容，返回
+      if (!checkAccepts(state.activeItem, 'default', items)) {
+        return
+      }
+
+      // 除内部剪切以外，均需要先复制再粘贴
+      if (!(clipboard.action === 'cut' && clipboard.source === state.viewData)) {
+        items = util.cloneItems(clipboard.data)
+      }
+      this.add({
+        container: state.activeItem,
+        slot: 'default',
+        items: items
       })
     }
-    console.log('parse')
   },
-  delete(items) {
-
+  delete() {
+    this.remove(_.clone(this.state.selecteds))
   },
-  remove(item) {
-    // 从原有插糟移除
-    if (item.parent) {
-      this.deselect(item)
-      const slot = item.parent.slots[item.slot]
-      const index = slot.indexOf(item)
-      if (index >= 0) {
-        slot.splice(index, 1)
-        for (let i = index; i < slot.length; i++) {
-          slot[i].index = i
+  remove(items) {
+    if (!_.isArray(items)) {
+      items = [items]
+    }
+    this.deselect(items)
+    items.forEach(item => {
+      // 从原有插糟移除
+      if (item.parent) {
+        const slot = item.parent.slots[item.slot]
+        item.parent = null
+        const index = slot.indexOf(item)
+        if (index >= 0) {
+          slot.splice(index, 1)
+          for (let i = index; i < slot.length; i++) {
+            slot[i].index = i
+          }
         }
       }
-    }
+    })
+
   },
   removeSelecteds() {
     this.state.selecteds.forEach(item => this.remove(item))
   },
-  add({ container, slot, items, index }) {
+  add({
+    container,
+    slot,
+    items,
+    index
+  }) {
     if (!checkAccepts(container, slot, items)) {
       throw Error('不兼容的子组件！')
     }
@@ -263,35 +354,40 @@ const syncMethods = {
     if (!container.slots) {
       container.slots = {}
     }
-
     const list = container.slots[slot] || (container.slots[slot] = [])
-
-    // 如果是从别处移动过来的
-    if (items.parent) {
-      // 从原有插糟移除
-      this.remove(items)
-      properViewData(items)
+    if (!_.isArray(items)) {
+      items = [items]
     }
-    items.parent = container
-    items.slot = slot
-    // 插入指定位置
-    if (_.isNumber(index) && index >= 0) {
-      list.splice(index, 0, items)
-      for (let i = index; i < list.length; i++) {
-        list[i].index = i
+    items.forEach(item => {
+      // 如果是从别处移动过来的
+      if (item.parent) {
+        // 从原有插糟移除
+        this.remove(item)
+      } else {
+        properViewData(item)
       }
-    } else {
-      items.index = list.length
-      list.push(items)
+      item.parent = container
+      item.slot = slot
+    })
+    if (!_.isNumber(index)) {
+      index = list.length
     }
+    // 插入指定位置
+    list.splice(index, 0, ...items)
+    for (let i = index; i < list.length; i++) {
+      list[i].index = i
+    }
+    this.deselectAll()
     this.select(items)
   }
 }
 
 const methods = {
   async loadCatalogs() {
-    const catalogs = await ctx.service('catalogs').load()
-    this.$commit((state) => { state.catalogs = catalogs })
+    const catalogs = await loadCatalogs()
+    this.$commit((state) => {
+      state.catalogs = catalogs
+    })
   }
 }
 

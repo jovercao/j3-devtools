@@ -2,17 +2,20 @@
   <div class="designer-view" tabindex="0">
     <DesignerComponent v-if="value" :viewData="value" :activeItem="activeItem"
       :selecteds="selecteds"
-      :heightlight="hoveringItem"
+      :preview="mode === 'preview'"
+      :heightlightItme="hoveringItem"
+      :outlineItem="dropContainer"
       @contextmenu="showFloatBar"
       @select="_onComponentSelect"
-      @mouseleave="_onComponentMouseleave"
+      @dragenter="_onComponentDragenter"
       @dragover="_onComponentDragover"
-      @dragleave="_onComponentDragleave"
-      @mouseover="_onComponentMouseover"
-      @dragstart="_onComponentDragstart"
-      @dragend="_onComponentDragend"
+      @mouseover="hoverEnter"
+      @mouseout="hoverLeave"
+      @dragstart="dragstart()"
+      @dragend="dragend()"
       @drop="_onComponentDrop"
       @valuechange="_onValueChange" />
+      <!--      @dragleave="dragleave" -->
     <!-- 快速浮动操作栏 -->
     <mu-popover v-if="activeItem" :trigger="floatbarTrigger" :open="floatbarOpened" @close="hideFloatBar">
       <div class="designer-quickbar">
@@ -29,7 +32,7 @@
           </value-editor>
         </div>
         <div class="footer" v-show="activeItem !== value">
-          <mu-icon-button tooltip="删除" icon="clear" @click="doRemove" />
+          <mu-icon-button tooltip="删除" icon="clear" @click="_onRemoveClick" />
           <mu-icon-button
             v-show="activeItem.parent"
             tooltip="选择父级"
@@ -42,24 +45,23 @@
     <!-- <div style="background: balck;position: absolute; left:0px; right: 0px; bottom:0px; opacity: .3" v-show="slotChoosebarOpened" @click="hideChoosebar"> -->
 
     <!-- v-show="slotChoosebarOpened"  -->
-    <div v-show="dragging && slotChoosebarOpened"
+    <div v-show="dropContainer"
       ref="choosebar"
       class="designer-choosebar"
       :style="{ left: choosebarPos.x + 'px', top: choosebarPos.y + 'px' } ">
       <div class="header">请将组件拖动到以下插糟中</div>
       <div v-if="dropContainer && dropContainer.parent"
         class="item"
-        @dragenter.stop="hoverEnter(dropContainer = dropContainer.parent)"
-        @dragleave.stop="hoverLeave()">
-        <!-- @dragover.stop="parentHeightlight = true" -->
+        @dragenter.stop="dragenter({ container: dropContainer.parent })">
+         <!-- dragover({ container: dropContainer.parent }) -->
         [父级] - {{ getComponetTitle(dropContainer.parent) }}
       </div>
-      <div v-for="(slot, name, index) in dropContainerSorts"
+      <div v-for="(slot, name) in dropContainerSlots"
+        :key="name"
         :class="['item', { 'item-hover': catcheSlot === name }]"
-        :key="index"
         @dragover.stop="_onChoosebarDragover(name, $event)"
-        @dragleave.stop="catcheSlot = ''"
-        @drop.stop="addDropItem({ container: dropContainer, slot: name, isCopy: $event.ctrlKey })">
+        @dragenter.stop="dragenter({ container: dropContainer, slot: name })"
+        @drop.stop="_onComponentDrop(activeItem, $event)">
         {{slot.title || name}}
       </div>
     </div>
@@ -69,8 +71,6 @@
 <script>
 import DesignerComponent from './DesignerComponent'
 import { mapState, mapActions, mapGetters } from 'vuex'
-import _ from 'lodash'
-import { checkAccepts } from '../../../service/catalogs'
 import { namespace } from '../../../store/vue-editor'
 // import './DesignerBox.less'
 // import Vue from 'vue'
@@ -80,31 +80,44 @@ export default {
     DesignerComponent
   },
   props: {
-    value: Object
+    value: Object,
+    visible: {
+      type: Boolean,
+      default: true
+    },
+    mode: {
+      type: String,
+      default: 'design'
+    }
   },
   created() {
     this.$subscribe({
+      cut: () => {
+        if (this.editable && this.activeItem) {
+          this.cut()
+          return false
+        }
+      },
       copy: () => {
-        if (this.isFocused()) {
+        if (this.editable && this.activeItem) {
           this.copy()
+          return false
         }
       },
       parse: () => {
-        if (this.isFocused()) {
-          // 复制选定的项
-          if (this.activeItem) {
-            this.parse()
-          }
+        if (this.editable && this.activeItem) {
+          this.parse()
+          return false
         }
       },
       delete: () => {
-        if (this.isFocused()) {
+        if (this.editable) {
+          // 首次删除当前选定
           if (this.activeItem) {
-            this.remove(this.activeItem)
-          } else if (this.selecteds.length > 0) {
             this.removeSelecteds()
           }
           this.hideFloatBar()
+          return false
         }
       },
       cancel: () => {
@@ -114,6 +127,7 @@ export default {
           } else if (this.selecteds.length > 0) {
             this.deselectAll()
           }
+          return false
         }
       }
     })
@@ -122,22 +136,15 @@ export default {
     return {
       floatbarTrigger: null,
       floatbarOpened: false,
-      slotChoosebarOpened: false,
       slotContainerTrigger: null,
-      dropContainer: null,
       choosebarPos: { x: 600, y: 400 },
       catcheSlot: '',
       parentHeightlight: false
     }
   },
   computed: {
-    ...mapState(namespace, ['activeItem', 'selecteds', 'hoveringItem']),
-    ...mapGetters(namespace, ['selectedComponent', 'components']),
-    ...mapState(['dragging', 'dragData']),
-    dropContainerSorts() {
-      if (!this.dropContainer) return null
-      return this.components[this.dropContainer.type].slots
-    },
+    ...mapState(namespace, [ 'activeItem', 'selecteds', 'hoveringItem', 'dropTarget' ]),
+    ...mapGetters(namespace, [ 'selectedComponent', 'components', 'dropContainer', 'dropContainerSlots', 'dropSlots', 'dropable' ]),
     quickProps() {
       return this.selectedComponent.quickProps
     },
@@ -147,6 +154,9 @@ export default {
             this.selectedComponent.title ||
             this.selectedComponent.name
         : ''
+    },
+    editable() {
+      return this.visible && this.mode === 'design'
     }
   },
   methods: {
@@ -164,7 +174,12 @@ export default {
       'copy',
       'parse',
       'cut',
-      'delete'
+      'delete',
+      'dragstart',
+      'dragend',
+      'drop',
+      'dragenter',
+      'dragleave'
     ]),
     // // 选择插糟
     // async chooseSlot(value) {
@@ -175,17 +190,7 @@ export default {
 
     //   return ''
     // },
-    _onComponentDragstart(item) {
-      // this.remove(item)
-      this.$ide.beginDrag({ type: 'view-data', source: 'inner', data: item })
-    },
-    _onComponentDragend(item) {
-      // if (this.dragData.prevent && !this.dragData.target) {
-      //   this.add({ container: item.parent, slot: item.slot, index: item.index })
-      // }
-      this.$ide.endDrag()
-    },
-    doRemove() {
+    _onRemoveClick() {
       this.remove(this.activeItem)
       this.hideFloatBar()
     },
@@ -211,85 +216,39 @@ export default {
         this.components[item.type].name
       )
     },
-    checkDragData(container, slot, dragData) {
-      return (
-        dragData &&
-        dragData.type === 'view-data' &&
-        checkAccepts(container, slot, dragData.data)
-      )
+    _onComponentDragenter(item, event) {
+
+      this.dragenter({ container: item })
+      // 显示选择器
+      this.moveChoosebar(event.currentTarget)
     },
     _onComponentDragover(item, event) {
-      this.hoverEnter(item)
-      this.catcheSlot = ''
-      // if (this.dropContainer === item) {
-      //   return
-      // }
-      const dragData = this.dragData
-      if (!dragData || dragData.type !== 'view-data') {
-        return
-      }
-      // 如果是容器则显示插糟及父级选择窗口
-      if (this.hasSlotsDef(item.type)) {
-        // 显示选择器
-        this.showChoosebar(item, event)
-        // 检查当前容器兼容性
-        if (
-          !this.hasDefaultSlotDef(item.type) ||
-          !checkAccepts(item, 'default', dragData.data)
-        ) {
-          return
-        }
-      } else {
-        this.hideChoosebar()
-        // 检查上级容器兼容性，以及是否父窗口向子窗口拖动
-        if (
-          item.parent &&
-          !checkAccepts(item.parent, item.slot, dragData.data)
-        ) {
-          return
-        }
-      }
-
-      // 允许拖放
-      event.preventDefault()
+      console.log('over')
+      if (this.dropable) event.preventDefault()
     },
     _onComponentDrop(item, event) {
       const isCopy = event.ctrlKey
-      // 如果是不支持子元素的元素,则作为兄弟元素放入父级
-      if (!this.hasSlotsDef(item.type)) {
-        this.addDropItem({
-          container: item.parent,
-          slot: item.slot,
-          index: item.index,
-          isCopy
-        })
-      } else {
-        this.addDropItem({ container: item, slot: 'default', isCopy })
-      }
+      this.drop(isCopy)
     },
-    _onComponentDragleave() {
-      this.hoverLeave()
+    _onChoosebarDragover() {
+      if (this.dropable) event.preventDefault()
     },
-    _onChoosebarDragover(slotname, event) {
-      if (!this.checkDragData(this.dropContainer, slotname, this.dragData)) {
-        return
-      }
-      this.catcheSlot = slotname
-      event.preventDefault()
-    },
-    showChoosebar(item, event) {
-      this.dropContainer = item
+    moveChoosebar(target) {
 
-      // 显示slots选择卡
-      // this.choosebarPos = this.$helper.getMousePos(event)
-      // DOM 操作尽量封装到API中,如 $helper
-
-      const rect = this.$helper.getOffsetRect(event.currentTarget)
+      const rect = this.$helper.getOffsetRect(target)
       const size = this.$helper.getClientSize(this.$refs.choosebar)
-      this.choosebarPos.x = rect.x + rect.width / 2 - size.width / 2
-      this.choosebarPos.y = rect.y + rect.height / 2 - size.height / 2
+      const designerRect = this.$helper.getOffsetRect(this.$el)
 
-      this.slotChoosebarOpened = true
+      this.choosebarPos.y = rect.y + rect.height / 2 - size.height / 2
+      if (rect.width > size.width) {
+        this.choosebarPos.x = rect.x + rect.width / 2 - size.width / 2
+      } else {
+        this.choosebarPos.x = rect.x + rect.width - 5
+        // 如果超出界限了
+        if (this.choosebarPos.x + size.width > designerRect.x + designerRect.width) {
+          this.choosebarPos.x = rect.x - size.width + 5
+        }
+      }
     },
     isFocused() {
       return (
@@ -297,44 +256,6 @@ export default {
         document.activeElement &&
         this.$el === document.activeElement
       )
-    },
-    hideChoosebar() {
-      this.slotChoosebarOpened = false
-      this.dropContainer = null
-    },
-    addDropItem({ container, slot, index, isCopy }) {
-      const dragData = this.dragData
-
-      if (dragData.type !== 'view-data') {
-        return
-      }
-      let item = dragData.data
-
-      // 外部来源，先进行复制，断开关联
-      if (dragData.source !== 'inner' || isCopy) {
-        const parent = item.parent
-        const old = item
-        old.parent = null
-        item = _.cloneDeep(old)
-        // 复制完成后恢复
-        old.parent = parent
-        // 非外部来源，检测是否未移动位置
-      } else {
-        if (
-          container === item.parent &&
-          slot === item.slot &&
-          item.index === index
-        ) {
-          return
-        }
-        this.remove(item)
-      }
-      this.add({ container, items: item, slot, index })
-
-      this.hideChoosebar()
-    },
-    _onComponentMouseleave(item) {
-      this.hoverLeave()
     },
     _onComponentSelect(item, event) {
       if (!this.selecteds.includes(item) && !event.ctrlKey) {
@@ -362,11 +283,17 @@ export default {
       this.floatbarOpened = false
     },
     showFloatBar(item, event) {
-      // console.log(event.currentTarget)
       this.deselectAll()
       this.select(item)
       this.floatbarTrigger = event.currentTarget
       this.floatbarOpened = true
+    }
+  },
+  watch: {
+    mode(value) {
+      if (value === 'preview') {
+        this.deselectAll()
+      }
     }
   }
 }
@@ -376,7 +303,7 @@ export default {
 .designer-view {
   width: 100%;
   &:focus {
-    outline: solid rgb(152, 108, 255) 1px;
+    outline: none;
   }
 }
 .designer-quickbar {
@@ -419,16 +346,17 @@ export default {
   background: white;
   border: #555 solid 1px;
   z-index: 2000;
+  transition: left, top .2s;
   .header {
     padding: 5px 25px 5px 25px;
     color: #888;
   }
 
   .item {
-    height: 64px;
+    height: 38px;
     border: #888 dashed 1px;
     text-align: center;
-    line-height: 64px;
+    line-height: 38px;
     :hover {
       .item-hover;
     }

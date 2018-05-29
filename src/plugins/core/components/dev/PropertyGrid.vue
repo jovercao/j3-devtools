@@ -1,56 +1,60 @@
 <template>
   <div class="property-grid">
     <div class="body">
-      <template v-if="pubProps">
-        <!-- 优先摆放共同属性 -->
-        <div class="subtitle">
-          <ide-icon-button :icon="pubPropExpand ? 'keyboard_arrow_down' : 'keyboard_arrow_right'" @click="pubPropExpand = !pubPropExpand" :size="12"/>
-          <span>共同属性</span>
-          <hr>
-        </div>
-        <template v-if="pubPropExpand">
-          <div v-for="(name) in sortedPubProps" :key="name"
-            @mouseenter="hoverProp = name"
-            @mouseleave="hoverProp = ''"
-            class="row" >
-            <div class="name">{{ pubProps[name].title || name }}</div>
-            <div class="value">
-                <value-editor
-                  :selections="pubProps[name].selections"
-                  class="editor"
-                  :data-type="pubProps[name].type"
-                  :value="pubProps[name].value"
-                  :hintText="pubProps[name].description || pubProps[name].title"
-                  @change="handlerPubChange(name, ...arguments)"
-                />
+      <div class="content">
+        <div v-if="pubProps">
+          <!-- 优先摆放共同属性 -->
+          <div class="subtitle">
+            <ide-icon-button :icon="pubPropExpand ? 'keyboard_arrow_down' : 'keyboard_arrow_right'" @click="pubPropExpand = !pubPropExpand" :size="12"/>
+            <span>共同属性</span>
+            <hr>
+          </div>
+          <template v-if="pubPropExpand">
+            <div v-for="(name) in sortedPubProps" :key="name"
+              @mouseenter="hoverProp = name"
+              @mouseleave="hoverProp = ''"
+              class="row" >
+              <div class="name">{{ pubProps[name].title || name }}</div>
+              <div class="value">
+                  <value-editor
+                    :selections="pubProps[name].selections"
+                    class="editor"
+                    :data-type="pubProps[name].type"
+                    :value="pubProps[name].value"
+                    :hintText="pubProps[name].description || pubProps[name].title"
+                    @change="handlerPubChange(name, ...arguments)"
+                  />
+              </div>
             </div>
-          </div>
-        </template>
-      </template>
-      <div class="subtitle">
-        <ide-icon-button :icon="curPropExpand ? 'keyboard_arrow_down' : 'keyboard_arrow_right'" @click="curPropExpand = !curPropExpand" :size="12"/>
-        <span>当前属性</span>
-        <hr>
-      </div>
-      <template v-if="curPropExpand">
-        <!-- 当前对像属性 -->
-        <div v-for="(name, index) in sortedProps" :key="index"
-          @mouseenter="hoverProp = name"
-          @mouseleave="hoverProp = ''"
-          class="row" >
-          <div class="name">{{ props[name].title || name }}</div>
-          <div class="value">
-              <value-editor
-                :selections="props[name].selections"
-                class="editor"
-                :data-type="props[name].type"
-                :value="propsData[name]"
-                :hintText="props[name].description || props[name].title"
-                @change="handlerChange(name, ...arguments)"
-              />
-          </div>
+          </template>
         </div>
-      </template>
+        <div>
+          <div class="subtitle">
+            <ide-icon-button :icon="curPropExpand ? 'keyboard_arrow_down' : 'keyboard_arrow_right'" @click="curPropExpand = !curPropExpand" :size="12"/>
+            <span>当前属性</span>
+            <hr>
+          </div>
+          <template v-if="curPropExpand">
+            <!-- 当前对像属性 -->
+            <div v-for="(name) in sortedProps" :key="name"
+              @mouseenter="hoverProp = name"
+              @mouseleave="hoverProp = ''"
+              class="row" >
+              <div class="name">{{ props[name].title || name }}</div>
+              <div class="value">
+                  <value-editor
+                    :selections="props[name].selections"
+                    class="editor"
+                    :data-type="props[name].type"
+                    :value="propsData[name]"
+                    :hintText="props[name].description || props[name].title"
+                    @change="handlerChange(name, ...arguments)"
+                  />
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
     </div>
     <div v-if="showFooter" class="footer">
       {{propDescription}}
@@ -129,9 +133,15 @@ export default {
     padding: 10px;
   }
   .body {
+    .content {
+      overflow: visible;
+    }
     flex-grow: 1;
     flex-basis: 0px;
-    overflow-y: auto;
+    overflow-y: hidden;
+    &:hover {
+      overflow-y: auto;
+    }
     .subtitle {
       padding: 12px 12px 0px 12px;
       color: #aaa;

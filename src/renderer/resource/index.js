@@ -1,6 +1,5 @@
 import url from 'url'
 import { dirname } from 'path'
-import service from '../service'
 // import _ from 'lodash'
 // import assert from 'assert'
 
@@ -118,5 +117,3 @@ Object.assign(resource, {
 })
 
 export default resource
-
-service('resource', resource)

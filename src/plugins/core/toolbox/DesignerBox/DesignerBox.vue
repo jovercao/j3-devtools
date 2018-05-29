@@ -10,7 +10,9 @@
           <i :class="{ 'el-icon-arrow-down': outlineExpaned, 'el-icon-arrow-right': !outlineExpaned }"/>
         </div>
       </div>
-      <OutlineBox class="body"/>
+      <div class="body">
+        <OutlineBox class="content"/>
+      </div>
     </div>
     <div  :class="['property-box', { 'collapsed': !propertyExpand }]">
       <div slot="title" class="header" @click="propertyExpand = !propertyExpand">
@@ -97,7 +99,13 @@ export default {
     .body {
       flex-grow: 1;
       flex-basis: 0px;
-      overflow: auto;
+      .content {
+        overflow: visible;
+      }
+      overflow: hidden;
+      &:hover {
+        overflow: auto;
+      }
     }
   }
 

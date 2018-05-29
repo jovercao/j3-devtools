@@ -1,4 +1,3 @@
-import service from '../service'
 import Vue from 'vue'
 import Vuex from 'vuex'
 import root from './root'
@@ -8,8 +7,9 @@ import _ from 'lodash'
 import { normalizeModule } from '../utils/vuex'
 
 Vue.use(Vuex)
-
-const instance = new Vuex.Store(normalizeModule(root))
+const bind = normalizeModule(root)
+const instance = new Vuex.Store(root)
+bind(instance)
 
 /**
  * 注册模块 或者 注销模块 以及获取store
@@ -22,7 +22,8 @@ function store(namespace, module) {
     if (instance._modules.get(path)) {
       throw new Error(`Store模块命名冲突，命名空间'${namespace}'已被注册！`)
     }
-    return instance.registerModule(path, normalizeModule(module))
+    normalizeModule(module)(instance)
+    return instance.registerModule(path, module)
   }
   if (_.isString(namespace)) {
     return instance.unregisterModule(namespace)
@@ -39,7 +40,6 @@ function store(namespace, module) {
 }
 
 // 注册服务
-service('store', store)
 // 注册动态组件模块
 store(namespaces.dynamic, dynamic)
 

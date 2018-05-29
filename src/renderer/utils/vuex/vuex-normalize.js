@@ -1,16 +1,16 @@
 import StateHelper from './vuex-state-helper'
 
 const stateHelperMethods = [
-  '$push',
-  '$pop',
-  '$shift',
-  '$unshift',
-  '$splice',
-  '$sort',
-  '$reverse',
-  '$set',
-  '$delete',
-  '$invoke'
+  'push',
+  'pop',
+  'shift',
+  'unshift',
+  'splice',
+  'sort',
+  'reverse',
+  'set',
+  'delete',
+  'invoke'
 ]
 
 /**
@@ -27,7 +27,117 @@ export function normalizeModule(module) {
 
   const mutations = module.mutations || (module.mutations = {})
   const actions = module.actions || (module.actions = {})
-  let actionKeys
+  // store实例，跨模块调用。
+  // let $store
+
+  function syncCall(local, context, methodName, method, playload) {
+    const stateHelper = new StateHelper(local.state, methodName)
+    stateHelper.invoke(() => method.call(context, playload))
+    local.commit(`@${methodName}`, stateHelper)
+    return stateHelper.result[0]
+  }
+
+  function submitChanges(state, stateHelper) {
+    stateHelper.submit()
+  }
+
+  function createContext(local, { methodName, root, namespace }) {
+    const { commit, dispatch, state, getters, rootState, rootGetters } = local
+    let stateHelper
+    return new Proxy({}, {
+      has(target, key) {
+        return !!actions[key]
+      },
+      ownKeys(target) {
+        return Object.keys(actions)
+      },
+      get(target, key, receiver) {
+        if (key === 'state') {
+          let $state = root ? rootState : state
+          // 获取命名空间下的state
+          if (namespace) {
+            return namespace.split('/').reduce((state, key) => state[key], $state)
+          }
+          return $state
+        }
+
+        if (key === 'getters') {
+          let $getters = root ? rootGetters : getters
+          // 获取命名空间下的state
+          if (namespace) {
+            return namespace.split('/').reduce((getter, key) => getter[key], $getters)
+          }
+          return $getters
+        }
+
+        // 访问要模块
+        if (key === '$root') {
+          return createContext(local, { root: true })
+        }
+
+        // 含状态, action 内context
+        if (methodName && key.startsWith('$')) {
+          const shmName = key.substr(1)
+          if (!stateHelper) stateHelper = new StateHelper()
+          // state
+          if (stateHelperMethods.includes(shmName)) {
+            return function(...args) {
+              stateHelper[shmName](...args)
+            }
+          }
+
+          if (key === '$commit') {
+            return function(handler) {
+              if (handler) {
+                stateHelper.invoke(handler)
+              }
+              // 未修改，不提交
+              if (!stateHelper.changes.length === 0) {
+                return
+              }
+              commit(`@${methodName}`, stateHelper)
+              return stateHelper.result
+            }
+          }
+        }
+
+        // 访问子模块
+        if (key.startsWith('$')) {
+          const subModule = key.substr(1)
+          namespace = namespace ? `${namespace}/${subModule}` : subModule
+          return createContext(local, root, namespace)
+        }
+
+        // 获取方法
+        if (!root && !namespace && actions[key]) {
+          // 当前模块的同步方法
+          if (syncMethods[key]) {
+            return function(playload) {
+              const context = createContext(local, { methodName: key })
+              return syncCall(local, context, key, syncMethods[key], playload)
+            }
+          }
+        }
+        // // 如果访问的是别的模块，并且绑定了store
+        // if ((root || namespace) && $store) {
+        //   // 判断是否为同步方法
+        //   const targetModule = $store._modules.get(namespace.split('/'))._rawModule
+        //   if (targetModule.syncMethods[key]) {
+        //     const context = createContext(local, { methodName: key, namespace, root })
+        //     syncCall(local, )
+        //   }
+        // }
+
+        return function (playload) {
+          let type = namespace ? `${namespace}/${key}` : key
+          return dispatch(type, playload, { root })
+        }
+      },
+      set() {
+        throw new Error('method context 不允许set操作！')
+      }
+    })
+  }
 
   const normalizeMethod = (methodKey, method, isSync) => {
     // const method = methods[methodKey]
@@ -39,9 +149,7 @@ export function normalizeModule(module) {
       throw new Error(`store module， method名称 '${methodKey}' 命名冲突！已存在同名mutation '${methodType}'`)
     }
     // 添加mutation
-    mutations[methodType] = function submitChanges(state, stateHelper) {
-      stateHelper.submit()
-    }
+    mutations[methodType] = submitChanges
 
     // 同步的方法
     if (isSync) {
@@ -52,109 +160,27 @@ export function normalizeModule(module) {
 
     // 添加actions
     actions[methodKey] = function (local, playload) {
-      const {
-        commit,
-        dispatch,
-        state,
-        getters,
-        rootState,
-        rootGetters
-      } = local
-      let stateHelper
-      const getStateHelper = () => stateHelper || (stateHelper = new StateHelper())
-      const createContext = (root, namespace) => {
-        return new Proxy({}, {
-          has(target, key) {
-            return actionKeys.includes(key)
-          },
-          ownKeys(target) {
-            return actionKeys
-          },
-          get(target, key, receiver) {
-            if (key === 'state') {
-              let $state = root ? rootState : state
-              // 获取命名空间下的state
-              if (namespace) {
-                return namespace.split('/').reduce((state, key) => state[key], $state)
-              }
-              return $state
-            }
-
-            if (key === 'getters') {
-              let $getters = root ? rootGetters : getters
-              // 获取命名空间下的state
-              if (namespace) {
-                return namespace.split('/').reduce((getter, key) => getter[key], $getters)
-              }
-              return $getters
-            }
-
-            // state
-            if (!isSync && stateHelperMethods.includes(key)) {
-              return function(...args) {
-                getStateHelper()[key.substr(1)](...args)
-              }
-            }
-
-            if (!isSync && key === '$commit') {
-              return function (handler) {
-                if (handler) {
-                  getStateHelper().invoke(handler)
-                }
-                // 未修改，不提交
-                if (!stateHelper || stateHelper.changes.length === 0) {
-                  return
-                }
-                commit(methodType, stateHelper)
-              }
-            }
-
-            // 访问要模块
-            if (key === '$root') {
-              return createContext(true)
-            }
-            // 访问子模块
-            if (key.startsWith('$')) {
-              const subModule = key.substr(1)
-              namespace = namespace ? `${namespace}/${subModule}` : subModule
-              return createContext(root, namespace)
-            }
-
-            // 如果是访问当前模块，则加入检测，否则无法检测
-            if (!root && !namespace && !actionKeys.includes(key)) {
-              throw new Error(`没有找到指定的method 或 action '${key}'。`)
-            }
-
-            return function (...args) {
-              let type = namespace ? `${namespace}/${key}` : key
-              return dispatch(type, ...args, { root })
-            }
-          },
-          set() {
-            throw new Error('method context 不允许set操作！')
-          }
-        })
-      }
-      const context = createContext(false)
-
+      const context = createContext(local, { methodName: methodKey })
       if (isSync) {
-        const helper = getStateHelper()
-        helper.invoke(() => method.call(context, playload))
-        commit(methodType, helper)
-        return helper.result[0]
-      } else {
-        return method.call(context, playload)
+        return syncCall(local, context, methodKey, method, playload)
       }
-
+      return method.call(context, playload)
     }
+
   }
   methods && Object.keys(methods).forEach((key) => normalizeMethod(key, methods[key], false))
   syncMethods && Object.keys(syncMethods).forEach(key => normalizeMethod(key, syncMethods[key], true))
 
   if (module.modules) {
-    Object.keys(module.modules).forEach(name => normalizeModule(module.modules[name]))
+    Object.keys(module.modules).forEach(name => {
+      if (stateHelperMethods.includes(name)) {
+        throw new Error(`命名冲突!模块${name} 与 context.${name}冲突,请修改后再进行。`)
+      }
+      normalizeModule(module.modules[name])
+    })
   }
-  actionKeys = Object.keys(actions)
 
-  return module
+  return function bindStore(store) {
+    // $store = store
+  }
 }

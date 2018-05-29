@@ -1,8 +1,7 @@
 import config from './config'
-import mixin from './mixin'
+// import mixin from './mixin'
+// import Vue from 'vue'
 import _ from 'lodash'
-import Vue from 'vue'
-
 const Editors = {}
 
 const defaultEditors = config.get('content-editors')
@@ -35,9 +34,9 @@ function editor(name, options) {
   }
   options.name = name
   Editors[name] = options
-  const component = Vue.component(options.component)
+  // const component = Vue.component(options.component)
   // 将editor注入到component中
-  mixin.joinTo('editor', component)
+  // mixin.joinTo('editor', component)
 }
 
 editor.all = function() {

@@ -7,6 +7,7 @@ import config from '../config'
 import _ from '../utils'
 import OpenDialog from '../views/dialogs/OpenDialog'
 import commands from '../commands'
+import messages from '../messages'
 const hidedToolboxes = config.get('hide-toolboxes')
 
 export default {
@@ -68,7 +69,7 @@ export default {
       return state.activeTab ? state.activeTab.content : null
     },
     menus() {
-      toolbox.refreshViewMenus()
+      toolbox.refreshViewMenus(menus, commands)
       return menus()
     },
     openedContents(state) {
@@ -89,8 +90,8 @@ export default {
     openPath({ resourceType, path }) {
 
     },
-    copyToClipboard({ type, source, data }) {
-      this.state.clipboard = { type, source, data }
+    copyToClipboard(content) {
+      this.state.clipboard = content
     },
     clearClipboard() {
       this.state.clipboard = null
@@ -144,6 +145,9 @@ export default {
         tab = state.openedTabs[tab]
       }
       state.activeTab = tab
+      if (tab) {
+        messages.dispatch('tabActived', tab)
+      }
     },
     closeActiveTab() {
       this.closeTab(this.state.activeTab)
@@ -165,12 +169,15 @@ export default {
         delete state.openeds[tab.uri]
         state.openedTabs.splice(index, 1)
       }
-      if (state.openedTabs.length > 0) {
-        const activeIndex =
-          state.openedTabs.length > index ? index : state.openedTabs.length - 1
-        this.setActiveTab(activeIndex)
-      } else {
-        this.setActiveTab(null)
+      // 当前页被关闭，激活另一个页
+      if (state.activeTab === tab) {
+        if (state.openedTabs.length > 0) {
+          const activeIndex =
+            state.openedTabs.length > index ? index : state.openedTabs.length - 1
+          this.setActiveTab(activeIndex)
+        } else {
+          this.setActiveTab(null)
+        }
       }
     },
     /**
@@ -355,18 +362,22 @@ export default {
       this.closeTab(tab)
       return true
     },
-    // 保存内容
-    async save(tab) {
+    async doSave(tab) {
       const { state } = this
       if (!state.activeTab) return
-      tab = tab || state.activeTab
       // 预处理
       // this.updateEditorData(tab)
       const { uri, path } = tab
       const data = tab.context.getChangedData()
       const toSave = { uri, path, data }
+      await resource.set(toSave)
+    },
+    // 保存内容
+    async save(tab) {
+      tab = tab || this.state.activeTab
+      if (!tab) return
       try {
-        await resource.set(toSave)
+        await this.doSave(tab)
         helper.message({
           type: 'success',
           showClose: true,
@@ -386,7 +397,7 @@ export default {
       const { state } = this
       try {
         for (const tab of state.openedTabs) {
-          await this.save(tab)
+          await this.doSave(tab)
         }
       } catch (err) {
         helper.message({

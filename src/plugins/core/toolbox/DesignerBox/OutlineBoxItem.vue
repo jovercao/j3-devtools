@@ -20,7 +20,7 @@
       </div>
     </div>
     <div class="children" v-show="expaned" v-if="components[viewData.type].slots">
-      <div class="slot" v-for="(slotDef, slotName, index) in components[viewData.type].slots" :key="index">
+      <div class="slot" v-for="(slotDef, slotName) in components[viewData.type].slots" :key="slotName">
         <div :class="['item', { 'heightlight': slotName === hlslot }]"
           :style="{ 'padding-left':  12 + deeps * 18 + 'px' }"
           @dragover.stop="_onSlotDragover(slotName, $event)"
@@ -190,7 +190,7 @@ export default {
     white-space: nowrap; //强制文本在一行内输出
     overflow: hidden; //隐藏溢出部分
     text-overflow: ellipsis; //对溢出部分加上...
-    // transition: background-color .2s;
+    transition: background-color .2s;
     cursor: pointer;
     .icon {
       vertical-align: middle;

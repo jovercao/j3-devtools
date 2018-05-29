@@ -22,7 +22,6 @@ export default {
     // this.items = [
     //   {
     //     name: 'd:\\',
-    //     path: 'd:\\',
     //     isPath: true,
     //     expand: true,
     //     children: [
@@ -32,14 +31,13 @@ export default {
     // ]
   },
   render() {
-    const resource = this.$service('resource')
     let deep = 0
     const r = (items) => {
       deep++
       const dom = <ul>
         { items && items.map(item =>
           <li>
-            <div class={['item', { active: this.activeTab && item.path === this.activeTab.id }]} on-click={ async (event) => {
+            <div class={['item', { active: this.activeTab && item.uri === this.activeTab.uri }]} on-click={ async (event) => {
               event.stopPropagation()
               if (item.isPath) {
                 await this.toggleExpand(item)
@@ -47,10 +45,7 @@ export default {
               if (!item.isPath) {
                 try {
 
-                  await this.$ide.open(resource.toUriString({
-                    resourceType: this.type,
-                    path: item.path
-                  }))
+                  await this.$ide.open(item.uri)
                 } catch (err) {
                   this.$alert(err.message, '错误！')
                 }
@@ -77,9 +72,14 @@ export default {
       return (contentType && contentType.icon) || 'el-icon-document'
     },
     properItems(items) {
+      const { resource } = this.$service
       items.forEach(item => {
         item.expand = false
         item.children = []
+        item.uri = resource.toUriString({
+          resourceType: this.type,
+          path: item.path
+        })
       })
       return _.sortBy(items, [ (x) => -x.isPath, 'name' ])
     },
