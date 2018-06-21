@@ -1,10 +1,19 @@
-/**
- * 属性定义
-//  */
-// class PropsDefine {
+import style from './style'
+import schema from './schema'
+import project from './project'
+import vue from './vue'
+import store from './store'
+import binding from './binding'
+import component from './component'
 
-// }
+export * from './validate'
 
-// class ComponentDefine {
-
-// }
+export default {
+  schema,
+  style,
+  project,
+  vue,
+  store,
+  binding,
+  component
+}

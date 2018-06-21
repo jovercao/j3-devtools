@@ -38,10 +38,7 @@ export default {
     type: String,
     required: true
   },
-  title: {
-    type: String,
-    required: true
-  },
+  title: '样式',
   props: {
     type: Object,
     required: false,

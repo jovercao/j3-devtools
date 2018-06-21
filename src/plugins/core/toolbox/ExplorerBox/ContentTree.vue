@@ -34,7 +34,7 @@ export default {
     let deep = 0
     const r = (items) => {
       deep++
-      const dom = <ul>
+      const dom = <ul class="tree">
         { items && items.map(item =>
           <li>
             <div class={['item', { active: this.activeTab && item.uri === this.activeTab.uri }]} on-click={ async (event) => {
@@ -44,7 +44,6 @@ export default {
               }
               if (!item.isPath) {
                 try {
-
                   await this.$ide.open(item.uri)
                 } catch (err) {
                   this.$alert(err.message, '错误！')
@@ -54,7 +53,9 @@ export default {
               <i class={ this.contentIcon(item) } style={{ 'margin-left': deep * 12 + 'px' }}/>
               <span style="margin-left: 5px">{ item.name }</span>
             </div>
-            { item.expand && item.children && item.children.length > 0 && r(item.children) }
+            <expand-transition>
+              { item.expand && item.children && item.children.length > 0 && r(item.children) }
+            </expand-transition>
           </li>
         ) }
       </ul>
@@ -62,6 +63,9 @@ export default {
       return dom
     }
     return r(this.items)
+
+    // <expand-transition>
+    // </expand-transition>
   },
   methods: {
     contentIcon(item) {
@@ -115,13 +119,13 @@ export default {
 </script>
 
 <style lang="less" scoped>
-ul {
+
+ul.tree {
   margin: 0px;
   padding: 0px;
   li {
     padding: 0px;
     margin: 0px;
-    overflow: hidden;
     display: block;
     .item {
       height: 28px;
@@ -132,6 +136,7 @@ ul {
       white-space: nowrap; //强制文本在一行内输出
       overflow: hidden; //隐藏溢出部分
       text-overflow: ellipsis; //对溢出部分加上...
+      transition: background-color .2s;
       &:hover, &.active {
         background: rgba(116, 0, 173, 0.157)
       }

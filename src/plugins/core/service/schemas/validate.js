@@ -21,6 +21,10 @@ function checkResult(result) {
   return result.message || result
 }
 
+function isInvalid(result) {
+  return result !== true
+}
+
 function isTypeOf(value, defTypes) {
   const types = _.isArray(defTypes) ? defTypes : [ defTypes ]
   for (const type of types) {
@@ -36,7 +40,7 @@ function isTypeIn(type, defTypes) {
   return types.includes(type)
 }
 
-function validate(value, schema) {
+function validate(value, schema, parent) {
   schema = schema || (value && value.$schema) // 被引用的
   assert(_.isObject(schema) && !_.isNull(schema), 'schema不能为空')
   // assert(_.isObject(value) && !_.isNull(schema), 'value不能为空')
@@ -79,7 +83,7 @@ function validate(value, schema) {
 
   // 自定义检查器
   if (!nullOrUndefined && schema.validator) {
-    const ret = schema.validator(value)
+    const ret = schema.validator(value, parent)
     const res = checkResult(ret)
     if (res !== true) {
       return invalid(`未能通过自定义函数验证，错误消息：${res}`)
@@ -107,7 +111,7 @@ function validate(value, schema) {
     } else if (_.isObject(schema.props)) {
       for (const [propName, propSchema] of Object.entries(schema.props)) {
         const propValue = value[propName]
-        const res = validate(propValue, propSchema)
+        const res = validate(propValue, propSchema, value)
         if (checkResult(res) !== true) {
           return invalid(`属性${propName}值${propValue}：${res}`)
         }
@@ -121,6 +125,7 @@ export {
   validate,
   invalid,
   valid,
+  isInvalid,
   isTypeOf,
   checkResult
 }

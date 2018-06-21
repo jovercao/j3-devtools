@@ -131,6 +131,7 @@ export default {
     flex-basis: 64px;
     border-top: #bbb solid 1px;
     padding: 10px;
+    text-overflow: ellipsis;
   }
   .body {
     .content {

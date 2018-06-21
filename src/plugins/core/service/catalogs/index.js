@@ -1,5 +1,5 @@
 import components, { categroy, checkAccepts, validate } from './components'
-import attributes from './attributes'
+import attributes from './components/attributes'
 import actions from './actions'
 import bindings from './bindings'
 import templates from './templates'

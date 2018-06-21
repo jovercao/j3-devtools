@@ -70,7 +70,22 @@ export default {
           let res = validate(value, propSchema)
           res = checkResult(res)
           if (res !== true) {
-            return invalid(`组件${comp.name}属性${name}的定义不正确，错误信息：${checkResult(res)}`)
+            return invalid(`组件${(comp && comp.name) || ''}属性${name}的定义不正确，错误信息：${checkResult(res)}`)
+          }
+        }
+        return valid()
+      }
+    },
+    quickProps: {
+      type: Array,
+      required: false,
+      validator(value, comp) {
+        if (comp) {
+          const props = comp.props.keys()
+          for (const item of value) {
+            if (!props.includes(item)) {
+              return invalid(`快速属性${item}必须为已声明的组件属性！`)
+            }
           }
         }
         return valid()

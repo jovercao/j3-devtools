@@ -29,7 +29,6 @@ export default {
   acceptsParent: [
     'J3FlexLayout'
   ],
-  events: [],
   // 示例
   default: [{
     title: '默认项',

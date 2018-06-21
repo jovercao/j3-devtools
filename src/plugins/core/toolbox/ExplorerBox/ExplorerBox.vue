@@ -20,9 +20,11 @@
           <ide-icon-button :icon="box.expand ? 'el-icon-arrow-down' : 'el-icon-arrow-right'" />
         </div>
       </div>
-      <div class="body" @mouseenter="hover = true" @mouseleave="hover = false" :style="{ 'overflow-y': (hover && scrollable) ? 'auto' : 'hidden'}">
-        <content-tree :type="box.name" :path="box.path" />
-      </div>
+      <expand-transition>
+        <div class="body" @mouseenter="hover = true" @mouseleave="hover = false" :style="{ 'overflow-y': (hover && scrollable) ? 'auto' : 'hidden'}">
+            <content-tree :type="box.name" :path="box.path" />
+        </div>
+      </expand-transition>
     </div>
   </div>
 </template>

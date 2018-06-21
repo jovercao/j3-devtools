@@ -122,6 +122,7 @@ export default {
 <style lang="less">
 .designer-component {
   cursor: default;
+  transition: background-color .2s ;
   .editable {
     outline: silver 1px dotted;
     // transition: background-color .2s;
@@ -131,9 +132,9 @@ export default {
   }
 
   &.selected {
-    background: rgba(235, 216, 250, 0.35);
+    background: rgba(235, 216, 250, 0.45);
     &.actived {
-      background: rgba(235, 216, 250, 0.55);
+      background: rgba(235, 216, 250, 0.85);
     }
   }
 
