@@ -17,12 +17,14 @@
           <span class="node" @click.stop="changePath('/')">/</span>
           <span v-for="(node, index) in paths" :key="index">
             <icon value="chevron_right" :size="12" />
-            <span class="node"  @click.stop="changeToNode">{{node.name}}</span>
+            <span class="node"  @click.stop="changeToNode(index)">{{node.name}}</span>
           </span>
         </div>
       </div>
       <div class="box">
-        <div tabindex="0" v-for="(item, index) in list" :key="index" :class="[ 'item', { active: selected === item } ]" @dblclick="enter(item)" @click="select(item)">
+        <div tabindex="0" v-for="(item, index) in list" :key="index"
+          :class="[ 'item', { active: selected === item } ]"
+          @dblclick="enter(item)" @click="select(item)">
           <icon :value="item.icon || (item.isPath ? 'folder' : 'insert_drive_file')" :size="48" />
           <br/>
           <div class="title">{{ item.title || item.name }}</div>
@@ -97,7 +99,7 @@ export default {
       const res = this.$service('resource')
       const old = this.uriInfo.path
       this.uriInfo.path = path
-      console.log(this.uri)
+
       if (path !== '/') {
         const exists = await res.exists(this.uri)
         if (!exists) {
@@ -114,7 +116,6 @@ export default {
         const node = this.paths[i]
         newPath += '/' + node.name
       }
-      console.log(newPath)
       this.changePath(newPath)
     },
     resourceTypeChange(value) {
@@ -138,7 +139,16 @@ export default {
     },
     done() {
       this.$emit('down', this.selected)
-      this.callback({ ok: true, data: this.selected })
+      const { resourceType, username, password, host, port } = this.uriInfo
+      const uri = this.$service.resource.toUriString({
+        resourceType,
+        host,
+        port,
+        username,
+        password,
+        path: this.selected.path
+      })
+      this.callback({ ok: true, data: uri })
     },
     handlerOpenClick() {
       if (!this.selected) {

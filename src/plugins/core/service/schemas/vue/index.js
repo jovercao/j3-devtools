@@ -1,6 +1,5 @@
 import { validate, invalid, isInvalid, valid } from '../../schemas/index'
 import style from '../../schemas/style'
-import { valid } from '../validate';
 
 export default {
   props: {

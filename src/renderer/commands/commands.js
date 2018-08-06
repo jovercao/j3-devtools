@@ -6,6 +6,11 @@ export default {
       ide.openProject()
     }
   },
+  'ide.close-project': {
+    handler({ ide }) {
+      ide.closeProject()
+    }
+  },
   'ide.cancel': {
     title: '取消',
     description: '取消执行/撤消，由当前进行响应',
@@ -63,6 +68,19 @@ export default {
   'ide.close-all': {
     handler({ ide }) {
       ide.closeAll()
+    }
+  },
+  'ide.exit': {
+    title: '关闭',
+    async handler({ ide }) {
+      if (ide.openedTabs.length > 0) {
+        const access = await ide.closeAll()
+        if (!access) {
+          return
+        }
+      }
+
+      window.close()
     }
   }
 }

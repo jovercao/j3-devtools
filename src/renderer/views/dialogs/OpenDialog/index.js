@@ -10,7 +10,7 @@ export default {
         el: document.createElement('div')
       })
       instance.callback = function({ ok, data }) {
-        resolve(ok && data)
+        resolve({ ok, data })
         instance.$destroy()
         instance.$el.remove()
       }

@@ -10,7 +10,6 @@ const defaultConfig = {
   // 下载用临时目录
   'temp-path': './temps',
   'content-editors': {
-    '*': 'text-editor',
     'txt': 'text-editor'
   },
   // 快捷键

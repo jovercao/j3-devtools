@@ -3,9 +3,7 @@ import {
   load as loadCatalogs
 } from '../service/catalogs'
 import _ from 'lodash'
-import {
-  properViewData
-} from '../helper/viewData'
+import { properVue, properView } from '../helper/viewData'
 import Vue from 'vue'
 
 export const namespace = 'vue-editor'
@@ -31,8 +29,8 @@ const util = {
 }
 
 const state = {
-  // 当前视图数据
-  viewData: null,
+  // 当前编辑Vue
+  vue: null,
   // 选中的视图项
   activeItem: null,
   // 选中的项，多选
@@ -49,6 +47,9 @@ const getters = {
   // 当前选择组件信息
   selectedComponent(state) {
     return state.activeItem && state.catalogs.components[state.activeItem.type]
+  },
+  viewData(state) {
+    return state.vue && state.vue.view
   },
   components(state) {
     return state.catalogs ? state.catalogs.components : {}
@@ -160,18 +161,18 @@ const syncMethods = {
       Vue.set(item.props, prop, value)
     }
   },
-  beginEdit(viewData) {
+  beginEdit(vue) {
     const {
       state
     } = this
     // if (state.viewData) {
     //   throw new Error('在调用beginEdit之前必须调用 endEdit以清除上一次的编辑状态！')
     // }
-    if (!viewData.propered) {
-      properViewData(viewData)
-      viewData.propered = true
+    if (!vue.propered) {
+      properVue(vue)
+      vue.propered = true
     }
-    state.viewData = viewData
+    state.vue = vue
   },
   endEdit() {
     Vue.set(this.state, 'viewData', null)
@@ -364,7 +365,7 @@ const syncMethods = {
         // 从原有插糟移除
         this.remove(item)
       } else {
-        properViewData(item)
+        properView(item)
       }
       item.parent = container
       item.slot = slot

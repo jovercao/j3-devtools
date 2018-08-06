@@ -18,7 +18,10 @@
         <mu-flat-button icon="dvr" label="效果预览" @click="preview" :primary="currentView == 'preview'"></mu-flat-button>
       </div>
     </div>
-    <designer-view :visible="currentView === 'design'" class="body" :mode="designMode" v-show="currentView === 'design' || currentView === 'preview'" :value="value"></designer-view>
+    <designer-view :visible="currentView === 'design'"
+      class="body" :mode="designMode"
+      v-show="currentView === 'design' || currentView === 'preview'"
+      :value="value"></designer-view>
     <code-view class="body" v-show="currentView === 'code'" :value="value"></code-view>
   </div>
 </template>

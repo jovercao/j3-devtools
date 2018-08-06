@@ -60,14 +60,14 @@ Object.assign(resource, {
   /**
   * 转换为获取Uri字符串
   */
-  toUriString({ resourceType, username, password, path, host }) {
+  toUriString({ resourceType, username, password, path, port, host }) {
     // assert(!_.isString(path), 'path 必须为string类型')
     // assert(!_.isString(resourceType), 'resourceType 必须为string类型')
     if (!path.startsWith('/')) {
       path = '/' + path
     }
     path = path.replace(/\\/g, '/')
-    const uri = `${resourceType}://${(username && `${username}:${password}@`) || ''}${host || ''}${path}`
+    const uri = `${resourceType}://${(username && `${username}:${password}@`) || ''}${host || ''}${port > 0 ? ':' + port : ''}${path}`
     return uri
   },
   /**
@@ -103,7 +103,6 @@ Object.assign(resource, {
   },
   async list (uri) {
     const conn = await resource.connect(uri)
-    console.log(conn)
     const res = await conn.list(conn.options.path)
     return res
   },

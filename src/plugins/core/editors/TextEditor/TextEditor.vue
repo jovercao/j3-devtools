@@ -8,7 +8,7 @@
     >
     <template v-for="(line, index) in this.lines"><div :row="index" :key="index" class="line">{{line}}</div></template>
   </div> -->
-  <textarea class="text-editor" v-model="value"></textarea>
+  <textarea class="text-editor" v-model="value.content"></textarea>
 </template>
 
 <script>

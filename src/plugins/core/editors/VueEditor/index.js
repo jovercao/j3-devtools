@@ -1,7 +1,7 @@
 import VueEditor from './VueEditor.vue'
 import Vue from 'vue'
 import _ from 'lodash'
-import { readValue } from '../../helper/viewData'
+import { unproperVue } from '../../helper/viewData'
 
 Vue.component(VueEditor.name, VueEditor)
 
@@ -18,7 +18,7 @@ export default {
     return JSON.parse(_.toString(src))
   },
   convertTo(value) {
-    const newItem = readValue(value)
+    const newItem = unproperVue(value)
     return JSON.stringify(newItem)
   }
 }

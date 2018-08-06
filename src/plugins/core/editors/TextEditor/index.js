@@ -1,6 +1,6 @@
 import TextEditor from './TextEditor.vue'
 import ctx from '@'
-import _ from 'lodash'
+import { fromBuffer, toBuffer } from './util'
 
 ctx.Vue.component(TextEditor.name, TextEditor)
 
@@ -12,7 +12,16 @@ export default {
   description: '用于编辑纯文本文件',
   contentTypes: [
     'text',
-    'txt'
+    'txt',
+    'md',
+    'js',
+    'json',
+    'xml',
+    'ini',
+    'html',
+    'css',
+    'vue',
+    'jade'
   ],
   tools: [
     {
@@ -22,10 +31,10 @@ export default {
     }
   ],
   // 从源数据进行转换
-  convertFrom(value) {
-    return _.toString(value) // .split('\n')
+  convertFrom(buffer) {
+    return fromBuffer(buffer)
   },
   convertTo(value) {
-    return value // .join('\n')
+    return toBuffer(value)
   }
 }

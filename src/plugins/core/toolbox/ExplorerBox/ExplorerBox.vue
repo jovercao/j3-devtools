@@ -4,25 +4,28 @@
 <browser-view>
 </browser-view>
 </mu-popover> -->
-    <div v-for="(box, index) in outlineBoxes" :key="index" :class="['outline-box', { 'collapsed': !box.expand }]">
+    <div v-if="opened" :class="['outline-box', { 'collapsed': !opened.expand }]">
 
-      <div class="header" @click.stop="box.expand = !box.expand">
+      <div class="header" @click.stop="opened.expand = !opened.expand">
         <div class="left">
-          <i :class="box.icon" />
+          <i :class="opened.icon" />
         </div>
         <div class="center">
-          {{box.title}}
+          {{opened.title}} {{opened.path}}
         </div>
-        <div class="tools">
+        <!-- <div class="tools">
           <ide-icon-button icon="el-icon-plus" :size="12" @click.stop="$exec('ide.open-resource')" />
-        </div>
+        </div> -->
         <div class="right">
-          <ide-icon-button :icon="box.expand ? 'el-icon-arrow-down' : 'el-icon-arrow-right'" />
+          <ide-icon-button :icon="opened.expand ? 'el-icon-arrow-down' : 'el-icon-arrow-right'" />
         </div>
       </div>
       <expand-transition>
-        <div class="body" @mouseenter="hover = true" @mouseleave="hover = false" :style="{ 'overflow-y': (hover && scrollable) ? 'auto' : 'hidden'}">
-            <content-tree :type="box.name" :path="box.path" />
+        <div class="body"
+          @mouseenter="hover = true"
+          @mouseleave="hover = false"
+          :style="{ 'overflow-y': (hover && scrollable) ? 'auto' : 'hidden'}">
+          <content-tree :type="opened.name" :path="opened.path" />
         </div>
       </expand-transition>
     </div>
@@ -31,7 +34,7 @@
 
 <script>
 // import BrowserView from './BrowserView'
-// import { mapState, mapAction } from 'vuex'
+import { mapState } from 'vuex'
 import ContentTree from './ContentTree.vue'
 
 export default {
@@ -47,34 +50,60 @@ export default {
     ContentTree
   },
   created() {
-    this.loadData()
+    // this.loadData()
   },
   data() {
     // const resource = this.$service('resource')
     // const outlineBoxes = resource.all().map(res => ({ title: res.title, icon: res.icon, name: res.name, expand: false, path: '/' }))
     return {
       outlineBoxes: [],
-      openeds: {},
-      hover: false
+      hover: false,
+      opened: null
+    }
+  },
+  computed: {
+    ...mapState([ 'project' ])
+  },
+  watch: {
+    project: {
+      deep: true,
+      handler(curVal, oldVal) {
+        if (!curVal) {
+          this.opened = null
+          return
+        }
+        const res = this.$service.resource(curVal.resourceType)
+        if (!this.opened) {
+          this.opened = {
+            expand: true
+          }
+        }
+        Object.assign(this.opened, {
+          title: res.title,
+          icon: res.icon,
+          name: res.name,
+          path: this.project.path
+        })
+      }
     }
   },
   methods: {
     // openResource(resourceType) {
     //   this.browsing = true
     // },
-    async loadData() {
-      const resource = this.$service('resource')
-      const items = resource.all().map(res => ({
-        title: res.title,
-        icon: res.icon,
-        name: res.name,
-        expand: true,
-        path: '/'
-      }))
-      this.$nextTick(() => {
-        this.outlineBoxes = items
-      })
-    }
+    // async loadData() {
+    //   const resource = this.$service('resource')
+    //   const items = resource.all().map(res => ({
+    //     title: res.title,
+    //     icon: res.icon,
+    //     name: res.name,
+    //     expand: true,
+    //     path: '/'
+    //   }))
+    //   this.$nextTick(() => {
+    //     this.outlineBoxes = items
+    //   })
+    // }
   }
 }
 </script>
@@ -151,6 +180,9 @@ export default {
       // 中间
       .center {
         flex: 1 1 0px;
+        white-space: nowrap; //强制文本在一行内输出
+        overflow: hidden; //隐藏溢出部分
+        text-overflow: ellipsis; //对溢出部分加上...
       }
     }
     .body {

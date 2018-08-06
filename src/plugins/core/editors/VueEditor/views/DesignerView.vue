@@ -1,6 +1,6 @@
 <template>
   <div class="designer-view" tabindex="0">
-    <DesignerComponent v-if="value" :viewData="value" :activeItem="activeItem"
+    <DesignerComponent v-if="value" :viewData="value.view" :activeItem="activeItem"
       :selecteds="selecteds"
       :preview="mode === 'preview'"
       :heightlightItme="hoveringItem"

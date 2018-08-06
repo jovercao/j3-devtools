@@ -1,15 +1,19 @@
 import _ from 'lodash'
-// * 准备ViewData数据
-export function properViewData(item) {
-  for (const slot in item.slots) {
-    const items = item.slots[slot]
+export function properVue(vue) {
+  properView(vue.view)
+}
+
+// * 准备View数据
+export function properView(view) {
+  for (const slot in view.slots) {
+    const items = view.slots[slot]
     if (items) {
       items.forEach((childItem, index) => {
         // 添加父级指针，方便后续操作
         childItem.slot = slot
-        childItem.parent = item
+        childItem.parent = view
         childItem.index = index
-        properViewData(childItem)
+        properView(childItem)
       })
     }
   }
@@ -29,16 +33,23 @@ export function hasChild(container, item) {
   return false
 }
 
-export function readValue(item) {
-  const { slots, props, type, bindings, events, styles, classes } = item
+export function unproperVue(vue) {
+  const { view, data, css, methods, computed } = vue
+  return {
+    view: unproperView(view),
+    data,
+    css,
+    methods,
+    computed
+  }
+}
+
+export function unproperView(item) {
+  const { slots, props, type } = item
   const newItem = {
     type,
     slots: {},
-    props: _.cloneDeep(props),
-    bindings: _.cloneDeep(bindings),
-    events: _.cloneDeep(events),
-    styles: _.cloneDeep(styles),
-    classes: _.cloneDeep(classes)
+    props: _.cloneDeep(props)
   }
 
   for (const slot in slots) {
@@ -46,7 +57,7 @@ export function readValue(item) {
     const newChildren = newItem.slots[slot] = []
     if (children) {
       children.forEach(childItem => {
-        newChildren.push(readValue(childItem))
+        newChildren.push(unproperView(childItem))
       })
     }
   }

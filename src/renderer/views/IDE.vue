@@ -123,6 +123,7 @@ export default {
   created() {
     this.activeDefaultSidebar()
     this.activeDefaultBottombar()
+    document.title = this.appTitle
   },
   data() {
     return {
@@ -149,6 +150,9 @@ export default {
       'hidedToolboxes',
       'sidebarVisible'
     ]),
+    ...mapState({
+      appTitle: state => (state.project && 'J3 IDE - ' + state.project.path) || 'J3 IDE'
+    }),
     ...mapGetters([
       'openedItems',
       'activeItem',
@@ -157,6 +161,11 @@ export default {
       'visibleSidebars',
       'visibleBottombars'
     ])
+  },
+  watch: {
+    appTitle(newVal) {
+      document.title = newVal
+    }
   },
   methods: {
     ...mapActions([

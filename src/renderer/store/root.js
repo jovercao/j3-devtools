@@ -24,6 +24,8 @@ export default {
         }
       ]
     },
+    // 所打开的项目 { path, resourceType }
+    project: null,
     // 剪切板
     clipboard: null,
     // {
@@ -41,8 +43,6 @@ export default {
     openedTabs: [],
     // 激活的当前页面
     activeTab: null,
-    // 打开的项目对象
-    project: null,
     // 打开的工具栏
     toolboxes: {
       'j3-components-box': true
@@ -88,7 +88,8 @@ export default {
   },
   syncMethods: {
     openPath({ resourceType, path }) {
-
+      this.state.project = { resourceType, path }
+      this.showSidebar('explorer-box')
     },
     copyToClipboard(content) {
       this.state.clipboard = content
@@ -203,8 +204,11 @@ export default {
       state.activeSidebar = item
     },
     showSidebar(sidebar) {
-      const { state } = this
+      const { state, getters } = this
       if (sidebar) {
+        if (typeof sidebar === 'string') {
+          sidebar = getters.sidebars.find(p => p.name === sidebar)
+        }
         state.activeSidebar = sidebar
       }
       state.sidebarVisible = true
@@ -329,8 +333,12 @@ export default {
       const { state } = this
       for (let i = state.openedTabs.length - 1; i >= 0; i--) {
         const tab = state.openedTabs[i]
-        await this.close(tab)
+        const res = await this.close(tab)
+        if (!res) {
+          return false
+        }
       }
+      return true
     },
     // 关闭打开的项
     async close(arg) {
@@ -415,11 +423,19 @@ export default {
     async openProject() {
       const result = await OpenDialog.show()
       if (result.ok) {
+        const uriInfo = resource.parseUri(result.data)
         this.openPath({
-          resourceType: result.resourceType,
-          path: result.selected.path
+          resourceType: uriInfo.resourceType,
+          path: uriInfo.path
         })
       }
+    },
+    async closeProject() {
+      const closed = await this.closeAll()
+      if (!closed) return
+      this.$commit((state) => {
+        this.state.project = null
+      })
     }
   },
   modules: {},

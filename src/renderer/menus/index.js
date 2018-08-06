@@ -43,14 +43,25 @@ const Menus = [
         command: 'ide.save-all'
       },
       {
-        title: '关闭',
+        title: '关闭项目',
+        icon: 'highlight_off',
+        command: 'ide.close-project'
+      },
+      {
+        title: '关闭当前',
         icon: 'close',
         command: 'ide.close'
       },
       {
-        title: '全部关闭',
-        icon: 'close',
+        title: '关闭所有',
+        icon: 'clear_all',
         command: 'ide.close-all'
+      },
+      '-',
+      {
+        title: '退出',
+        icon: 'exit',
+        command: 'ide.exit'
       }
     ]
   }, {

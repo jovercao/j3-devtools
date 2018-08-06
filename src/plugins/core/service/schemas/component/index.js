@@ -10,6 +10,11 @@ const propSchema = _.merge({}, schema, {
       type: String,
       required: false
     },
+    editor: {
+      tag: String,
+      options: Object,
+      component: Object
+    },
     selections: {
       type: Array,
       required: false,
@@ -28,9 +33,10 @@ const propSchema = _.merge({}, schema, {
         }
         return valid()
       }
-    },
-    // 删除props验证
-    props: undefined
+    }
+    // ,
+    // // 删除props验证
+    // props: undefined
   }
 })
 
