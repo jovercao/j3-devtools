@@ -5,9 +5,11 @@ import toolbox from '../toolbox'
 import helper from '../helper'
 import config from '../config'
 import _ from '../utils'
-import OpenDialog from '../views/dialogs/OpenDialog'
+// import OpenDialog from '../views/dialogs/OpenDialog'
 import commands from '../commands'
 import messages from '../messages'
+import { showOpenDialog } from '../utils/electron-remote'
+
 const hidedToolboxes = config.get('hide-toolboxes')
 
 export default {
@@ -421,14 +423,24 @@ export default {
       await resource.create(uri, data)
     },
     async openProject() {
-      const result = await OpenDialog.show()
-      if (result.ok) {
-        const uriInfo = resource.parseUri(result.data)
+      const paths = await showOpenDialog({
+        properties: ['openDirectory'],
+        title: '请选择要打开的路径'
+      })
+      if (paths && paths[0]) {
         this.openPath({
-          resourceType: uriInfo.resourceType,
-          path: uriInfo.path
+          resourceType: 'file',
+          path: paths[0]
         })
       }
+      // const paths = await OpenDialog.show()
+      // if (paths && paths[0]) {
+      //   const uriInfo = resource.parseUri(paths[0])
+      //   this.openPath({
+      //     resourceType: uriInfo.resourceType,
+      //     path: uriInfo.path
+      //   })
+      // }
     },
     async closeProject() {
       const closed = await this.closeAll()

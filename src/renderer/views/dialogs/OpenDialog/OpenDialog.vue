@@ -138,7 +138,6 @@ export default {
       this.pathInput = false
     },
     done() {
-      this.$emit('down', this.selected)
       const { resourceType, username, password, host, port } = this.uriInfo
       const uri = this.$service.resource.toUriString({
         resourceType,
@@ -148,7 +147,7 @@ export default {
         password,
         path: this.selected.path
       })
-      this.callback({ ok: true, data: uri })
+      this.$emit('down', [ uri ])
     },
     handlerOpenClick() {
       if (!this.selected) {
@@ -162,9 +161,7 @@ export default {
       this.done()
     },
     handlerClose() {
-      console.log(this)
       this.$emit('close')
-      this.callback({ ok: false })
     }
   }
 }

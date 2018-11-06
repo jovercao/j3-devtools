@@ -6,16 +6,17 @@ const OpenDialog = Vue.extend(openDialogVue)
 export default {
   async show(openType = 'file', resourceType = 'type') {
     return new Promise((resolve) => {
-      const instance = new OpenDialog({
-        el: document.createElement('div')
-      })
-      instance.callback = function({ ok, data }) {
-        resolve({ ok, data })
+      const instance = new OpenDialog({})
+      const callback = (paths) => {
+        resolve(paths)
         instance.$destroy()
         instance.$el.remove()
       }
-
-      document.body.appendChild(instance.$el)
+      instance.$on('down', callback)
+      instance.$on('close', callback)
+      const el = document.createElement('div')
+      document.body.appendChild(el)
+      instance.$mount(el)
     })
   }
 }

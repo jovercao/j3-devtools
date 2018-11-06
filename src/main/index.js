@@ -1,6 +1,6 @@
 'use strict'
 
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, Menu } from 'electron'
 import path from 'path'
 
 /**
@@ -20,6 +20,7 @@ const winURL =
     : `file://${__dirname}/index.html`
 
 function createWindow() {
+  Menu.setApplicationMenu(null)
   const icon = path.resolve(__dirname, '../../icon/j3.png')
   console.log(icon)
   /**

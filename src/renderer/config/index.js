@@ -31,7 +31,7 @@ function save() {
 
 function read() {
   const json = localStorage.getItem('ide')
-  if (!json) {
+  if (json) {
     console.log('json 内容', json)
     currentConfig = JSON.parse(json)
     return
