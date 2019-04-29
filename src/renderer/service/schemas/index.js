@@ -1,10 +1,10 @@
 /**
  * 属性定义
  */
-class PropsDefine {
+export class PropsDefine {
 
 }
 
-class ComponentDefine {
+export class ComponentDefine {
 
 }
