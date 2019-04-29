@@ -1,202 +1,428 @@
 <template>
-  <flex-panel class="container"
-      @mouseup.native="endResize"
-      @mousemove.native="resizeSidebar">
-    <!-- @mouseup.native="endResize" @mousemove.native="resizeSidebar" -->
-    <flex-panel-item :thickness="48" class="activitybar">
-      <flex-panel class="dock" direction="vertical">
-        <flex-panel-item class="body" :grow="1">
-          <mu-icon-button :class="{ active: activeSidebar === 'ComponentsSidebar' }" icon="view_module" @click="selectSidebar('ComponentsSidebar')" /> <br>
-          <mu-icon-button @dragover.native="handlerDrogover('DesignerSidebar', $event)" icon="view_headline" :class="{ active: activeSidebar === 'DesignerSidebar' }" @click="selectSidebar('DesignerSidebar')"/> <br>
-          <!-- <mu-icon-button :class="{ active: activeSidebar === 'property' }" icon="build" @click="selectSidebar('property')" /> <br> -->
-          <mu-icon-button icon="mouse" /> <br>
-          <mu-icon-button icon="flash_on" /> <br>
-          <mu-icon-button icon="data_usage" /> <br>
-        </flex-panel-item>
-        <flex-panel-item :thickness="64">
-          <mu-icon-button icon="settings" @click="loadData"/> <br>
-        </flex-panel-item>
-      </flex-panel>
-    </flex-panel-item>
-    <flex-panel-item class="sidebar" :thickness="sidebarWidth">
-      <keep-alive>  
-        <component :is="activeSidebar"></component>
-      </keep-alive>
-    </flex-panel-item>
-    <flex-panel-item class="sidebar-resizer"
-      :thickness="2"
-      @mousedown.native.stop.prevent="beginResize"
-    />
-    <flex-panel-item :grow="1" class="content">
-      <flex-panel class="dock" direction="vertical">
-        <flex-panel-item class="header" :thicknes="36">
-          <mu-flat-button
-            v-for="(item, index) in openeds" :key="index"
-            @click="setActive(item)"
-            :class="{ active: actived === item }"
-            :icon="item.icon" :label="item.title"/>
-        </flex-panel-item>
-        <flex-panel-item class="body" :grow="1">
-          <component
-            v-show="actived === item" v-for="(item, index) in openeds"
-            :key="index"
-            :is="getEditor(item)"
-            class="dock"/>
-        </flex-panel-item>
-      </flex-panel>
-    </flex-panel-item>
-  </flex-panel>
+  <div class="viewport">
+    <menubar class="menubar" />
+    <div class="container"
+        @mouseup="endResize"
+        @mousemove="resize">
+      <div class="activitybar">
+        <div class="body" :grow="1">
+          <div :key="index" v-for="(item, index) in visibleSidebars">
+            <mu-icon-button
+              :class="{ active: activeSidebar === item }"
+              :icon="item.icon | muIcon"
+              @click="handlerSidebar(item)"
+              @dragover.native.stop.prevent="showSidebar(item)"
+              />
+          </div>
+        </div>
+        <div class="footer">
+          <mu-icon-button icon="settings"/> <br>
+        </div>
+      </div>
+      <sidebar class="sidebar" v-show="sidebarVisible"
+        :style="{ 'width': sidebarWidth + 'px', cursor: sidebarResizeable ? 'e-resize' : 'auto' }"
+        :scrollable="!sidebarResizeable"
+        @mousemove.native="handlerSidebarMousemove"
+        @mousedown.native.stop="handlerBeginResize($event, 'sidebar')">
+      </sidebar>
+      <div class="content">
+        <div class="header">
+          <mu-popover 
+            :trigger="trigger"
+            :open="tabMenuVisibe"
+            @close="tabMenuVisibe = false"
+            >
+            <mu-menu>
+              <mu-menu-item title="关闭当前" />
+              <mu-menu-item title="关闭其他" />
+              <mu-menu-item title="关闭右侧" />
+              <mu-divider />
+              <mu-menu-item title="关闭所有" />
+            </mu-menu>
+          </mu-popover>
+          <div class="tab-sheets"
+            @contextmenu.stop="showTabMenu"
+            @mousewheel="$helper.scroll($event.currentTarget, - $event.wheelDelta)">
+            <mu-flat-button
+              v-for="(tab, index) in openedTabs" :key="index"
+              @click="setActiveTab(tab)"
+              @mousedown.native="handlerTabMouseDown(tab, $event)"
+              @dragover.native.stop.prevent="setActiveTab(tab)"
+              @mouseenter.native="hoverTab = tab"
+              @mouseleave.native="hoverTab = null"
+              :class="['tab-sheet', { active: activeTab === tab }]"
+              :icon="tab.icon | muIcon"
+              :label="tab.title"
+            >
+              <i @click.stop="close(tab)" class="el-icon-close close-btn"/>
+            </mu-flat-button>
+          </div>
+          <div class="tools">
+            <template v-if="activeTab">
+              <ide-icon-button v-for="(tool, index) in activeTab.editor.tools"
+                :key="index"
+                :icon="tool.icon"
+                :command="tool.command" />
+            </template>
+            <ide-icon-button icon="more_vert" @click.stop="showTabMenu">
+            </ide-icon-button>
+          </div>
+        </div>
+        <div class="body">
+            <component
+              v-for="(tab) in openedTabs"
+              :key="tab.uri"
+              class="dock"
+              v-show="activeTab === tab"
+              :uri="tab.uri"
+              :context="tab.context"
+              :contentType="tab.contentType"
+              :resourceType="tab.resourceType"
+              :is="tab.editor.component"
+            />
+        </div>
+        <!-- <div class="bottombar-resizer" ></div> -->
+        <bottombar v-show="bottombarVisible" v-if="activeBottombar !== null"
+          class="footer"
+          :style="{ 'flex-basis': bottombarHeight + 'px', cursor: bottombarCursor }"
+          @mousemove.native="handlerBottombarMousemove"
+          @mousedown.native.stop.prevent="handlerBeginResize($event, 'bottombar')"
+          />
+      </div>
+      <!-- <dialogs/> -->
+    </div>
+  </div>  
 </template>
 
 <script>
-import DesignerSidebar from './parts/DesignerSidebar'
-import ComponentsSidebar from './parts/ComponentsSidebar'
-import DesignerView from './parts/DesignerView'
-import CodeView from './parts/CodeView'
-import { mapState, mapActions, mapMutations } from 'vuex'
-import modules from '../../store/store-modules'
+import Menubar from './parts/Menubar'
+import Bottombar from './parts/Bottombar'
+import Sidebar from './parts/Sidebar'
+import { mapState, mapGetters, mapActions } from 'vuex'
+// import Dialogs from './parts/Dialogs'
 
 export default {
-  data() {
-    return {
-      sidebarWidth: 250,
-      sidebarVisible: true,
-      activeSidebar: null,
-      resizing: false,
-      resizeStartPos: null,
-      resizeStartSidebarWidth: 0
+
+  components: {
+    Menubar,
+    Bottombar,
+    Sidebar
+    // Dialogs
+  },
+  filters: {
+    muIcon(value) {
+      if (value) {
+        if (value.indexOf('-') >= 0) {
+          return ':' + value
+        }
+        return value
+      }
+      return ''
     }
   },
-  components: {
-    DesignerSidebar,
-    DesignerView,
-    ComponentsSidebar,
-    CodeView
-    // FlexContainer,
-    // FlexContainerItem,
-    // OutlineBox,
-    // PropertyBox
+  created() {
+    this.activeDefaultSidebar()
+    this.activeDefaultBottombar()
+    document.title = this.appTitle
+  },
+  data() {
+    return {
+      tabMenuVisibe: false,
+      trigger: null,
+      hoverTab: null,
+      sidebarWidth: 280,
+      bottombarHeight: 200,
+      sidebarResizing: false,
+      bottombarResizing: false,
+      resizeStartPos: null,
+      resizeStartThickness: 0,
+      sidebarResizeable: true,
+      bottombarCursor: 'auto'
+    }
   },
   computed: {
-    ...mapState(['actived']),
-    activeTab() {
-      return this.actived
+    ...mapState([
+      'activeTab',
+      'openedTabs',
+      'activeSidebar',
+      'activeBottombar',
+      'bottombarVisible',
+      'hidedToolboxes',
+      'sidebarVisible'
+    ]),
+    ...mapState({
+      appTitle: state => (state.project && 'J3 IDE - ' + state.project.path) || 'J3 IDE'
+    }),
+    ...mapGetters([
+      'openedItems',
+      'activeItem',
+      'sidebars',
+      'bottombars',
+      'visibleSidebars',
+      'visibleBottombars'
+    ])
+  },
+  watch: {
+    appTitle(newVal) {
+      document.title = newVal
     }
   },
   methods: {
-    ...mapActions(modules.UiDesigner, [
-      'loadCatalogs',
-      'openView'
+    ...mapActions([
+      'open',
+      'close',
+      'openFromUri',
+      'activeDefaultBottombar',
+      'activeDefaultSidebar',
+      // openeds
+      'setActiveTab',
+      'setActiveItem',
+      'closeActiveTab',
+      'openItem',
+      'openTab',
+      'closeTab',
+      'closeItem',
+      // sidebar
+      'setActiveSidebar',
+      'showSidebar',
+      'hideSidebar',
+      'toggleSidebar',
+
+      // bottombar
+      'setActiveBottombar',
+      'showBottombar',
+      'hideBottombar',
+      'toggleBottombar'
     ]),
-    ...mapMutations(modules.UiDesigner, [
-      'setActive'
-    ]),
-    getEditor(item) {
-      // item.content.contentType
-      return 'view-editor'
-    },
-    selectSidebar(name) {
-      this.activeSidebar = name
-    },
-    /**
-     * 切换侧边栏是否可见
-     */
-    toggleSidebar(state) {
-      state.sidebarVisible = !state.sidebarVisible
-    },
-    resizeSidebar(event) {
-      if (!this.resizing) return
-      const p = this.$helper.getMousePos(event)
-      let move = p.x - this.resizeStartPos.x
-      this.sidebarWidth = this.resizeStartSidebarWidth + move
-      // event.currentTarget.previousSibling.style.flexBasis = this.sidebarWidth + 'px'
-    },
-    beginResize(event) {
-      this.resizing = true
-      this.resizeStartPos = this.$helper.getMousePos(event)
-      this.resizeStartSidebarWidth = this.sidebarWidth
-    },
-    endResize(event) {
-      if (this.resizing) {
-        this.resizeSidebar(event)
-        this.resizeStartPos = null
-        this.resizeStartSidebarWidth = 0
-        this.resizing = false
+    handlerTabMouseDown(tab, event) {
+      if (event.button === 1) {
+        this.close(tab)
+        event.preventDefault()
       }
     },
-    async loadData() {
-      await this.loadCatalogs('http://simple.com/catalogs')
-      await this.openView('http://simple.com/views/simple.view')
+    showTabMenu(event) {
+      this.trigger = event.target
+      this.tabMenuVisibe = true
     },
-    handlerDrogover(viewName, event) {
-      event.stopPropagation()
-      event.preventDefault()
-      this.selectSidebar(viewName)
+    handlerSidebarMousemove(event) {
+      this.sidebarResizeable = (event.offsetX >= this.sidebarWidth - 3)
+    },
+    handlerBottombarMousemove(event) {
+      if (event.offsetY <= 3) {
+        this.bottombarCursor = 'n-resize'
+      } else {
+        this.bottombarCursor = 'auto'
+      }
+    },
+    handlerBottombar(item) {
+      if (!this.bottombarVisible) {
+        this.showBottombar(item)
+        // 如果已经是相同的bottombar，则隐藏
+      } else if (this.activeBottombar === item) {
+        this.toggleBottombar()
+      }
+      this.setActiveBottombar(item)
+    },
+    handlerSidebar(item) {
+      if (!this.sidebarVisible) {
+        this.showSidebar(item)
+        // 如果已经是相同的sidebar，则隐藏
+      } else if (this.activeSidebar === item) {
+        this.toggleSidebar()
+        item = null
+      }
+      this.setActiveSidebar(item)
+    },
+    resize(event) {
+      if (this.sidebarResizing) {
+        const p = this.$helper.getMousePos(event)
+        const offsetX = p.x - this.resizeStartPos.x
+        this.sidebarWidth = this.resizeStartThickness + offsetX
+      }
+      if (this.bottombarResizing) {
+        const p = this.$helper.getMousePos(event)
+        const offsetY = this.resizeStartPos.y - p.y
+        this.bottombarHeight = this.resizeStartThickness + offsetY
+      }
+      if (event.buttons !== 1) {
+        this.endResize()
+      }
+    },
+    handlerBeginResize(event, bar) {
+      if (bar === 'sidebar' && this.sidebarResizeable) {
+        this.sidebarResizing = true
+        this.resizeStartThickness = this.sidebarWidth
+      }
+      if (bar === 'bottombar' && this.bottombarCursor === 'n-resize') {
+        this.resizeStartThickness = this.bottombarHeight
+        this.bottombarResizing = true
+      }
+      this.resizeStartPos = this.$helper.getMousePos(event)
+    },
+    endResize() {
+      this.resizeStartPos = null
+      this.resizeStartThickness = 0
+      if (this.sidebarResizing) this.sidebarResizing = false
+      if (this.bottombarResizing) this.bottombarResizing = false
     }
   }
 }
 </script>
 
 
-<style lang="less" scoped>
-@import url('../../assets/define.less');
+<style lang="less">
+@import url('../assets/define.less');
 
 .dock {
   width: 100%;
   height: 100%;
 }
 
-.container {
+.viewport {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  overflow: hidden;
   .dock;
-  // .flex-v;
-  .sidebar {
-    background: @bg1;
-    overflow: auto;
-  }
 
-  .sidebar-resizer {
-    // flex-basis: 3px;
-    cursor: e-resize;
-    background: @bg2;
+  .menubar {
+    flex: 0 0 28px;
   }
+  .container {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    overflow: hidden;
+    flex: 1 1 0px;
 
-  .activitybar {
-    // .fixed50;
-    // .flex-h;
-    background: @bg2;
-    padding: 3px;
-    .active {
-      color: @active;
-    }
-    // .body {
-    //   // .scale1;
+
+    // .sidebar-resizer {
+    //   flex: 0 0 2px;
+    //   cursor: e-resize;
+    //   display: flex;
+    //   flex-direction: column;
+    //   align-items: stretch;
+    //   .header {
+    //     flex: 0 0 32px;
+    //     background: @bg2;
+    //   }
+    //   .body {
+    //     flex: 1 1 0px;
+    //     background: @bg1;
+    //   }
     // }
 
-    // .footer {
-    //   // .fixed50;
-    // }
-  }
-
-  .content {
-    // .scale1;
-    // .flex-h;
-    .header {
-      // flex-basis: 32px;
+    .activitybar {
+      flex-basis: 48px;
+      flex-grow: 0;
       background: @bg2;
-      .active {
-        color: @active;
-        background: @bg1;
+      padding: 3px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      color: #666;
+      .body {
+        flex: 1 1 0px;
+        .active {
+          color: @active !important;
+        }
+      }
+
+      .footer {
+        flex: 0 0 48px;
       }
     }
-    // .body {
-    //   // .scale1;
-    //   // .flex;
-    //   // .component {
-    //   //   .dock;
-    //   //   // .scale1;
-    //   //   overflow: auto;
-    //   // }
-    // }
+
+    .sidebar {
+      transform: display 1s;
+      min-width: 180px;
+      max-width: 80%;
+      flex: 0 0 auto;
+    }
+
+    .content {
+      flex: 1 1 0px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      overflow: hidden;
+      .header {
+        flex: 0 0 32px;
+        background: #f8f8f8;
+        display: flex;
+        align-items: stretch;
+        flex-wrap: nowrap;
+        flex-direction: row;
+        .tools {
+          flex: 0 1 0px;
+          padding-right: 5px;
+          max-width: 180px;
+          align-content: space-between;
+          flex-direction: row;
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+        }
+        .tab-sheets {
+          flex: 1 1 0px;
+          min-width: 0px;
+          overflow: hidden;
+          white-space:nowrap;
+          &:hover {
+            overflow-x: auto;
+          }
+          .tab-sheet {
+            display: inline-block;
+            // width: 150px;
+            height: 32px;
+            max-width: 150px;
+            div.mu-flat-button-wrapper {
+              justify-content: flex-start !important;
+              padding-right: 20px;
+            }
+            .mu-flat-button-label {
+              text-transform: none !important;
+              white-space: nowrap; //强制文本在一行内输出
+              overflow: hidden; //隐藏溢出部分
+              text-overflow: ellipsis; //对溢出部分加上...
+            }
+            &.active {
+              color: @active;
+              background: @bg1;
+              .close-btn {
+                visibility: visible;
+              }
+            }
+            &:hover {
+              .close-btn {
+                visibility: visible;
+              }
+            }
+            .close-btn {
+              visibility: hidden;
+              position: absolute;
+              right: 6%;
+              color: #444;
+              z-index: 200;
+            }
+          }
+        }
+      }
+      .body {
+        flex: 1 1 0px;
+      }
+      .bottombar-resizer {
+        flex: 0 0 2px;
+        cursor: n-resize;
+        background: @bg2;
+      }
+      .footer {
+        flex: 0 0 180px;
+        min-height: 100px;
+        max-height: 80%;
+        border-top: @bg2 solid 1px;
+      }
+    }
   }
 }
 </style>

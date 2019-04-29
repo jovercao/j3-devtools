@@ -1,14 +1,15 @@
+import IDE from '../views/IDE'
+import VueRouter from 'vue-router'
 import Vue from 'vue'
-import Router from 'vue-router'
 
-Vue.use(Router)
+Vue.use(VueRouter)
 
-export default new Router({
+const router = new VueRouter({
   routes: [
     {
       path: '/',
       name: 'landing-page',
-      component: require('../views/UIDesigner').default
+      component: IDE
     },
     {
       path: '*',
@@ -16,3 +17,5 @@ export default new Router({
     }
   ]
 })
+
+export default router

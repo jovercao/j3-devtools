@@ -1,24 +1,20 @@
-import catalogs from './catalogs'
-import generate from './generate'
-import resource from './resource'
+import createRegistry from '../utils/create-registry'
+import resource from '../resource'
+import commands from '../commands'
+import helper from '../helper'
+import toolbox from '../toolbox'
+import menus from '../menus'
+import apis from '../apis'
 
-const service = {
-  // 资源管理
+const service = createRegistry()
+
+service({
   resource,
-  /**
-   * 获取所有设计摘要列表
-   */
-  catalogs,
-  // 代码生成器
-  generate
-}
+  commands,
+  helper,
+  toolbox,
+  menus,
+  ide: apis
+})
 
-export default {
-  install(Vue, options) {
-    Vue.prototype.$service = service
-  }
-}
-
-export {
-  service
-}
+export default service

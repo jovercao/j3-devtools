@@ -1,20 +1,11 @@
-import * as marked from './marked'
 import * as dom from './dom'
-import * as style from './style'
+import msgbox from './msgbox'
+import * as vue from './vue'
 
 const helper = Object.assign({},
-  marked,
   dom,
-  style
+  vue,
+  msgbox
 )
 
-export default {
-  install(Vue, options) {
-    Vue.prototype.$helper = helper
-  },
-  helper
-}
-
-export {
-  helper
-}
+export default helper
