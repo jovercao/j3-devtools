@@ -12,7 +12,7 @@ import directives from './directives'
 // import dialogs from './dialogs'
 
 function init(ctx, config) {
-
+  // 注册服务
   ctx.service(services)
   // 注册资源
   ctx.resource('file', file(ctx, config))
@@ -22,7 +22,7 @@ function init(ctx, config) {
 
   // 注册工具栏
   ctx.toolbox(toolbox(ctx, config))
-
+  // 注册编辑器
   ctx.editor(editors)
   // 注册组件
   ctx.Vue.use(components)
@@ -33,7 +33,7 @@ function init(ctx, config) {
 
   // 注册命令
   ctx.commands(commands(ctx, config))
-
+  // 注册helper
   Object.assign(ctx.helper, helper)
 }
 
